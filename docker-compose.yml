@@ -1,9 +1,10 @@
 version: "3.9"
 
 services:
-  # ── PostgreSQL + PostGIS ───────────────────────────────────────────────────
+
+  # ── PostgreSQL 15 + PostGIS ────────────────────────────────────────────────
   db:
-    image: postgis/postgis:16-3.4
+    image: postgis/postgis:15-3.4
     restart: unless-stopped
     environment:
       POSTGRES_USER: bhoomi
@@ -13,43 +14,57 @@ services:
       - "5432:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./backend/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U bhoomi -d bhoomisetu"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 20s
 
-  # ── FastAPI Backend ────────────────────────────────────────────────────────
+  # ── FastAPI Backend (Python 3.11, Uvicorn) ─────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://bhoomi:changeme@db:5432/bhoomisetu
+      JWT_SECRET: changeme_in_production
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRY_MINUTES: "60"
+      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000"
+      DOCUMENT_STORAGE_PATH: /app/storage/documents
+      ML_MODEL_PATH: /app/ml/models
+      LOG_LEVEL: INFO
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
       - ./ml/models:/app/ml/models:ro
+      - backend_storage:/app/storage/documents
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-  # ── Vite / React Frontend ─────────────────────────────────────────────────
+  # ── React Frontend (placeholder — Nginx static server) ────────────────────
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: nginx:1.25-alpine
     restart: unless-stopped
-    env_file: .env
     ports:
-      - "5173:5173"
+      - "5173:80"
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend/public:/usr/share/nginx/html:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   pg_data:
+  backend_storage:
