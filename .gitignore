@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Environment
+.env
+
+# Build artefacts
+dist/
+build/
+
+# ML binary artefacts (store via DVC or release assets)
+ml/models/*.joblib
+
+# Synthetic data (regenerate with db/seed.py)
+data/synthetic/*.csv
