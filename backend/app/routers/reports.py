@@ -1,1 +1,263 @@
 """FastAPI router for /reports generation endpoints (TRD §4.10)."""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.responses import HTMLResponse
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.core.deps import get_current_user
+from app.database import get_db
+from app.models import AcquisitionStage, Compensation, Parcel, Project, RRRecord
+from app.models.enums import ParcelStatus, StageStatus
+
+router = APIRouter()
+
+
+def _generate_executive_html(data: dict) -> str:
+    """Generate a clean, professional HTML document for executive presentation."""
+    proj = data.get("project", {})
+    metrics = data.get("metrics", {})
+    stages = data.get("stages", {})
+    comp = data.get("compensation", {})
+    rr = data.get("rehabilitation", {})
+    generated_at = data.get("generated_at", "")
+
+    stages_rows = "".join(
+        f"<tr><td style='padding:8px;border-bottom:1px solid #e2e8f0;'>{st}</td>"
+        f"<td style='padding:8px;border-bottom:1px solid #e2e8f0;text-align:right;'>{cnt}</td></tr>"
+        for st, cnt in stages.items()
+    )
+
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BhoomiSetu — Executive Summary: {proj.get('name', 'National Overview')}</title>
+<style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 40px; color: #1e293b; background: #fff; line-height: 1.5; }}
+    .header {{ border-bottom: 3px solid #0284c7; padding-bottom: 16px; margin-bottom: 24px; }}
+    .badge {{ background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 9999px; font-weight: 600; font-size: 12px; text-transform: uppercase; }}
+    .grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }}
+    .card {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }}
+    .card h4 {{ margin: 0 0 8px 0; color: #64748b; font-size: 13px; text-transform: uppercase; }}
+    .card .val {{ font-size: 24px; font-weight: 700; color: #0f172a; margin: 0; }}
+    table {{ width: 100%; border-collapse: collapse; margin-top: 12px; }}
+    th {{ background: #f1f5f9; padding: 10px 8px; text-align: left; font-size: 13px; color: #475569; }}
+    .section {{ margin-bottom: 32px; }}
+    .footer {{ margin-top: 48px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px; }}
+</style>
+</head>
+<body>
+    <div class="header">
+        <span class="badge">BhoomiSetu Official Report</span>
+        <h1 style="margin: 8px 0 4px 0;">Executive Land Acquisition Summary</h1>
+        <p style="margin: 0; color: #64748b;">Project: <strong>{proj.get('name', 'All Projects')}</strong> | Status: <strong>{proj.get('status', 'ACTIVE')}</strong></p>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h4>Total Parcels</h4>
+            <div class="val">{metrics.get('total_parcels', 0):,}</div>
+        </div>
+        <div class="card">
+            <h4>Land Required</h4>
+            <div class="val">{metrics.get('land_required_ha', 0):,.1f} ha</div>
+        </div>
+        <div class="card">
+            <h4>Land Acquired</h4>
+            <div class="val">{metrics.get('land_acquired_ha', 0):,.1f} ha</div>
+        </div>
+        <div class="card">
+            <h4>Acquisition %</h4>
+            <div class="val">{metrics.get('progress_pct', 0):.1f}%</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 style="font-size: 18px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">Compensation & Disbursement</h2>
+        <div class="grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="card">
+                <h4>Approved Amount</h4>
+                <div class="val">₹{comp.get('approved_amount', 0):,.0f}</div>
+            </div>
+            <div class="card">
+                <h4>Disbursed (Paid)</h4>
+                <div class="val">₹{comp.get('paid_amount', 0):,.0f}</div>
+            </div>
+            <div class="card">
+                <h4>Pending Release</h4>
+                <div class="val">₹{comp.get('pending_amount', 0):,.0f}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2 style="font-size: 18px; border-bottom: 1px solid #cbd5e1; padding-bottom: 6px;">Workflow Stage Breakdown</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Acquisition Workflow Stage</th>
+                    <th style="text-align: right;">Active Parcels</th>
+                </tr>
+            </thead>
+            <tbody>
+                {stages_rows}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer">
+        Generated by BhoomiSetu Platform &bull; {generated_at} &bull; Confidential &bull; For Official Use Only
+    </div>
+</body>
+</html>"""
+
+
+@router.get(
+    "/executive-summary",
+    summary="Generate executive summary report (JSON or HTML)",
+)
+def get_executive_summary(
+    project_id: Optional[UUID] = Query(None),
+    format: str = Query("json", regex="^(json|html)$"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Generate high-level executive summary report."""
+    proj_info = {"name": "National Portfolio", "status": "ACTIVE"}
+    if project_id:
+        proj = db.execute(
+            select(Project).where(Project.project_id == project_id)
+        ).scalar_one_or_none()
+        if not proj:
+            raise HTTPException(status_code=404, detail="Project not found.")
+        proj_info = {
+            "project_id": str(proj.project_id),
+            "name": proj.name,
+            "type": proj.type,
+            "status": proj.status,
+            "states": proj.states,
+            "districts": proj.districts,
+        }
+
+    # Parcels query
+    p_stmt = select(
+        func.count(Parcel.parcel_id).label("total"),
+        func.coalesce(func.sum(Parcel.area_ha), 0.0).label("area"),
+        func.coalesce(func.avg(Parcel.risk_score), 0.0).label("avg_risk"),
+    )
+    if project_id:
+        p_stmt = p_stmt.where(Parcel.project_id == project_id)
+    p_totals = db.execute(p_stmt).one()
+
+    # Project land
+    if project_id:
+        land_req = float(proj.land_required_ha)
+        land_acq = float(proj.land_acquired_ha)
+    else:
+        l_totals = db.execute(
+            select(
+                func.coalesce(func.sum(Project.land_required_ha), 0.0),
+                func.coalesce(func.sum(Project.land_acquired_ha), 0.0),
+            )
+        ).one()
+        land_req = float(l_totals[0])
+        land_acq = float(l_totals[1])
+
+    progress_pct = round(land_acq / max(1.0, land_req) * 100, 1)
+
+    # Stages breakdown
+    st_stmt = select(Parcel.current_stage, func.count(Parcel.parcel_id))
+    if project_id:
+        st_stmt = st_stmt.where(Parcel.project_id == project_id)
+    stage_counts = dict(db.execute(st_stmt.group_by(Parcel.current_stage)).all())
+
+    # Compensation
+    c_stmt = (
+        select(
+            func.coalesce(func.sum(Compensation.approved_amount), 0.0),
+            func.coalesce(func.sum(Compensation.paid_amount), 0.0),
+        )
+        .join(Parcel, Parcel.parcel_id == Compensation.parcel_id)
+    )
+    if project_id:
+        c_stmt = c_stmt.where(Parcel.project_id == project_id)
+    c_row = db.execute(c_stmt).one()
+    approved = float(c_row[0])
+    paid = float(c_row[1])
+
+    # R&R
+    r_stmt = select(func.count(RRRecord.rr_id)).join(Parcel, Parcel.parcel_id == RRRecord.parcel_id)
+    if project_id:
+        r_stmt = r_stmt.where(Parcel.project_id == project_id)
+    total_rr = db.execute(r_stmt).scalar() or 0
+
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+
+    report_data = {
+        "report_title": "Executive Land Acquisition Summary",
+        "generated_at": now_iso,
+        "project": proj_info,
+        "metrics": {
+            "total_parcels": p_totals.total,
+            "total_parcel_area_ha": round(float(p_totals.area), 2),
+            "land_required_ha": round(land_req, 2),
+            "land_acquired_ha": round(land_acq, 2),
+            "progress_pct": progress_pct,
+            "avg_risk_score": round(float(p_totals.avg_risk), 2),
+        },
+        "stages": stage_counts,
+        "compensation": {
+            "approved_amount": approved,
+            "paid_amount": paid,
+            "pending_amount": max(0.0, approved - paid),
+            "disbursement_pct": round(paid / max(1.0, approved) * 100, 1),
+        },
+        "rehabilitation": {
+            "total_affected_families": total_rr,
+        },
+    }
+
+    if format == "html":
+        html_content = _generate_executive_html(report_data)
+        return HTMLResponse(content=html_content, status_code=200)
+
+    return report_data
+
+
+@router.get(
+    "/projects/{project_id}/pdf-stub",
+    summary="Download project executive report as HTML/PDF stub",
+)
+def download_project_report_stub(
+    project_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Return downloadable HTML document ready for printing or converting to PDF."""
+    proj = db.execute(
+        select(Project).where(Project.project_id == project_id)
+    ).scalar_one_or_none()
+    if not proj:
+        raise HTTPException(status_code=404, detail="Project not found.")
+
+    report_dict = get_executive_summary(
+        project_id=project_id,
+        format="json",
+        db=db,
+        current_user=current_user,
+    )
+    html = _generate_executive_html(report_dict)
+
+    filename = f"{proj.name.replace(' ', '_')}_executive_summary.html"
+    return Response(
+        content=html,
+        media_type="text/html",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )

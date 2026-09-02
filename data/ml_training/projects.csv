@@ -1,0 +1,261 @@
+project_id,name,type,states,districts,land_required_ha,land_acquired_ha,status,is_delayed_30d
+PROJ-1000,Tamil Nadu Port Corridor #1,Port,Tamil Nadu,Jodhpur,290.67,0.0,ACTIVE,1
+PROJ-1001,Tamil Nadu Metro Corridor #2,Metro,Tamil Nadu,Vadodara,692.92,0.0,ACTIVE,0
+PROJ-1002,Gujarat Highway Corridor #3,Highway,Gujarat,Jodhpur,261.48,0.0,ACTIVE,1
+PROJ-1003,Rajasthan Railway Corridor #4,Railway,Rajasthan,Vadodara,552.17,0.0,ACTIVE,1
+PROJ-1004,Maharashtra Metro Corridor #5,Metro,Maharashtra,Pune,534.98,0.0,ACTIVE,1
+PROJ-1005,Maharashtra Port Corridor #6,Port,Maharashtra,Jaipur,120.44,0.0,ACTIVE,1
+PROJ-1006,Karnataka Industrial Corridor #7,Industrial,Karnataka,Thane,664.51,0.0,ACTIVE,1
+PROJ-1007,Rajasthan Highway Corridor #8,Highway,Rajasthan,Vadodara,89.9,0.0,ACTIVE,1
+PROJ-1008,Maharashtra Highway Corridor #9,Highway,Maharashtra,Pune,634.08,0.0,ACTIVE,0
+PROJ-1009,Tamil Nadu Metro Corridor #10,Metro,Tamil Nadu,Jaipur,879.12,0.0,ACTIVE,1
+PROJ-1010,Karnataka Port Corridor #11,Port,Karnataka,Raigad,591.65,0.0,ACTIVE,1
+PROJ-1011,Maharashtra Port Corridor #12,Port,Maharashtra,Jodhpur,1151.66,0.0,ACTIVE,1
+PROJ-1012,Gujarat Port Corridor #13,Port,Gujarat,Jaipur,854.09,0.0,ACTIVE,0
+PROJ-1013,Karnataka Port Corridor #14,Port,Karnataka,Jaipur,325.03,0.0,ACTIVE,1
+PROJ-1014,Maharashtra Railway Corridor #15,Railway,Maharashtra,Vadodara,431.7,0.0,ACTIVE,1
+PROJ-1015,Rajasthan Metro Corridor #16,Metro,Rajasthan,Vadodara,786.09,0.0,ACTIVE,0
+PROJ-1016,Maharashtra Highway Corridor #17,Highway,Maharashtra,Jodhpur,176.11,0.0,ACTIVE,1
+PROJ-1017,Tamil Nadu Railway Corridor #18,Railway,Tamil Nadu,Jodhpur,1097.25,0.0,ACTIVE,1
+PROJ-1018,Tamil Nadu Industrial Corridor #19,Industrial,Tamil Nadu,Vadodara,968.61,0.0,ACTIVE,1
+PROJ-1019,Maharashtra Industrial Corridor #20,Industrial,Maharashtra,Surat,666.01,0.0,ACTIVE,0
+PROJ-1020,Gujarat Industrial Corridor #21,Industrial,Gujarat,Jaipur,369.21,0.0,ACTIVE,0
+PROJ-1021,Karnataka Railway Corridor #22,Railway,Karnataka,Jaipur,71.09,0.0,ACTIVE,0
+PROJ-1022,Gujarat Port Corridor #23,Port,Gujarat,Vadodara,943.98,0.0,ACTIVE,1
+PROJ-1023,Maharashtra Railway Corridor #24,Railway,Maharashtra,Surat,934.55,0.0,ACTIVE,0
+PROJ-1024,Maharashtra Industrial Corridor #25,Industrial,Maharashtra,Surat,546.49,0.0,ACTIVE,1
+PROJ-1025,Tamil Nadu Highway Corridor #26,Highway,Tamil Nadu,Jaipur,239.93,0.0,ACTIVE,1
+PROJ-1026,Rajasthan Industrial Corridor #27,Industrial,Rajasthan,Jodhpur,628.51,0.0,ACTIVE,1
+PROJ-1027,Tamil Nadu Highway Corridor #28,Highway,Tamil Nadu,Jodhpur,492.6,0.0,ACTIVE,1
+PROJ-1028,Tamil Nadu Industrial Corridor #29,Industrial,Tamil Nadu,Vadodara,455.47,0.0,ACTIVE,1
+PROJ-1029,Maharashtra Industrial Corridor #30,Industrial,Maharashtra,Jodhpur,303.48,0.0,ACTIVE,1
+PROJ-1030,Rajasthan Port Corridor #31,Port,Rajasthan,Vadodara,99.24,0.0,ACTIVE,0
+PROJ-1031,Rajasthan Port Corridor #32,Port,Rajasthan,Vadodara,477.85,0.0,ACTIVE,0
+PROJ-1032,Gujarat Metro Corridor #33,Metro,Gujarat,Thane,899.79,0.0,ACTIVE,1
+PROJ-1033,Gujarat Metro Corridor #34,Metro,Gujarat,Raigad,501.06,0.0,ACTIVE,0
+PROJ-1034,Tamil Nadu Industrial Corridor #35,Industrial,Tamil Nadu,Pune,251.75,0.0,ACTIVE,1
+PROJ-1035,Tamil Nadu Industrial Corridor #36,Industrial,Tamil Nadu,Raigad,498.09,0.0,ACTIVE,1
+PROJ-1036,Tamil Nadu Metro Corridor #37,Metro,Tamil Nadu,Jodhpur,847.22,0.0,ACTIVE,0
+PROJ-1037,Gujarat Industrial Corridor #38,Industrial,Gujarat,Raigad,913.89,0.0,ACTIVE,1
+PROJ-1038,Tamil Nadu Industrial Corridor #39,Industrial,Tamil Nadu,Raigad,573.53,0.0,ACTIVE,0
+PROJ-1039,Gujarat Railway Corridor #40,Railway,Gujarat,Vadodara,603.7,0.0,ACTIVE,1
+PROJ-1040,Maharashtra Industrial Corridor #41,Industrial,Maharashtra,Jaipur,577.74,0.0,ACTIVE,0
+PROJ-1041,Karnataka Railway Corridor #42,Railway,Karnataka,Surat,398.59,0.0,ACTIVE,1
+PROJ-1042,Gujarat Port Corridor #43,Port,Gujarat,Raigad,808.62,0.0,ACTIVE,0
+PROJ-1043,Maharashtra Highway Corridor #44,Highway,Maharashtra,Pune,399.28,0.0,ACTIVE,0
+PROJ-1044,Gujarat Metro Corridor #45,Metro,Gujarat,Vadodara,200.59,0.0,ACTIVE,1
+PROJ-1045,Rajasthan Metro Corridor #46,Metro,Rajasthan,Jaipur,437.95,0.0,ACTIVE,0
+PROJ-1046,Gujarat Port Corridor #47,Port,Gujarat,Surat,340.83,0.0,ACTIVE,1
+PROJ-1047,Tamil Nadu Metro Corridor #48,Metro,Tamil Nadu,Jaipur,1176.5,0.0,ACTIVE,0
+PROJ-1048,Rajasthan Highway Corridor #49,Highway,Rajasthan,Thane,1145.79,0.0,ACTIVE,0
+PROJ-1049,Gujarat Port Corridor #50,Port,Gujarat,Jaipur,487.36,0.0,ACTIVE,1
+PROJ-1050,Maharashtra Industrial Corridor #51,Industrial,Maharashtra,Pune,429.99,0.0,ACTIVE,0
+PROJ-1051,Maharashtra Industrial Corridor #52,Industrial,Maharashtra,Thane,742.33,0.0,ACTIVE,0
+PROJ-1052,Karnataka Highway Corridor #53,Highway,Karnataka,Thane,713.41,0.0,ACTIVE,0
+PROJ-1053,Tamil Nadu Highway Corridor #54,Highway,Tamil Nadu,Jaipur,519.91,0.0,ACTIVE,0
+PROJ-1054,Karnataka Highway Corridor #55,Highway,Karnataka,Raigad,67.28,0.0,ACTIVE,0
+PROJ-1055,Rajasthan Industrial Corridor #56,Industrial,Rajasthan,Surat,118.74,0.0,ACTIVE,0
+PROJ-1056,Gujarat Highway Corridor #57,Highway,Gujarat,Thane,1186.92,0.0,ACTIVE,1
+PROJ-1057,Karnataka Metro Corridor #58,Metro,Karnataka,Raigad,982.55,0.0,ACTIVE,1
+PROJ-1058,Karnataka Metro Corridor #59,Metro,Karnataka,Surat,181.86,0.0,ACTIVE,0
+PROJ-1059,Tamil Nadu Highway Corridor #60,Highway,Tamil Nadu,Raigad,1057.47,0.0,ACTIVE,1
+PROJ-1060,Tamil Nadu Industrial Corridor #61,Industrial,Tamil Nadu,Jodhpur,915.05,0.0,ACTIVE,0
+PROJ-1061,Gujarat Industrial Corridor #62,Industrial,Gujarat,Thane,856.23,0.0,ACTIVE,1
+PROJ-1062,Gujarat Metro Corridor #63,Metro,Gujarat,Thane,235.19,0.0,ACTIVE,1
+PROJ-1063,Rajasthan Metro Corridor #64,Metro,Rajasthan,Raigad,269.4,0.0,ACTIVE,0
+PROJ-1064,Karnataka Port Corridor #65,Port,Karnataka,Vadodara,615.18,0.0,ACTIVE,1
+PROJ-1065,Tamil Nadu Metro Corridor #66,Metro,Tamil Nadu,Vadodara,304.51,0.0,ACTIVE,0
+PROJ-1066,Karnataka Metro Corridor #67,Metro,Karnataka,Raigad,206.19,0.0,ACTIVE,1
+PROJ-1067,Tamil Nadu Industrial Corridor #68,Industrial,Tamil Nadu,Surat,227.19,0.0,ACTIVE,1
+PROJ-1068,Karnataka Railway Corridor #69,Railway,Karnataka,Jaipur,856.36,0.0,ACTIVE,0
+PROJ-1069,Karnataka Port Corridor #70,Port,Karnataka,Jaipur,1062.04,0.0,ACTIVE,1
+PROJ-1070,Tamil Nadu Highway Corridor #71,Highway,Tamil Nadu,Pune,938.94,0.0,ACTIVE,0
+PROJ-1071,Karnataka Industrial Corridor #72,Industrial,Karnataka,Jodhpur,543.57,0.0,ACTIVE,0
+PROJ-1072,Gujarat Metro Corridor #73,Metro,Gujarat,Surat,650.28,0.0,ACTIVE,0
+PROJ-1073,Rajasthan Railway Corridor #74,Railway,Rajasthan,Thane,58.74,0.0,ACTIVE,1
+PROJ-1074,Maharashtra Port Corridor #75,Port,Maharashtra,Vadodara,864.3,0.0,ACTIVE,1
+PROJ-1075,Karnataka Metro Corridor #76,Metro,Karnataka,Jaipur,296.37,0.0,ACTIVE,1
+PROJ-1076,Maharashtra Highway Corridor #77,Highway,Maharashtra,Vadodara,136.49,0.0,ACTIVE,1
+PROJ-1077,Tamil Nadu Port Corridor #78,Port,Tamil Nadu,Pune,722.54,0.0,ACTIVE,0
+PROJ-1078,Karnataka Railway Corridor #79,Railway,Karnataka,Jodhpur,950.27,0.0,ACTIVE,0
+PROJ-1079,Maharashtra Metro Corridor #80,Metro,Maharashtra,Thane,615.99,0.0,ACTIVE,0
+PROJ-1080,Karnataka Metro Corridor #81,Metro,Karnataka,Jaipur,96.0,0.0,ACTIVE,1
+PROJ-1081,Rajasthan Railway Corridor #82,Railway,Rajasthan,Jaipur,1053.25,0.0,ACTIVE,1
+PROJ-1082,Rajasthan Railway Corridor #83,Railway,Rajasthan,Jodhpur,522.32,0.0,ACTIVE,0
+PROJ-1083,Rajasthan Railway Corridor #84,Railway,Rajasthan,Raigad,202.15,0.0,ACTIVE,0
+PROJ-1084,Rajasthan Railway Corridor #85,Railway,Rajasthan,Jaipur,300.72,0.0,ACTIVE,1
+PROJ-1085,Karnataka Industrial Corridor #86,Industrial,Karnataka,Raigad,1055.21,0.0,ACTIVE,1
+PROJ-1086,Tamil Nadu Port Corridor #87,Port,Tamil Nadu,Jaipur,376.1,0.0,ACTIVE,1
+PROJ-1087,Rajasthan Industrial Corridor #88,Industrial,Rajasthan,Surat,1120.61,0.0,ACTIVE,0
+PROJ-1088,Karnataka Highway Corridor #89,Highway,Karnataka,Pune,358.86,0.0,ACTIVE,0
+PROJ-1089,Maharashtra Highway Corridor #90,Highway,Maharashtra,Raigad,315.58,0.0,ACTIVE,0
+PROJ-1090,Rajasthan Industrial Corridor #91,Industrial,Rajasthan,Surat,826.58,0.0,ACTIVE,0
+PROJ-1091,Rajasthan Railway Corridor #92,Railway,Rajasthan,Jaipur,987.04,0.0,ACTIVE,0
+PROJ-1092,Gujarat Industrial Corridor #93,Industrial,Gujarat,Vadodara,827.71,0.0,ACTIVE,1
+PROJ-1093,Maharashtra Railway Corridor #94,Railway,Maharashtra,Pune,149.83,0.0,ACTIVE,1
+PROJ-1094,Karnataka Railway Corridor #95,Railway,Karnataka,Raigad,825.45,0.0,ACTIVE,0
+PROJ-1095,Karnataka Metro Corridor #96,Metro,Karnataka,Jaipur,1140.14,0.0,ACTIVE,1
+PROJ-1096,Maharashtra Port Corridor #97,Port,Maharashtra,Thane,1018.04,0.0,ACTIVE,0
+PROJ-1097,Gujarat Port Corridor #98,Port,Gujarat,Thane,1073.12,0.0,ACTIVE,1
+PROJ-1098,Karnataka Port Corridor #99,Port,Karnataka,Jodhpur,369.17,0.0,ACTIVE,1
+PROJ-1099,Tamil Nadu Industrial Corridor #100,Industrial,Tamil Nadu,Thane,213.36,0.0,ACTIVE,1
+PROJ-1100,Gujarat Metro Corridor #101,Metro,Gujarat,Jaipur,418.27,0.0,ACTIVE,1
+PROJ-1101,Maharashtra Railway Corridor #102,Railway,Maharashtra,Thane,432.86,0.0,ACTIVE,0
+PROJ-1102,Karnataka Port Corridor #103,Port,Karnataka,Thane,277.48,0.0,ACTIVE,1
+PROJ-1103,Gujarat Railway Corridor #104,Railway,Gujarat,Jaipur,606.09,0.0,ACTIVE,1
+PROJ-1104,Tamil Nadu Highway Corridor #105,Highway,Tamil Nadu,Jaipur,1195.9,0.0,ACTIVE,0
+PROJ-1105,Tamil Nadu Highway Corridor #106,Highway,Tamil Nadu,Jodhpur,366.42,0.0,ACTIVE,1
+PROJ-1106,Rajasthan Industrial Corridor #107,Industrial,Rajasthan,Jodhpur,690.28,0.0,ACTIVE,0
+PROJ-1107,Tamil Nadu Highway Corridor #108,Highway,Tamil Nadu,Jaipur,357.38,0.0,ACTIVE,1
+PROJ-1108,Maharashtra Industrial Corridor #109,Industrial,Maharashtra,Vadodara,1019.57,0.0,ACTIVE,1
+PROJ-1109,Tamil Nadu Metro Corridor #110,Metro,Tamil Nadu,Raigad,463.58,0.0,ACTIVE,1
+PROJ-1110,Rajasthan Highway Corridor #111,Highway,Rajasthan,Pune,189.19,0.0,ACTIVE,1
+PROJ-1111,Tamil Nadu Port Corridor #112,Port,Tamil Nadu,Pune,700.77,0.0,ACTIVE,0
+PROJ-1112,Karnataka Port Corridor #113,Port,Karnataka,Thane,626.27,0.0,ACTIVE,1
+PROJ-1113,Rajasthan Port Corridor #114,Port,Rajasthan,Pune,584.66,0.0,ACTIVE,1
+PROJ-1114,Tamil Nadu Port Corridor #115,Port,Tamil Nadu,Surat,913.4,0.0,ACTIVE,0
+PROJ-1115,Rajasthan Port Corridor #116,Port,Rajasthan,Jodhpur,507.28,0.0,ACTIVE,1
+PROJ-1116,Gujarat Port Corridor #117,Port,Gujarat,Pune,1179.7,0.0,ACTIVE,1
+PROJ-1117,Tamil Nadu Port Corridor #118,Port,Tamil Nadu,Jaipur,665.37,0.0,ACTIVE,1
+PROJ-1118,Rajasthan Highway Corridor #119,Highway,Rajasthan,Vadodara,903.58,0.0,ACTIVE,0
+PROJ-1119,Tamil Nadu Railway Corridor #120,Railway,Tamil Nadu,Raigad,1146.28,0.0,ACTIVE,0
+PROJ-1120,Maharashtra Highway Corridor #121,Highway,Maharashtra,Vadodara,177.8,0.0,ACTIVE,1
+PROJ-1121,Maharashtra Industrial Corridor #122,Industrial,Maharashtra,Thane,500.62,0.0,ACTIVE,1
+PROJ-1122,Maharashtra Industrial Corridor #123,Industrial,Maharashtra,Raigad,789.12,0.0,ACTIVE,1
+PROJ-1123,Gujarat Industrial Corridor #124,Industrial,Gujarat,Thane,371.32,0.0,ACTIVE,1
+PROJ-1124,Gujarat Port Corridor #125,Port,Gujarat,Raigad,632.27,0.0,ACTIVE,1
+PROJ-1125,Maharashtra Metro Corridor #126,Metro,Maharashtra,Vadodara,474.14,0.0,ACTIVE,0
+PROJ-1126,Maharashtra Metro Corridor #127,Metro,Maharashtra,Raigad,493.51,0.0,ACTIVE,0
+PROJ-1127,Tamil Nadu Highway Corridor #128,Highway,Tamil Nadu,Surat,916.19,0.0,ACTIVE,1
+PROJ-1128,Rajasthan Metro Corridor #129,Metro,Rajasthan,Pune,1065.15,0.0,ACTIVE,0
+PROJ-1129,Tamil Nadu Metro Corridor #130,Metro,Tamil Nadu,Thane,70.46,0.0,ACTIVE,0
+PROJ-1130,Rajasthan Industrial Corridor #131,Industrial,Rajasthan,Jodhpur,803.65,0.0,ACTIVE,0
+PROJ-1131,Tamil Nadu Railway Corridor #132,Railway,Tamil Nadu,Thane,420.95,0.0,ACTIVE,0
+PROJ-1132,Rajasthan Port Corridor #133,Port,Rajasthan,Surat,1137.87,0.0,ACTIVE,1
+PROJ-1133,Gujarat Highway Corridor #134,Highway,Gujarat,Vadodara,320.18,0.0,ACTIVE,1
+PROJ-1134,Maharashtra Industrial Corridor #135,Industrial,Maharashtra,Jaipur,986.46,0.0,ACTIVE,0
+PROJ-1135,Karnataka Metro Corridor #136,Metro,Karnataka,Jodhpur,599.88,0.0,ACTIVE,1
+PROJ-1136,Gujarat Metro Corridor #137,Metro,Gujarat,Raigad,257.18,0.0,ACTIVE,0
+PROJ-1137,Rajasthan Railway Corridor #138,Railway,Rajasthan,Surat,825.44,0.0,ACTIVE,0
+PROJ-1138,Tamil Nadu Industrial Corridor #139,Industrial,Tamil Nadu,Surat,776.72,0.0,ACTIVE,1
+PROJ-1139,Tamil Nadu Port Corridor #140,Port,Tamil Nadu,Thane,1067.36,0.0,ACTIVE,0
+PROJ-1140,Karnataka Railway Corridor #141,Railway,Karnataka,Surat,412.2,0.0,ACTIVE,1
+PROJ-1141,Gujarat Industrial Corridor #142,Industrial,Gujarat,Surat,1029.96,0.0,ACTIVE,1
+PROJ-1142,Maharashtra Highway Corridor #143,Highway,Maharashtra,Thane,135.63,0.0,ACTIVE,0
+PROJ-1143,Karnataka Metro Corridor #144,Metro,Karnataka,Vadodara,146.66,0.0,ACTIVE,0
+PROJ-1144,Rajasthan Metro Corridor #145,Metro,Rajasthan,Pune,685.21,0.0,ACTIVE,1
+PROJ-1145,Rajasthan Metro Corridor #146,Metro,Rajasthan,Pune,888.61,0.0,ACTIVE,0
+PROJ-1146,Tamil Nadu Highway Corridor #147,Highway,Tamil Nadu,Jaipur,282.78,0.0,ACTIVE,1
+PROJ-1147,Rajasthan Metro Corridor #148,Metro,Rajasthan,Thane,768.89,0.0,ACTIVE,0
+PROJ-1148,Rajasthan Highway Corridor #149,Highway,Rajasthan,Jaipur,487.81,0.0,ACTIVE,0
+PROJ-1149,Rajasthan Industrial Corridor #150,Industrial,Rajasthan,Pune,311.31,0.0,ACTIVE,1
+PROJ-1150,Karnataka Highway Corridor #151,Highway,Karnataka,Pune,264.95,0.0,ACTIVE,1
+PROJ-1151,Gujarat Metro Corridor #152,Metro,Gujarat,Raigad,710.21,0.0,ACTIVE,0
+PROJ-1152,Karnataka Railway Corridor #153,Railway,Karnataka,Jaipur,636.43,0.0,ACTIVE,0
+PROJ-1153,Karnataka Metro Corridor #154,Metro,Karnataka,Pune,398.54,0.0,ACTIVE,1
+PROJ-1154,Karnataka Industrial Corridor #155,Industrial,Karnataka,Thane,1084.54,0.0,ACTIVE,0
+PROJ-1155,Maharashtra Railway Corridor #156,Railway,Maharashtra,Jodhpur,562.96,0.0,ACTIVE,1
+PROJ-1156,Tamil Nadu Railway Corridor #157,Railway,Tamil Nadu,Vadodara,794.27,0.0,ACTIVE,1
+PROJ-1157,Rajasthan Metro Corridor #158,Metro,Rajasthan,Jaipur,1142.32,0.0,ACTIVE,1
+PROJ-1158,Rajasthan Highway Corridor #159,Highway,Rajasthan,Surat,501.5,0.0,ACTIVE,0
+PROJ-1159,Maharashtra Highway Corridor #160,Highway,Maharashtra,Surat,191.92,0.0,ACTIVE,0
+PROJ-1160,Karnataka Metro Corridor #161,Metro,Karnataka,Surat,1107.85,0.0,ACTIVE,0
+PROJ-1161,Karnataka Industrial Corridor #162,Industrial,Karnataka,Surat,1152.82,0.0,ACTIVE,1
+PROJ-1162,Karnataka Railway Corridor #163,Railway,Karnataka,Jodhpur,270.35,0.0,ACTIVE,1
+PROJ-1163,Gujarat Highway Corridor #164,Highway,Gujarat,Jodhpur,93.95,0.0,ACTIVE,1
+PROJ-1164,Rajasthan Industrial Corridor #165,Industrial,Rajasthan,Thane,557.17,0.0,ACTIVE,0
+PROJ-1165,Karnataka Metro Corridor #166,Metro,Karnataka,Jaipur,725.77,0.0,ACTIVE,1
+PROJ-1166,Gujarat Metro Corridor #167,Metro,Gujarat,Surat,698.95,0.0,ACTIVE,0
+PROJ-1167,Karnataka Metro Corridor #168,Metro,Karnataka,Jaipur,486.0,0.0,ACTIVE,1
+PROJ-1168,Maharashtra Industrial Corridor #169,Industrial,Maharashtra,Raigad,242.92,0.0,ACTIVE,1
+PROJ-1169,Tamil Nadu Industrial Corridor #170,Industrial,Tamil Nadu,Surat,124.68,0.0,ACTIVE,0
+PROJ-1170,Maharashtra Highway Corridor #171,Highway,Maharashtra,Pune,86.07,0.0,ACTIVE,1
+PROJ-1171,Rajasthan Railway Corridor #172,Railway,Rajasthan,Thane,712.91,0.0,ACTIVE,1
+PROJ-1172,Maharashtra Industrial Corridor #173,Industrial,Maharashtra,Thane,397.6,0.0,ACTIVE,1
+PROJ-1173,Maharashtra Highway Corridor #174,Highway,Maharashtra,Pune,424.38,0.0,ACTIVE,1
+PROJ-1174,Maharashtra Metro Corridor #175,Metro,Maharashtra,Pune,1035.28,0.0,ACTIVE,1
+PROJ-1175,Gujarat Port Corridor #176,Port,Gujarat,Surat,98.9,0.0,ACTIVE,0
+PROJ-1176,Karnataka Industrial Corridor #177,Industrial,Karnataka,Surat,870.97,0.0,ACTIVE,0
+PROJ-1177,Karnataka Highway Corridor #178,Highway,Karnataka,Jaipur,330.26,0.0,ACTIVE,0
+PROJ-1178,Karnataka Railway Corridor #179,Railway,Karnataka,Vadodara,657.44,0.0,ACTIVE,1
+PROJ-1179,Maharashtra Highway Corridor #180,Highway,Maharashtra,Jaipur,127.3,0.0,ACTIVE,0
+PROJ-1180,Rajasthan Industrial Corridor #181,Industrial,Rajasthan,Pune,289.83,0.0,ACTIVE,1
+PROJ-1181,Tamil Nadu Railway Corridor #182,Railway,Tamil Nadu,Surat,872.56,0.0,ACTIVE,0
+PROJ-1182,Karnataka Metro Corridor #183,Metro,Karnataka,Pune,1082.95,0.0,ACTIVE,1
+PROJ-1183,Karnataka Industrial Corridor #184,Industrial,Karnataka,Pune,1082.14,0.0,ACTIVE,1
+PROJ-1184,Rajasthan Highway Corridor #185,Highway,Rajasthan,Raigad,301.92,0.0,ACTIVE,0
+PROJ-1185,Karnataka Port Corridor #186,Port,Karnataka,Jodhpur,888.22,0.0,ACTIVE,1
+PROJ-1186,Tamil Nadu Port Corridor #187,Port,Tamil Nadu,Surat,634.4,0.0,ACTIVE,0
+PROJ-1187,Maharashtra Metro Corridor #188,Metro,Maharashtra,Raigad,833.98,0.0,ACTIVE,1
+PROJ-1188,Karnataka Railway Corridor #189,Railway,Karnataka,Surat,1074.65,0.0,ACTIVE,1
+PROJ-1189,Gujarat Port Corridor #190,Port,Gujarat,Surat,115.76,0.0,ACTIVE,0
+PROJ-1190,Karnataka Railway Corridor #191,Railway,Karnataka,Jaipur,394.97,0.0,ACTIVE,1
+PROJ-1191,Tamil Nadu Highway Corridor #192,Highway,Tamil Nadu,Pune,391.09,0.0,ACTIVE,1
+PROJ-1192,Rajasthan Highway Corridor #193,Highway,Rajasthan,Pune,971.98,0.0,ACTIVE,1
+PROJ-1193,Gujarat Railway Corridor #194,Railway,Gujarat,Pune,68.13,0.0,ACTIVE,0
+PROJ-1194,Rajasthan Railway Corridor #195,Railway,Rajasthan,Jodhpur,1050.54,0.0,ACTIVE,0
+PROJ-1195,Maharashtra Highway Corridor #196,Highway,Maharashtra,Thane,234.63,0.0,ACTIVE,0
+PROJ-1196,Rajasthan Industrial Corridor #197,Industrial,Rajasthan,Jodhpur,1063.94,0.0,ACTIVE,1
+PROJ-1197,Karnataka Port Corridor #198,Port,Karnataka,Thane,518.42,0.0,ACTIVE,1
+PROJ-1198,Karnataka Railway Corridor #199,Railway,Karnataka,Pune,123.19,0.0,ACTIVE,1
+PROJ-1199,Maharashtra Port Corridor #200,Port,Maharashtra,Vadodara,103.67,0.0,ACTIVE,1
+PROJ-1200,Tamil Nadu Metro Corridor #201,Metro,Tamil Nadu,Thane,129.75,0.0,ACTIVE,0
+PROJ-1201,Gujarat Industrial Corridor #202,Industrial,Gujarat,Jaipur,102.04,0.0,ACTIVE,0
+PROJ-1202,Gujarat Port Corridor #203,Port,Gujarat,Vadodara,569.67,0.0,ACTIVE,1
+PROJ-1203,Gujarat Port Corridor #204,Port,Gujarat,Surat,1162.03,0.0,ACTIVE,0
+PROJ-1204,Maharashtra Railway Corridor #205,Railway,Maharashtra,Thane,326.36,0.0,ACTIVE,0
+PROJ-1205,Maharashtra Highway Corridor #206,Highway,Maharashtra,Raigad,412.1,0.0,ACTIVE,0
+PROJ-1206,Gujarat Port Corridor #207,Port,Gujarat,Raigad,280.24,0.0,ACTIVE,1
+PROJ-1207,Maharashtra Port Corridor #208,Port,Maharashtra,Thane,415.01,0.0,ACTIVE,1
+PROJ-1208,Rajasthan Highway Corridor #209,Highway,Rajasthan,Thane,975.51,0.0,ACTIVE,1
+PROJ-1209,Maharashtra Port Corridor #210,Port,Maharashtra,Vadodara,87.45,0.0,ACTIVE,0
+PROJ-1210,Rajasthan Industrial Corridor #211,Industrial,Rajasthan,Surat,167.79,0.0,ACTIVE,1
+PROJ-1211,Gujarat Highway Corridor #212,Highway,Gujarat,Pune,605.48,0.0,ACTIVE,0
+PROJ-1212,Gujarat Railway Corridor #213,Railway,Gujarat,Pune,1178.79,0.0,ACTIVE,0
+PROJ-1213,Rajasthan Railway Corridor #214,Railway,Rajasthan,Vadodara,945.71,0.0,ACTIVE,1
+PROJ-1214,Maharashtra Industrial Corridor #215,Industrial,Maharashtra,Surat,645.19,0.0,ACTIVE,1
+PROJ-1215,Rajasthan Port Corridor #216,Port,Rajasthan,Thane,527.63,0.0,ACTIVE,1
+PROJ-1216,Gujarat Industrial Corridor #217,Industrial,Gujarat,Surat,1169.71,0.0,ACTIVE,0
+PROJ-1217,Tamil Nadu Metro Corridor #218,Metro,Tamil Nadu,Vadodara,447.68,0.0,ACTIVE,1
+PROJ-1218,Maharashtra Railway Corridor #219,Railway,Maharashtra,Thane,665.27,0.0,ACTIVE,1
+PROJ-1219,Tamil Nadu Railway Corridor #220,Railway,Tamil Nadu,Jaipur,560.58,0.0,ACTIVE,0
+PROJ-1220,Maharashtra Metro Corridor #221,Metro,Maharashtra,Thane,619.0,0.0,ACTIVE,0
+PROJ-1221,Tamil Nadu Highway Corridor #222,Highway,Tamil Nadu,Raigad,1188.21,0.0,ACTIVE,1
+PROJ-1222,Gujarat Industrial Corridor #223,Industrial,Gujarat,Jodhpur,1006.22,0.0,ACTIVE,1
+PROJ-1223,Karnataka Metro Corridor #224,Metro,Karnataka,Surat,1169.55,0.0,ACTIVE,0
+PROJ-1224,Tamil Nadu Highway Corridor #225,Highway,Tamil Nadu,Raigad,1096.25,0.0,ACTIVE,0
+PROJ-1225,Maharashtra Industrial Corridor #226,Industrial,Maharashtra,Thane,161.26,0.0,ACTIVE,1
+PROJ-1226,Maharashtra Railway Corridor #227,Railway,Maharashtra,Raigad,254.18,0.0,ACTIVE,1
+PROJ-1227,Maharashtra Metro Corridor #228,Metro,Maharashtra,Jaipur,320.89,0.0,ACTIVE,1
+PROJ-1228,Karnataka Railway Corridor #229,Railway,Karnataka,Jaipur,754.09,0.0,ACTIVE,0
+PROJ-1229,Gujarat Highway Corridor #230,Highway,Gujarat,Raigad,405.02,0.0,ACTIVE,0
+PROJ-1230,Rajasthan Industrial Corridor #231,Industrial,Rajasthan,Pune,720.63,0.0,ACTIVE,1
+PROJ-1231,Maharashtra Port Corridor #232,Port,Maharashtra,Vadodara,447.21,0.0,ACTIVE,1
+PROJ-1232,Maharashtra Highway Corridor #233,Highway,Maharashtra,Vadodara,1028.9,0.0,ACTIVE,1
+PROJ-1233,Gujarat Port Corridor #234,Port,Gujarat,Surat,1177.54,0.0,ACTIVE,0
+PROJ-1234,Tamil Nadu Railway Corridor #235,Railway,Tamil Nadu,Surat,977.99,0.0,ACTIVE,0
+PROJ-1235,Tamil Nadu Port Corridor #236,Port,Tamil Nadu,Thane,1130.95,0.0,ACTIVE,0
+PROJ-1236,Maharashtra Highway Corridor #237,Highway,Maharashtra,Vadodara,575.71,0.0,ACTIVE,1
+PROJ-1237,Tamil Nadu Railway Corridor #238,Railway,Tamil Nadu,Thane,367.77,0.0,ACTIVE,0
+PROJ-1238,Rajasthan Railway Corridor #239,Railway,Rajasthan,Surat,68.35,0.0,ACTIVE,1
+PROJ-1239,Gujarat Industrial Corridor #240,Industrial,Gujarat,Thane,1087.49,0.0,ACTIVE,0
+PROJ-1240,Tamil Nadu Highway Corridor #241,Highway,Tamil Nadu,Jodhpur,927.58,0.0,ACTIVE,0
+PROJ-1241,Gujarat Metro Corridor #242,Metro,Gujarat,Raigad,270.27,0.0,ACTIVE,0
+PROJ-1242,Rajasthan Metro Corridor #243,Metro,Rajasthan,Surat,673.16,0.0,ACTIVE,0
+PROJ-1243,Gujarat Highway Corridor #244,Highway,Gujarat,Thane,451.09,0.0,ACTIVE,1
+PROJ-1244,Karnataka Metro Corridor #245,Metro,Karnataka,Vadodara,711.53,0.0,ACTIVE,0
+PROJ-1245,Rajasthan Port Corridor #246,Port,Rajasthan,Thane,654.47,0.0,ACTIVE,0
+PROJ-1246,Tamil Nadu Metro Corridor #247,Metro,Tamil Nadu,Thane,354.05,0.0,ACTIVE,0
+PROJ-1247,Maharashtra Railway Corridor #248,Railway,Maharashtra,Pune,778.49,0.0,ACTIVE,1
+PROJ-1248,Tamil Nadu Industrial Corridor #249,Industrial,Tamil Nadu,Jaipur,1044.63,0.0,ACTIVE,0
+PROJ-1249,Rajasthan Highway Corridor #250,Highway,Rajasthan,Jaipur,228.94,0.0,ACTIVE,1
+PROJ-1250,Rajasthan Highway Corridor #251,Highway,Rajasthan,Raigad,1134.41,0.0,ACTIVE,1
+PROJ-1251,Rajasthan Metro Corridor #252,Metro,Rajasthan,Surat,968.07,0.0,ACTIVE,1
+PROJ-1252,Tamil Nadu Highway Corridor #253,Highway,Tamil Nadu,Surat,255.46,0.0,ACTIVE,0
+PROJ-1253,Rajasthan Highway Corridor #254,Highway,Rajasthan,Jaipur,522.26,0.0,ACTIVE,0
+PROJ-1254,Maharashtra Port Corridor #255,Port,Maharashtra,Vadodara,347.37,0.0,ACTIVE,1
+PROJ-1255,Gujarat Metro Corridor #256,Metro,Gujarat,Pune,961.8,0.0,ACTIVE,0
+PROJ-1256,Gujarat Railway Corridor #257,Railway,Gujarat,Raigad,457.61,0.0,ACTIVE,1
+PROJ-1257,Tamil Nadu Railway Corridor #258,Railway,Tamil Nadu,Surat,740.78,0.0,ACTIVE,1
+PROJ-1258,Gujarat Metro Corridor #259,Metro,Gujarat,Vadodara,219.96,0.0,ACTIVE,1
+PROJ-1259,Maharashtra Railway Corridor #260,Railway,Maharashtra,Vadodara,509.15,0.0,ACTIVE,1

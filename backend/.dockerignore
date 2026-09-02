@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov
+*.db
+*.sqlite
+*.sqlite3
+storage/documents/*
+!storage/documents/.gitkeep
+node_modules
+.git
+.env
+db/demo_backup.sql

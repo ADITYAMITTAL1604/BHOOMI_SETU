@@ -18,6 +18,10 @@ def hash_password(plain: str) -> str:
     return _pwd_ctx.hash(plain)
 
 
+# Alias
+get_password_hash = hash_password
+
+
 def verify_password(plain: str, hashed: str) -> bool:
     return _pwd_ctx.verify(plain, hashed)
 

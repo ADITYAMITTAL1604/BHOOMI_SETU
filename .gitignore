@@ -5,6 +5,9 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+*.db
+*.sqlite
+*.sqlite3
 
 # Environment
 .env
