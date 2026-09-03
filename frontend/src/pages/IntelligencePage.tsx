@@ -18,13 +18,16 @@ export function IntelligencePage() {
   const navigate = useNavigate();
 
   const { data: bottleneck, isLoading: bnLoading } = useQuery({
-    queryKey: ["bottleneck"], queryFn: fetchBottleneckAnalysis,
+    queryKey: ["bottleneck"],
+    queryFn: () => fetchBottleneckAnalysis(),
   });
   const { data: delayRisk, isLoading: drLoading } = useQuery({
-    queryKey: ["delay-risk"], queryFn: () => fetchDelayRisk(),
+    queryKey: ["delay-risk"],
+    queryFn: () => fetchDelayRisk(),
   });
   const { data: priority, isLoading: prLoading } = useQuery({
-    queryKey: ["priority-cases"], queryFn: fetchPriorityCases,
+    queryKey: ["priority-cases"],
+    queryFn: () => fetchPriorityCases(),
   });
 
   return (

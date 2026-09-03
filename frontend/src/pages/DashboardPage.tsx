@@ -22,7 +22,7 @@ import { StageBreakdownChart } from "@/components/dashboard/StageBreakdownChart"
 import { AcquisitionProgressChart } from "@/components/dashboard/AcquisitionProgressChart";
 import { AlertsTable } from "@/components/dashboard/AlertsTable";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { StatCardSkeleton, ChartSkeleton } from "@/components/ui/Skeleton";
+import { StatCardSkeleton } from "@/components/ui/Skeleton";
 
 export function DashboardPage() {
   const navigate = useNavigate();

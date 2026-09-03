@@ -13,7 +13,7 @@ import {
   Lock,
   Brain,
 } from "lucide-react";
-import { fetchParcelList } from "@/api/gis";
+import { getParcelById } from "@/api/parcels";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -56,13 +56,11 @@ function mockStageRecords(parcel: Parcel): StageRecord[] {
 export function ParcelDetailPage() {
   const { parcelId } = useParams<{ parcelId: string }>();
 
-  const { data, isLoading } = useQuery({
+  const { data: parcel, isLoading } = useQuery({
     queryKey: ["parcel-detail", parcelId],
-    queryFn: () => fetchParcelList({ search: parcelId }),
+    queryFn: () => getParcelById(parcelId!),
     enabled: !!parcelId,
   });
-
-  const parcel = data?.data[0];
   const stages = parcel ? mockStageRecords(parcel) : [];
   const currentStageIdx = parcel
     ? STAGES.findIndex((s) => s.key === parcel.current_stage)

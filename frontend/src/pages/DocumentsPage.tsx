@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { FileText, Search, Upload, Download, Eye, Filter } from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 

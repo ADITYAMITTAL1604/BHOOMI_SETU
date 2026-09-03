@@ -4,33 +4,33 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { UnauthorizedPage, NotFoundPage } from "@/pages/ErrorPages";
 
-// Lazy-loaded pages for code splitting
+// Lazy-loaded pages for code splitting with named export handling
 const LoginPage = lazy(() =>
-  import("@/pages/LoginPage").then((m) => ({ default: m.default ?? m.LoginPage ?? Object.values(m)[0] }))
+  import("@/pages/LoginPage").then((m) => ({ default: m.LoginPage || (m as any).default }))
 );
 const DashboardPage = lazy(() =>
-  import("@/pages/DashboardPage").then((m) => ({ default: m.default ?? m.DashboardPage ?? Object.values(m)[0] }))
+  import("@/pages/DashboardPage").then((m) => ({ default: m.DashboardPage || (m as any).default }))
 );
 const ProjectListPage = lazy(() =>
-  import("@/pages/ProjectListPage").then((m) => ({ default: m.default ?? m.ProjectListPage ?? Object.values(m)[0] }))
+  import("@/pages/ProjectListPage").then((m) => ({ default: m.ProjectListPage || (m as any).default }))
 );
 const ProjectDetailPage = lazy(() =>
-  import("@/pages/ProjectDetailPage").then((m) => ({ default: m.default ?? m.ProjectDetailPage ?? Object.values(m)[0] }))
+  import("@/pages/ProjectDetailPage").then((m) => ({ default: m.ProjectDetailPage || (m as any).default }))
 );
 const ParcelDetailPage = lazy(() =>
-  import("@/pages/ParcelDetailPage").then((m) => ({ default: m.default ?? m.ParcelDetailPage ?? Object.values(m)[0] }))
+  import("@/pages/ParcelDetailPage").then((m) => ({ default: m.ParcelDetailPage || (m as any).default }))
 );
 const GISPage = lazy(() =>
-  import("@/pages/GISPage").then((m) => ({ default: m.default ?? m.GISPage ?? Object.values(m)[0] }))
+  import("@/pages/GISPage").then((m) => ({ default: m.GISPage || (m as any).default }))
 );
 const AlertsPage = lazy(() =>
-  import("@/pages/AlertsPage").then((m) => ({ default: m.default ?? m.AlertsPage ?? Object.values(m)[0] }))
+  import("@/pages/AlertsPage").then((m) => ({ default: m.AlertsPage || (m as any).default }))
 );
 const DocumentsPage = lazy(() =>
-  import("@/pages/DocumentsPage").then((m) => ({ default: m.default ?? m.DocumentsPage ?? Object.values(m)[0] }))
+  import("@/pages/DocumentsPage").then((m) => ({ default: m.DocumentsPage || (m as any).default }))
 );
 const IntelligencePage = lazy(() =>
-  import("@/pages/IntelligencePage").then((m) => ({ default: m.default ?? m.IntelligencePage ?? Object.values(m)[0] }))
+  import("@/pages/IntelligencePage").then((m) => ({ default: m.IntelligencePage || (m as any).default }))
 );
 
 function PageLoader() {
