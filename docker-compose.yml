@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: changeme
       POSTGRES_DB: bhoomisetu
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
