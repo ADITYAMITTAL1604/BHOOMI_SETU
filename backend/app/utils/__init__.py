@@ -1,1 +1,1 @@
-# app/utils package
+"""app.utils package."""

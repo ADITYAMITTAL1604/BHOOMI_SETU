@@ -15,7 +15,9 @@ class Settings(BaseSettings):
     )
 
     # ── Database ──────────────────────────────────────────────────────────────
-    database_url: str = "sqlite:///./bhoomisetu.db"
+    database_url: str = (
+        "postgresql+psycopg2://bhoomi:changeme@db:5432/bhoomisetu"
+    )
 
     # ── Auth ──────────────────────────────────────────────────────────────────
     jwt_secret: str = "changeme_in_production"

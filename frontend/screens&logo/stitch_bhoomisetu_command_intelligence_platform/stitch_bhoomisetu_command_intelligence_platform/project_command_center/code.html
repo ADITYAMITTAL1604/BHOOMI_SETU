@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Command Center - BhoomiSetu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#082100",
+                        "primary-fixed-dim": "#91cdfc",
+                        "on-error": "#ffffff",
+                        "primary": "#00557d",
+                        "tertiary-fixed-dim": "#a0d581",
+                        "secondary": "#0d6a61",
+                        "surface-tint": "#1e648d",
+                        "on-secondary-container": "#197067",
+                        "surface-container-high": "#ebe8df",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#cae6ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#bbf29b",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#87d5c9",
+                        "outline-variant": "#c0c7cf",
+                        "inverse-surface": "#31312b",
+                        "inverse-primary": "#91cdfc",
+                        "secondary-fixed": "#a2f1e5",
+                        "on-secondary-fixed-variant": "#005049",
+                        "on-surface": "#1c1c17",
+                        "inverse-on-surface": "#f4f1e8",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#44732b",
+                        "tertiary": "#2d5a15",
+                        "secondary-container": "#a2f1e5",
+                        "on-background": "#1c1c17",
+                        "background": "#fcf9f0",
+                        "on-tertiary-fixed-variant": "#24510c",
+                        "on-primary-fixed-variant": "#004b70",
+                        "surface": "#fcf9f0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#c0f79f",
+                        "on-secondary-fixed": "#00201d",
+                        "surface-variant": "#e5e2da",
+                        "surface-container-highest": "#e5e2da",
+                        "on-surface-variant": "#41484e",
+                        "on-primary-fixed": "#001e30",
+                        "on-primary-container": "#d4eaff",
+                        "surface-dim": "#dddad1",
+                        "surface-bright": "#fcf9f0",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#2b6d97",
+                        "surface-container": "#f1eee5",
+                        "surface-container-low": "#f6f3ea",
+                        "on-primary": "#ffffff",
+                        "outline": "#71787f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "section-gap": "48px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "mono-sm": ["JetBrains Mono"],
+                        "title-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "mono-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .contour-bg {
+            background-image: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="contour" patternUnits="userSpaceOnUse" width="100" height="100"><path d="M0 50 Q 25 25, 50 50 T 100 50 M0 25 Q 25 0, 50 25 T 100 25 M0 75 Q 25 100, 50 75 T 100 75" fill="none" stroke="rgba(43, 109, 151, 0.05)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23contour)"/></svg>');
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0px 8px 24px rgba(43, 109, 151, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-lg antialiased">
+<!-- SideNavBar -->
+<nav class="flex flex-col h-screen fixed left-0 top-0 py-6 px-4 bg-primary-container dark:bg-primary-container border-r border-outline-variant docked left-0 h-full w-[280px] z-50">
+<div class="flex items-center gap-4 mb-8 px-2">
+<img alt="BhoomiSetu Logo Icon" class="w-10 h-10 object-contain" data-alt="A minimalist logo icon for BhoomiSetu, featuring geometric elements representing land and connectivity, utilizing deep teal and sage green tones on a white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoMNHVPUvhv7RuFyrrYiWoPdBmvLlzMMhq768QHCTl_73CyxfokY8e86UBkejFun4swTiK0E7tDKyizuPfzcBvrvUh42fZgIRXeAec22u39Nr1vUbC6kSlMfZk0ysMR4R8GLA4JFok-H0mYvQnMv4AOXiNuSztmYjWbWZ3UDbaiDV0-o_hhPN-bhXBdHqj07QgXurK9u0P-bbMblTi37o-Vh6rJYE6Zr8wNqo2o3g7bG-HEpBVGt9z"/>
+<div>
+<h1 class="text-title-lg font-headline-lg text-on-primary-container dark:text-on-primary-container font-bold tracking-tight">BhoomiSetu</h1>
+<p class="text-label-md font-label-md text-on-primary-container/80 uppercase tracking-wider">Command Center</p>
+</div>
+</div>
+<ul class="flex flex-col gap-2 flex-grow">
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">dashboard</span>Dashboard</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md bg-on-primary-fixed-variant text-on-primary-container rounded-lg font-semibold scale-95 transition-transform" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_tree</span>Projects</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">map</span>GIS Monitoring</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">layers</span>Parcels</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">insights</span>Intelligence</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">description</span>Documents</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">notifications_active</span>Alerts</a></li>
+<li><a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">assessment</span>Reports</a></li>
+</ul>
+<div class="mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 text-label-md font-label-md text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined">settings</span>Settings</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="ml-[280px] min-h-screen flex flex-col relative w-[calc(100%-280px)]">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-margin-desktop bg-surface dark:bg-surface border-b border-outline-variant docked full-width top-0 sticky z-40">
+<div class="flex items-center gap-4">
+<span class="text-title-lg font-headline-lg text-primary dark:text-primary-fixed-dim font-black">BhoomiSetu</span>
+<span class="text-on-surface-variant px-2">/</span>
+<span class="text-title-lg font-headline-lg text-on-surface font-semibold">Project Details</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary w-64" placeholder="Search parcels, documents..." type="text"/>
+</div>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-full transition-colors"><span class="material-symbols-outlined">apps</span></button>
+<img alt="Central Administrator Profile" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a Central Administrator, professional attire, well-lit modern office background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBE9hDxMcuTjv1YFdOHg5hdeC9FDtepHNgIJO9h0iHMtSBeAxpLRxy08p_QXctscijy7tRE3H0Z6r8B_o2xIIZFyPgW-lUd7EMdMxNhvg2LqtKSyGerg1-OWmcnZ8jbSk1gvsaOdQqeAt0MNZJ8gtPLZK-gcNjHzSwvMxuHEqQApcOGJce4_A9m07-qrQY-D_8CpwMkhqCppdrXib7wMX7XuxD5OolbFgVy3AZX6thD8NYehUHO9Mkm"/>
+</div>
+</header>
+<div class="p-margin-desktop space-y-section-gap flex-grow contour-bg relative z-10">
+<!-- Hero Section -->
+<section class="glass-card rounded-xl p-gutter flex justify-between items-center relative overflow-hidden">
+<div class="z-10 w-2/3 space-y-4">
+<div class="flex items-center gap-3">
+<span class="px-3 py-1 bg-tertiary-container text-on-tertiary-container rounded-full text-label-md font-label-md uppercase tracking-wider">Active</span>
+<span class="text-on-surface-variant text-label-md font-mono-sm">ID: PRJ-2023-B2</span>
+</div>
+<h2 class="text-display-lg font-display-lg text-on-surface">NHAI - Bharatmala Phase II</h2>
+<div class="flex items-center gap-6 text-body-md text-on-surface-variant">
+<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">location_on</span> Maharashtra / Pune District</div>
+<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">straighten</span> 145.2 km Corridor</div>
+<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">group</span> 4,520 PAPs</div>
+</div>
+</div>
+<div class="z-10 w-1/3 flex justify-end">
+<!-- Circular Gauge Placeholder (CSS based) -->
+<div class="relative w-40 h-40 flex items-center justify-center rounded-full bg-surface-container-low border-4 border-surface-variant shadow-inner">
+<svg class="absolute inset-0 w-full h-full transform -rotate-90" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="45" stroke="#e5e2da" stroke-width="10"></circle>
+<circle class="transition-all duration-1000 ease-out" cx="50" cy="50" fill="none" r="45" stroke="#00557d" stroke-dasharray="283" stroke-dashoffset="85" stroke-width="10"></circle> <!-- 70% progress -->
+</svg>
+<div class="text-center">
+<span class="block text-headline-lg font-headline-lg text-primary">70%</span>
+<span class="block text-label-md font-label-md text-on-surface-variant uppercase">Acquired</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Navigation Tabs -->
+<nav class="border-b border-outline-variant flex gap-8">
+<a class="pb-2 text-primary border-b-2 border-primary text-title-lg font-title-lg font-semibold flex items-center gap-2" href="#"><span class="material-symbols-outlined text-lg">dashboard</span>Overview</a>
+<a class="pb-2 text-on-surface-variant hover:text-primary text-title-lg font-title-lg transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-lg">layers</span>Parcels</a>
+<a class="pb-2 text-on-surface-variant hover:text-primary text-title-lg font-title-lg transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-lg">map</span>GIS Map</a>
+<a class="pb-2 text-on-surface-variant hover:text-primary text-title-lg font-title-lg transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-lg">insights</span>Intelligence</a>
+<a class="pb-2 text-on-surface-variant hover:text-primary text-title-lg font-title-lg transition-colors flex items-center gap-2" href="#"><span class="material-symbols-outlined text-lg">description</span>Documents</a>
+</nav>
+<!-- Overview Content Grid -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Left Column (Metrics & Timeline) -->
+<div class="col-span-12 xl:col-span-8 space-y-gutter">
+<!-- Metrics Grid -->
+<div class="grid grid-cols-3 gap-gutter">
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase">Compensation Paid</span>
+<span class="material-symbols-outlined text-secondary">payments</span>
+</div>
+<div>
+<span class="text-headline-md font-headline-md text-on-surface">₹ 450 Cr</span>
+<span class="text-body-md text-secondary block mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-sm">trending_up</span> +12% this month</span>
+</div>
+</div>
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase">R&amp;R Progress</span>
+<span class="material-symbols-outlined text-tertiary-container">family_home</span>
+</div>
+<div>
+<span class="text-headline-md font-headline-md text-on-surface">65%</span>
+<div class="w-full bg-surface-variant h-2 rounded-full mt-2">
+<div class="bg-tertiary-container h-2 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+<div class="glass-card p-4 rounded-xl flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase">SLA Compliance</span>
+<span class="material-symbols-outlined text-error">gavel</span>
+</div>
+<div>
+<span class="text-headline-md font-headline-md text-on-surface">92%</span>
+<span class="text-body-md text-error block mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-sm">warning</span> 14 cases delayed</span>
+</div>
+</div>
+</div>
+<!-- Acquisition Timeline Stepper -->
+<div class="glass-card p-gutter rounded-xl">
+<h3 class="text-title-lg font-title-lg text-on-surface mb-6">Acquisition Lifecycle</h3>
+<div class="relative flex justify-between items-center">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-surface-variant z-0"></div>
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-[75%] h-1 bg-primary z-0"></div>
+<!-- Steps -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md"><span class="material-symbols-outlined text-sm">check</span></div>
+<span class="text-label-md font-label-md text-primary">Proposal</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md"><span class="material-symbols-outlined text-sm">check</span></div>
+<span class="text-label-md font-label-md text-primary">Sec 3A</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md"><span class="material-symbols-outlined text-sm">check</span></div>
+<span class="text-label-md font-label-md text-primary">Sec 3D</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface border-2 border-primary text-primary flex items-center justify-center shadow-md"><span class="material-symbols-outlined text-sm">pending</span></div>
+<span class="text-label-md font-label-md text-primary font-bold">Sec 3G (Award)</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center"><span class="material-symbols-outlined text-sm">lock</span></div>
+<span class="text-label-md font-label-md text-on-surface-variant">Possession</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column (Funnel & Feed) -->
+<div class="col-span-12 xl:col-span-4 space-y-gutter">
+<!-- Stage Distribution -->
+<div class="glass-card p-gutter rounded-xl">
+<h3 class="text-title-lg font-title-lg text-on-surface mb-4">Parcel Distribution</h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface w-1/3">Identified</span>
+<div class="w-1/2 bg-surface-variant h-4 rounded-sm"><div class="bg-primary h-4 rounded-sm" style="width: 100%"></div></div>
+<span class="text-body-md font-mono-sm text-on-surface w-1/6 text-right">1,200</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface w-1/3">Notified (3A)</span>
+<div class="w-1/2 bg-surface-variant h-4 rounded-sm"><div class="bg-secondary h-4 rounded-sm" style="width: 85%"></div></div>
+<span class="text-body-md font-mono-sm text-on-surface w-1/6 text-right">1,020</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface w-1/3">Declaration (3D)</span>
+<div class="w-1/2 bg-surface-variant h-4 rounded-sm"><div class="bg-tertiary-container h-4 rounded-sm" style="width: 60%"></div></div>
+<span class="text-body-md font-mono-sm text-on-surface w-1/6 text-right">720</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-body-md text-on-surface w-1/3">Awarded (3G)</span>
+<div class="w-1/2 bg-surface-variant h-4 rounded-sm"><div class="bg-warm-copper h-4 rounded-sm bg-[#D47A22]" style="width: 40%"></div></div>
+<span class="text-body-md font-mono-sm text-on-surface w-1/6 text-right">480</span>
+</div>
+</div>
+</div>
+<!-- Recent Activities -->
+<div class="glass-card p-gutter rounded-xl">
+<h3 class="text-title-lg font-title-lg text-on-surface mb-4">Recent Activities</h3>
+<div class="space-y-4">
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-primary-container text-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-sm">upload_file</span></div>
+<div>
+<p class="text-body-md text-on-surface"><span class="font-semibold">Rahul Sharma</span> uploaded Joint Measurement Report for Parcel P-102.</p>
+<span class="text-label-md text-on-surface-variant">2 hours ago</span>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-tertiary-container text-on-tertiary-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-sm">check_circle</span></div>
+<div>
+<p class="text-body-md text-on-surface"><span class="font-semibold">Collector Office Pune</span> approved Section 3D notification.</p>
+<span class="text-label-md text-on-surface-variant">Yesterday, 14:30</span>
+</div>
+</div>
+<div class="flex gap-3">
+<div class="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-sm">warning</span></div>
+<div>
+<p class="text-body-md text-on-surface"><span class="font-semibold">System Alert:</span> SLA breached for valuation of 5 parcels in Village A.</p>
+<span class="text-label-md text-on-surface-variant">Yesterday, 09:15</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

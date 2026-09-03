@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BhoomiSetu - Parcel Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#082100",
+                        "primary-fixed-dim": "#91cdfc",
+                        "on-error": "#ffffff",
+                        "primary": "#00557d",
+                        "tertiary-fixed-dim": "#a0d581",
+                        "secondary": "#0d6a61",
+                        "surface-tint": "#1e648d",
+                        "on-secondary-container": "#197067",
+                        "surface-container-high": "#ebe8df",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#cae6ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#bbf29b",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#87d5c9",
+                        "outline-variant": "#c0c7cf",
+                        "inverse-surface": "#31312b",
+                        "inverse-primary": "#91cdfc",
+                        "secondary-fixed": "#a2f1e5",
+                        "on-secondary-fixed-variant": "#005049",
+                        "on-surface": "#1c1c17",
+                        "inverse-on-surface": "#f4f1e8",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#44732b",
+                        "tertiary": "#2d5a15",
+                        "secondary-container": "#a2f1e5",
+                        "on-background": "#1c1c17",
+                        "background": "#fcf9f0",
+                        "on-tertiary-fixed-variant": "#24510c",
+                        "on-primary-fixed-variant": "#004b70",
+                        "surface": "#fcf9f0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#c0f79f",
+                        "on-secondary-fixed": "#00201d",
+                        "surface-variant": "#e5e2da",
+                        "surface-container-highest": "#e5e2da",
+                        "on-surface-variant": "#41484e",
+                        "on-primary-fixed": "#001e30",
+                        "on-primary-container": "#d4eaff",
+                        "surface-dim": "#dddad1",
+                        "surface-bright": "#fcf9f0",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#2b6d97",
+                        "surface-container": "#f1eee5",
+                        "surface-container-low": "#f6f3ea",
+                        "on-primary": "#ffffff",
+                        "outline": "#71787f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "section-gap": "48px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "mono-sm": ["JetBrains Mono"],
+                        "title-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "mono-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #F8F5EC; } /* Linen Off-White base */
+        /* Subtle topo pattern overlay for smart cards */
+        .topo-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10c20 0 40 20 60 20s40-20 60-20' stroke='%23e2e8f0' fill='none' stroke-width='1' opacity='0.3'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface bg-background flex">
+<!-- SideNavBar (Predicted JSON) -->
+<nav class="hidden md:flex flex-col h-screen fixed left-0 top-0 py-6 px-4 bg-primary-container border-r border-outline-variant w-[280px] z-50">
+<div class="flex items-center gap-3 mb-8 px-2">
+<img class="w-10 h-10 rounded-md bg-surface object-cover" data-alt="A minimalist logo icon for BhoomiSetu command center featuring deep teal and sage green geometric shapes representing land and bridges on a white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtCvQ4_ZOOf86Wj7jpK6VhCPf14t9Ny9PVRqNJ92XKAXFilzg8mlT78sUL7YTYBPJHR2NyRTKynNGgHNFpH2fJUEYR4UsOmH4hZIBnF3ZD32uImlK5-3dv6oWJkOcg5nyJtHwZRIwi6Z60hBAShSWYpauh-iE0ex6DkyzCXAxIDlh_Qe53FxX1jjVhGAAHcMtDrLckVIHcbOzhZ7Jp-CEGPCsEtsWkYEpudWkMEnlchVGKVEbtofvq"/>
+<div>
+<h1 class="text-title-lg font-headline-lg text-on-primary-container font-bold tracking-tight">BhoomiSetu</h1>
+<p class="text-label-md font-label-md text-on-primary-container opacity-80 uppercase tracking-widest">Command Center</p>
+</div>
+</div>
+<ul class="flex-1 space-y-2">
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span><span class="text-label-md font-label-md">Dashboard</span></a></li>
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_tree</span><span class="text-label-md font-label-md">Projects</span></a></li>
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">map</span><span class="text-label-md font-label-md">GIS Monitoring</span></a></li>
+<!-- ACTIVE STATE LOGIC applied to Parcels -->
+<li><a class="flex items-center gap-3 px-3 py-2 bg-on-primary-fixed-variant text-on-primary-container rounded-lg font-semibold scale-95 transition-transform" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">layers</span><span class="text-label-md font-label-md">Parcels</span></a></li>
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">insights</span><span class="text-label-md font-label-md">Intelligence</span></a></li>
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">description</span><span class="text-label-md font-label-md">Documents</span></a></li>
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications_active</span><span class="text-label-md font-label-md">Alerts</span></a></li>
+<li><a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">assessment</span><span class="text-label-md font-label-md">Reports</span></a></li>
+</ul>
+<div class="mt-auto">
+<a class="flex items-center gap-3 px-3 py-2 text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200 rounded-lg" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">settings</span><span class="text-label-md font-label-md">Settings</span></a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-h-screen md:ml-[280px] w-full md:w-[calc(100%-280px)]">
+<!-- TopNavBar (Predicted JSON) -->
+<header class="hidden md:flex justify-between items-center w-full h-16 px-margin-desktop bg-surface border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<span class="text-title-lg font-headline-lg text-primary font-black">BhoomiSetu</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full p-2 cursor-pointer">
+<span class="material-symbols-outlined opacity-80 hover:opacity-100">search</span>
+</div>
+<div class="relative text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full p-2 cursor-pointer">
+<span class="material-symbols-outlined opacity-80 hover:opacity-100">notifications</span>
+</div>
+<div class="relative text-on-surface-variant hover:bg-surface-container-low transition-colors rounded-full p-2 cursor-pointer">
+<span class="material-symbols-outlined opacity-80 hover:opacity-100">apps</span>
+</div>
+<img class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a central administrator in a dark teal suit against a neutral gray background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_oQH8mUBgLRZqOOh8JzJ8Hju8FB6MaepdzChaOGHMFdu0Jw-Lc3XUZ7Z20z43OLyvRhUcn-jPhI7nKHNMS_fbLzUhO9ai-pOL2XFAOi0FRIeIe9mecaCPExBHLuwxoP69BaesJ8bBQR8AV2YZXUW0XO2K1L5tsoxHXapZfh6AkJVGtHvhHm05skF_fNoHmVlBVX18l0CM7yUWmpVBLALRY22uLNGcZ0AMkafrDCfBg4ilXhj3rvUR"/>
+</div>
+</header>
+<!-- Page Content Canvas -->
+<div class="p-gutter md:p-margin-desktop space-y-section-gap flex-1 max-w-container-max mx-auto w-full">
+<!-- Hero: Parcel Metadata -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-secondary-container text-on-secondary-container px-2 py-1 rounded-md text-mono-sm font-mono-sm font-semibold uppercase tracking-wider">Parcel ID: MH-PNE-4092A</span>
+<span class="bg-surface-variant text-on-surface-variant px-2 py-1 rounded-md text-mono-sm font-mono-sm">Survey No. 124/2</span>
+</div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface mb-1">Agricultural Plot 4B, Khed Village</h2>
+<p class="text-body-lg font-body-lg text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">link</span>
+                        Project: Pune-Nashik Industrial Corridor (Phase 1)
+                    </p>
+</div>
+<!-- Risk Gauge -->
+<div class="bg-surface p-4 rounded-lg border border-outline-variant flex items-center gap-4 min-w-[250px]">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-variant" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4"></path>
+<path class="text-[#D47A22]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="60, 100" stroke-width="4"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-title-lg font-title-lg font-bold text-[#D47A22]">60%</span>
+</div>
+</div>
+<div>
+<p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-widest">Risk Level</p>
+<p class="text-body-md font-body-md text-[#D47A22] font-semibold">Elevated (At Risk)</p>
+</div>
+</div>
+</section>
+<!-- Horizontal Lifecycle Stepper -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-8 shadow-sm overflow-x-auto">
+<h3 class="text-title-lg font-title-lg text-on-surface mb-6 border-b border-surface-variant pb-2">Acquisition Lifecycle</h3>
+<div class="flex items-center min-w-[800px] justify-between relative px-4">
+<!-- Progress Line Background -->
+<div class="absolute top-1/2 left-8 right-8 h-1 bg-surface-variant -translate-y-1/2 z-0"></div>
+<!-- Progress Line Active -->
+<div class="absolute top-1/2 left-8 h-1 bg-primary -translate-y-1/2 z-0" style="width: 45%;"></div>
+<!-- Steps -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-label-md font-label-md text-primary whitespace-nowrap">Proposal</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-label-md font-label-md text-primary whitespace-nowrap">Identification</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-label-md font-label-md text-primary whitespace-nowrap">Survey</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<span class="text-label-md font-label-md text-primary whitespace-nowrap">Verification</span>
+</div>
+<!-- Current Step -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-lowest border-2 border-primary text-primary flex items-center justify-center shadow-sm ring-4 ring-primary/20">
+<span class="material-symbols-outlined text-sm">campaign</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface font-bold whitespace-nowrap">Notification</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">gavel</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant whitespace-nowrap">Objection</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">emoji_events</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant whitespace-nowrap">Award</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">payments</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant whitespace-nowrap">Compensation</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">family_restroom</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant whitespace-nowrap">R&amp;R</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2 opacity-50">
+<div class="w-8 h-8 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">key</span>
+</div>
+<span class="text-label-md font-label-md text-on-surface-variant whitespace-nowrap">Possession</span>
+</div>
+</div>
+</section>
+<!-- Bento Grid Information Architecture -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Left: Document Repository -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm topo-bg">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-title-lg font-title-lg text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">folder_open</span>
+                            Documents
+                        </h3>
+<span class="text-label-md font-label-md bg-surface-variant px-2 py-1 rounded-md">7/10 Uploaded</span>
+</div>
+<div class="space-y-3 mt-4">
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#73A557]">check_circle</span>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">Initial Survey Report</p>
+<p class="text-label-md font-label-md text-on-surface-variant">PDF • 2.4 MB • Oct 12, 2023</p>
+</div>
+</div>
+<button class="text-primary hover:bg-primary-container/20 p-1 rounded"><span class="material-symbols-outlined">download</span></button>
+</div>
+<div class="flex items-center justify-between p-3 border border-outline-variant rounded-lg bg-surface">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#73A557]">check_circle</span>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">Title Search Deed</p>
+<p class="text-label-md font-label-md text-on-surface-variant">PDF • 5.1 MB • Oct 15, 2023</p>
+</div>
+</div>
+<button class="text-primary hover:bg-primary-container/20 p-1 rounded"><span class="material-symbols-outlined">download</span></button>
+</div>
+<div class="flex items-center justify-between p-3 border border-error/30 rounded-lg bg-error-container/20 border-l-4 border-l-[#ba1a1a]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-error">warning</span>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface">3D Notification Draft</p>
+<p class="text-label-md font-label-md text-error">Missing • Required for next stage</p>
+</div>
+</div>
+<button class="bg-primary text-on-primary text-label-md font-label-md px-3 py-1 rounded-md hover:bg-primary/90">Upload</button>
+</div>
+</div>
+<button class="w-full mt-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg text-body-md font-semibold hover:bg-surface-variant transition-colors">View All Documents</button>
+</section>
+<!-- Center: Audit History -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm">
+<h3 class="text-title-lg font-title-lg text-on-surface mb-4 flex items-center gap-2 border-b border-surface-variant pb-2">
+<span class="material-symbols-outlined text-primary">history</span>
+                        Audit Trail
+                    </h3>
+<div class="relative border-l border-outline-variant ml-3 mt-4 space-y-6">
+<div class="relative pl-6">
+<div class="absolute -left-2 top-1 w-4 h-4 rounded-full bg-primary ring-4 ring-surface-container-lowest"></div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Today, 10:45 AM</p>
+<p class="text-body-md font-body-md text-on-surface font-semibold">Verification Stage Completed</p>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1 text-sm bg-surface p-2 rounded border border-surface-variant">Approved by SDO. Minor boundary discrepancy resolved in attached notes.</p>
+<p class="text-label-md font-label-md text-primary mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> R. Sharma (SDO)</p>
+</div>
+<div class="relative pl-6">
+<div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Oct 18, 2023, 02:15 PM</p>
+<p class="text-body-md font-body-md text-on-surface font-semibold">Joint Measurement Survey Uploaded</p>
+<p class="text-label-md font-label-md text-on-surface-variant mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> V. Patil (Surveyor)</p>
+</div>
+<div class="relative pl-6">
+<div class="absolute -left-1.5 top-1 w-3 h-3 rounded-full bg-outline-variant ring-4 ring-surface-container-lowest"></div>
+<p class="text-label-md font-label-md text-on-surface-variant mb-1">Oct 12, 2023, 09:00 AM</p>
+<p class="text-body-md font-body-md text-on-surface font-semibold">Parcel Identification Registered</p>
+<p class="text-label-md font-label-md text-on-surface-variant mt-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> System Auto-Entry</p>
+</div>
+</div>
+</section>
+<!-- Right: AI Risk Analysis -->
+<section class="bg-[#1e648d]/5 rounded-xl border border-primary/20 p-6 shadow-sm flex flex-col">
+<h3 class="text-title-lg font-title-lg text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">psychology</span>
+                        AI Risk Analysis
+                    </h3>
+<div class="bg-surface rounded-lg p-4 border border-outline-variant mb-4">
+<p class="text-body-md font-body-md text-on-surface">The system has flagged this parcel as <strong class="text-[#D47A22]">Elevated Risk (60%)</strong> based on historical patterns in Khed Village.</p>
+</div>
+<h4 class="text-label-md font-label-md text-on-surface-variant uppercase tracking-widest mb-2">Contributing Factors</h4>
+<ul class="space-y-2 flex-1">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[#D47A22] text-sm mt-0.5">warning</span>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface text-sm">Multi-Owner Dispute Probability</p>
+<p class="text-label-md font-label-md text-on-surface-variant font-normal">Title deed lists 4 heirs; historical data shows 70% delay rate.</p>
+</div>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[#ba1a1a] text-sm mt-0.5">error</span>
+<div>
+<p class="text-body-md font-body-md font-semibold text-on-surface text-sm">Missing 3D Notification</p>
+<p class="text-label-md font-label-md text-on-surface-variant font-normal">SLA deadline approaching in 2 days.</p>
+</div>
+</li>
+</ul>
+<div class="mt-4 pt-4 border-t border-primary/10">
+<button class="w-full bg-primary text-on-primary py-2 rounded-lg text-body-md font-semibold hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                            Generate Mitigation Plan
+                            <span class="material-symbols-outlined text-sm">auto_awesome</span>
+</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Project Management - BhoomiSetu</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#082100",
+                        "primary-fixed-dim": "#91cdfc",
+                        "on-error": "#ffffff",
+                        "primary": "#00557d",
+                        "tertiary-fixed-dim": "#a0d581",
+                        "secondary": "#0d6a61",
+                        "surface-tint": "#1e648d",
+                        "on-secondary-container": "#197067",
+                        "surface-container-high": "#ebe8df",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#cae6ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#bbf29b",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed-dim": "#87d5c9",
+                        "outline-variant": "#c0c7cf",
+                        "inverse-surface": "#31312b",
+                        "inverse-primary": "#91cdfc",
+                        "secondary-fixed": "#a2f1e5",
+                        "on-secondary-fixed-variant": "#005049",
+                        "on-surface": "#1c1c17",
+                        "inverse-on-surface": "#f4f1e8",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#44732b",
+                        "tertiary": "#2d5a15",
+                        "secondary-container": "#a2f1e5",
+                        "on-background": "#1c1c17",
+                        "background": "#fcf9f0",
+                        "on-tertiary-fixed-variant": "#24510c",
+                        "on-primary-fixed-variant": "#004b70",
+                        "surface": "#fcf9f0",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-container": "#c0f79f",
+                        "on-secondary-fixed": "#00201d",
+                        "surface-variant": "#e5e2da",
+                        "surface-container-highest": "#e5e2da",
+                        "on-surface-variant": "#41484e",
+                        "on-primary-fixed": "#001e30",
+                        "on-primary-container": "#d4eaff",
+                        "surface-dim": "#dddad1",
+                        "surface-bright": "#fcf9f0",
+                        "on-error-container": "#93000a",
+                        "primary-container": "#2b6d97",
+                        "surface-container": "#f1eee5",
+                        "surface-container-low": "#f6f3ea",
+                        "on-primary": "#ffffff",
+                        "outline": "#71787f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-mobile": "16px",
+                        "section-gap": "48px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "mono-sm": ["JetBrains Mono"],
+                        "title-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "mono-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "title-lg": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill-1 {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Topographical contour motif background */
+        .bg-topo {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10c10 20 30 10 40 30s10 30 30 40' stroke='rgba(43, 109, 151, 0.05)' fill='none' stroke-width='1'/%3E%3Cpath d='M20 0c10 30 40 20 50 40s20 40 30 50' stroke='rgba(43, 109, 151, 0.05)' fill='none' stroke-width='1'/%3E%3C/svg%3E");
+            background-size: 200px 200px;
+        }
+        
+        /* Custom scrollbar for tables */
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1eee5; 
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #c0c7cf; 
+            border-radius: 4px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #71787f; 
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col md:flex-row antialiased">
+<!-- SideNavBar (Hidden on Mobile) -->
+<nav class="hidden md:flex flex-col h-screen fixed left-0 top-0 py-6 px-4 bg-primary-container border-r border-outline-variant w-[280px] z-50">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-10 h-10 rounded bg-surface flex items-center justify-center text-primary">
+<span class="material-symbols-outlined fill-1" data-icon="map">map</span>
+</div>
+<div>
+<h1 class="text-title-lg font-title-lg text-on-primary-container font-bold tracking-tight">BhoomiSetu</h1>
+<p class="text-label-md font-label-md text-on-primary-container opacity-80">Command Center</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 flex-grow overflow-y-auto">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-body-lg font-body-lg">Dashboard</span>
+</a>
+<!-- Projects (Active) -->
+<a class="flex items-center gap-3 px-3 py-2.5 bg-on-primary-fixed-variant text-on-primary-container rounded-lg font-semibold scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined fill-1" data-icon="account_tree">account_tree</span>
+<span class="text-body-lg font-body-lg">Projects</span>
+</a>
+<!-- GIS Monitoring -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="text-body-lg font-body-lg">GIS Monitoring</span>
+</a>
+<!-- Parcels -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="text-body-lg font-body-lg">Parcels</span>
+</a>
+<!-- Intelligence -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="text-body-lg font-body-lg">Intelligence</span>
+</a>
+<!-- Documents -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="text-body-lg font-body-lg">Documents</span>
+</a>
+<!-- Alerts -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="notifications_active">notifications_active</span>
+<span class="text-body-lg font-body-lg">Alerts</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="assessment">assessment</span>
+<span class="text-body-lg font-body-lg">Reports</span>
+</a>
+</div>
+<div class="mt-auto pt-6 border-t border-on-primary-fixed-variant/30">
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-primary-container opacity-80 hover:opacity-100 hover:bg-on-primary-fixed-variant/50 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-body-lg font-body-lg">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Wrapper -->
+<div class="flex-1 flex flex-col md:ml-[280px] w-full md:w-[calc(100%-280px)] min-h-screen">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center w-full h-16 px-4 md:px-margin-desktop bg-surface border-b border-outline-variant sticky top-0 z-40">
+<!-- Mobile Brand -->
+<div class="md:hidden flex items-center gap-2">
+<h1 class="text-title-lg font-headline-lg text-primary font-black">BhoomiSetu</h1>
+</div>
+<!-- Desktop Nav Items (Invisible but structured to maintain flex space if needed) -->
+<div class="hidden md:flex flex-1">
+<!-- Can be used for breadcrumbs or secondary nav later -->
+</div>
+<!-- Global Search & Actions -->
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-surface-container-low border border-outline-variant rounded-full text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-64" placeholder="Global Search..." type="text"/>
+</div>
+<button aria-label="Notifications" class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button aria-label="Apps" class="text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined" data-icon="apps">apps</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary-container overflow-hidden border border-outline-variant cursor-pointer">
+<img alt="Central Administrator Profile" class="w-full h-full object-cover" data-alt="Placeholder profile image for admin user, simple clean background, professional tone." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjPXotr0v7mGoqy2dfO9NmQaSJ_KdCL6S6l7SiniVw45xHhemfeg1pOfWwWDYMx1aJlJXXEhnL4Lnsljey4QieUzomD4o9DESWxHOwioBZUIDbAyzxpcKc1u5KavHThMVwAjdmQLaMpEXNc-kJYfOzSUjCa5Nb0whaAh79qmD05xORG-4HnerqQq9NTGWPrC2RTIe1mFpLuy_gKJJmnaMTEmMO-9lDlnzt7AYEJ6MbKOi42dsh7S7B"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 p-4 md:p-margin-desktop bg-surface bg-topo relative overflow-hidden">
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+<div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface mb-1">Project Inventory</h2>
+<p class="text-body-md text-on-surface-variant">Manage and monitor all land acquisition projects across active regions.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-primary text-primary rounded bg-surface hover:bg-surface-container-low transition-colors font-body-md font-semibold">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                        Export Report
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-on-primary rounded hover:bg-surface-tint transition-colors font-body-md font-semibold shadow-sm">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Create New Project
+                    </button>
+</div>
+</div>
+<!-- Data Card / Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
+<!-- Filter Bar -->
+<div class="p-4 border-b border-outline-variant bg-surface flex flex-wrap items-center gap-3">
+<div class="relative flex-1 min-w-[200px]">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm" data-icon="search">search</span>
+<input class="w-full pl-9 pr-3 py-2 bg-surface-container-highest border border-outline-variant rounded text-body-md focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary" placeholder="Search project name..." type="text"/>
+</div>
+<select class="px-3 py-2 bg-surface border border-outline-variant rounded text-body-md text-on-surface focus:outline-none focus:border-primary min-w-[140px]">
+<option value="">All States</option>
+<option value="mh">Maharashtra</option>
+<option value="gj">Gujarat</option>
+<option value="ka">Karnataka</option>
+</select>
+<select class="px-3 py-2 bg-surface border border-outline-variant rounded text-body-md text-on-surface focus:outline-none focus:border-primary min-w-[140px]">
+<option value="">All Districts</option>
+<option value="pune">Pune</option>
+<option value="surat">Surat</option>
+<option value="bng">Bengaluru</option>
+</select>
+<button class="flex items-center gap-2 px-3 py-2 border border-outline-variant rounded bg-surface text-on-surface-variant hover:bg-surface-container-low transition-colors font-body-md">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                        More Filters
+                    </button>
+</div>
+<!-- Enterprise Data Table -->
+<div class="overflow-x-auto table-container">
+<table class="w-full text-left border-collapse min-w-[1000px]">
+<thead class="bg-surface-container border-b border-outline-variant">
+<tr>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold sticky left-0 bg-surface-container z-10">Project Name</th>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold">State / District</th>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Land Required (Ha)</th>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold">Acquisition Progress</th>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Risk Level</th>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-right">Target Date</th>
+<th class="py-3 px-4 text-label-md font-label-md text-on-surface-variant uppercase tracking-wider font-semibold text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-3 px-4 sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low z-10">
+<a class="text-primary font-semibold hover:underline block truncate w-48 font-body-md" href="#">NH-48 Highway Expansion</a>
+<span class="text-label-md text-on-surface-variant">ID: PRJ-2023-041</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-body-md text-on-surface">Maharashtra</div>
+<div class="text-label-md text-on-surface-variant">Pune</div>
+</td>
+<td class="py-3 px-4 text-right font-mono-sm text-on-surface font-medium">1,245.50</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 78%"></div>
+</div>
+<span class="text-label-md font-medium text-on-surface w-8">78%</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-1 rounded text-label-md bg-[#439288] text-white">Low</span>
+</td>
+<td class="py-3 px-4 text-right font-body-md text-on-surface">Oct 24, 2024</td>
+<td class="py-3 px-4 text-center">
+<button aria-label="More options" class="text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group bg-[#F8F5EC]/30">
+<td class="py-3 px-4 sticky left-0 bg-[#F8F5EC]/30 group-hover:bg-surface-container-low z-10">
+<a class="text-primary font-semibold hover:underline block truncate w-48 font-body-md" href="#">Mumbai-Ahmedabad Bullet Train</a>
+<span class="text-label-md text-on-surface-variant">ID: PRJ-2022-112</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-body-md text-on-surface">Gujarat</div>
+<div class="text-label-md text-on-surface-variant">Surat</div>
+</td>
+<td class="py-3 px-4 text-right font-mono-sm text-on-surface font-medium">850.20</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 42%"></div>
+</div>
+<span class="text-label-md font-medium text-on-surface w-8">42%</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-1 rounded text-label-md bg-[#D47A22] text-white">High</span>
+</td>
+<td class="py-3 px-4 text-right font-body-md text-on-surface">Dec 15, 2024</td>
+<td class="py-3 px-4 text-center">
+<button aria-label="More options" class="text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="py-3 px-4 sticky left-0 bg-surface-container-lowest group-hover:bg-surface-container-low z-10">
+<a class="text-primary font-semibold hover:underline block truncate w-48 font-body-md" href="#">Solar Park Phase II</a>
+<span class="text-label-md text-on-surface-variant">ID: PRJ-2023-089</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-body-md text-on-surface">Karnataka</div>
+<div class="text-label-md text-on-surface-variant">Tumkur</div>
+</td>
+<td class="py-3 px-4 text-right font-mono-sm text-on-surface font-medium">2,100.00</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-[#73A557] h-2 rounded-full" style="width: 95%"></div>
+</div>
+<span class="text-label-md font-medium text-on-surface w-8">95%</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-1 rounded text-label-md bg-[#73A557] text-white">Low</span>
+</td>
+<td class="py-3 px-4 text-right font-body-md text-on-surface">Nov 01, 2024</td>
+<td class="py-3 px-4 text-center">
+<button aria-label="More options" class="text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group bg-[#F8F5EC]/30">
+<td class="py-3 px-4 sticky left-0 bg-[#F8F5EC]/30 group-hover:bg-surface-container-low z-10">
+<a class="text-primary font-semibold hover:underline block truncate w-48 font-body-md" href="#">Coastal Road Extension</a>
+<span class="text-label-md text-on-surface-variant">ID: PRJ-2024-012</span>
+</td>
+<td class="py-3 px-4">
+<div class="font-body-md text-on-surface">Maharashtra</div>
+<div class="text-label-md text-on-surface-variant">Mumbai</div>
+</td>
+<td class="py-3 px-4 text-right font-mono-sm text-on-surface font-medium">120.75</td>
+<td class="py-3 px-4">
+<div class="flex items-center gap-2">
+<div class="w-full bg-surface-container-highest rounded-full h-2">
+<div class="bg-[#D47A22] h-2 rounded-full" style="width: 15%"></div>
+</div>
+<span class="text-label-md font-medium text-on-surface w-8">15%</span>
+</div>
+</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2 py-1 rounded text-label-md bg-[#D47A22] text-white">Med</span>
+</td>
+<td class="py-3 px-4 text-right font-body-md text-on-surface">Mar 30, 2025</td>
+<td class="py-3 px-4 text-center">
+<button aria-label="More options" class="text-on-surface-variant hover:text-primary transition-colors p-1">
+<span class="material-symbols-outlined text-[20px]" data-icon="more_vert">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-4 border-t border-outline-variant bg-surface flex items-center justify-between">
+<span class="text-label-md text-on-surface-variant">Showing 1 to 4 of 124 entries</span>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:bg-surface-container-low transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-on-primary font-label-md">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors font-label-md">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors font-label-md">3</button>
+<span class="px-2 text-on-surface-variant">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors font-label-md">12</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

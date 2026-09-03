@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── BhoomiSetu Design System ─────────────────────────── */
+
+@layer base {
+  :root {
+    /* Brand Colors — "The Harmonious Earth" palette */
+    --bs-teal-blue: 203 55% 38%;       /* #2B6D97 — Deep Teal Blue */
+    --bs-sea-green: 172 36% 40%;       /* #439288 — Muted Sea Green */
+    --bs-sage-green: 98 32% 49%;       /* #73A557 — Sage Green */
+    --bs-copper: 30 73% 48%;           /* #D47A22 — Warm Copper */
+    --bs-linen: 40 43% 95%;            /* #F8F5EC — Linen Off-White */
+    --bs-charcoal: 215 19% 25%;        /* #2D3748 — Charcoal Slate */
+
+    /* Semantic Colors */
+    --background: 40 43% 95%;
+    --foreground: 215 19% 25%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 19% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 19% 25%;
+    --primary: 203 55% 38%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 172 36% 40%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 30 73% 48%;
+    --accent-foreground: 0 0% 100%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 98 32% 49%;
+    --success-foreground: 0 0% 100%;
+    --warning: 30 73% 48%;
+    --warning-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 203 55% 38%;
+    --radius: 0.625rem;
+
+    /* Sidebar */
+    --sidebar-bg: 203 55% 28%;
+    --sidebar-text: 0 0% 100%;
+    --sidebar-hover: 203 55% 35%;
+    --sidebar-active: 203 55% 42%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+}
+
+@layer components {
+  /* ── Status Badges ─────────────────────────── */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide uppercase;
+  }
+  .badge-low {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+  .badge-medium {
+    @apply bg-amber-100 text-amber-800;
+  }
+  .badge-high {
+    @apply bg-orange-100 text-orange-800;
+  }
+  .badge-critical {
+    @apply bg-red-100 text-red-800;
+  }
+  .badge-active {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+  .badge-planning {
+    @apply bg-blue-100 text-blue-800;
+  }
+  .badge-on-hold {
+    @apply bg-gray-100 text-gray-800;
+  }
+  .badge-completed {
+    @apply bg-teal-100 text-teal-800;
+  }
+  .badge-cancelled {
+    @apply bg-gray-100 text-gray-500;
+  }
+
+  /* ── Cards ─────────────────────────────────── */
+  .card-elevated {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm transition-shadow hover:shadow-md;
+  }
+
+  /* ── Glassmorphism ─────────────────────────── */
+  .glass {
+    @apply bg-white/80 backdrop-blur-md border border-white/20;
+  }
+
+  /* ── Stat Card Variants ────────────────────── */
+  .stat-card {
+    @apply card-elevated p-5 flex flex-col gap-2;
+  }
+  .stat-card-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-gray-500;
+  }
+  .stat-card-value {
+    @apply text-2xl font-bold text-foreground;
+  }
+  .stat-card-trend {
+    @apply text-xs font-medium;
+  }
+  .stat-card-trend-up {
+    @apply text-emerald-600;
+  }
+  .stat-card-trend-down {
+    @apply text-red-600;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Fade-in animation */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Slide-in from left */
+  .animate-slide-in {
+    animation: slideIn 0.25s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-16px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* Pulse-glow for alerts */
+  .animate-pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+  }
+
+  /* Shimmer loading */
+  .animate-shimmer {
+    animation: shimmer 1.5s infinite;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+}
