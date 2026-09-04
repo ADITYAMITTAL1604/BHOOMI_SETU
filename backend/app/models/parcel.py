@@ -45,7 +45,7 @@ class Parcel(Base):
     district: Mapped[str] = mapped_column(String(100), nullable=False, default="", index=True)
     state: Mapped[str] = mapped_column(String(100), nullable=False, default="", index=True)
     assigned_officer: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
+        PlatformUUID, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

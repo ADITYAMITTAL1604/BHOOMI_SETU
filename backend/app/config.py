@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     jwt_secret: str = "changeme_in_production"
     jwt_algorithm: str = "HS256"
     jwt_expiry_minutes: int = 60
+    refresh_token_expiry_days: int = 7
+
+    # ── Environment & Data Source ─────────────────────────────────────────────
+    environment: str = "development"
+    data_source: str = "synthetic"  # "synthetic" | "project"
 
     # ── CORS ──────────────────────────────────────────────────────────────────
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
@@ -31,6 +36,18 @@ class Settings(BaseSettings):
 
     # ── Logging ───────────────────────────────────────────────────────────────
     log_level: str = "INFO"
+
+    @property
+    def is_production(self) -> bool:
+        return self.environment.lower() in ("production", "prod")
+
+    def validate_secrets(self) -> None:
+        if self.is_production and self.jwt_secret == "changeme_in_production":
+            raise ValueError(
+                "CRITICAL SECURITY CONFIGURATION ERROR: "
+                "JWT_SECRET cannot be default 'changeme_in_production' when ENVIRONMENT is 'production'. "
+                "Set a secure, random JWT_SECRET in your production environment."
+            )
 
     @property
     def cors_origins_list(self) -> list[str]:

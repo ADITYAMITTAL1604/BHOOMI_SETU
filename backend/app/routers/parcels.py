@@ -60,7 +60,11 @@ class ParcelCreate(ParcelBase):
         return v
 
 
+PROTECTED_PARCEL_FIELDS = {"current_stage", "status", "risk_score"}
+
+
 class ParcelUpdate(BaseModel):
+    """Standard parcel update schema. Protected workflow/ML fields are excluded to prevent mass assignment."""
     survey_number: Optional[str] = Field(None, min_length=1, max_length=100)
     area_ha: Optional[float] = Field(None, gt=0)
     geometry_wkt: Optional[str] = None
@@ -70,9 +74,6 @@ class ParcelUpdate(BaseModel):
     district: Optional[str] = None
     state: Optional[str] = None
     assigned_officer: Optional[UUID] = None
-    current_stage: Optional[StageName] = None
-    status: Optional[ParcelStatus] = None
-    risk_score: Optional[float] = Field(None, ge=0, le=100)
     remarks: Optional[str] = None
 
     @validator("survey_number", "owner_name", "owner_reference", "village", "district", "state", "remarks", pre=True)
@@ -90,6 +91,13 @@ class ParcelUpdate(BaseModel):
             from app.utils.geo_validation import validate_and_parse_geometry
             validate_and_parse_geometry(v)
         return v
+
+
+class ParcelAdminUpdate(ParcelUpdate):
+    """Admin-only schema permitting direct overrides of workflow stage, status, and ML risk scores."""
+    current_stage: Optional[StageName] = None
+    status: Optional[ParcelStatus] = None
+    risk_score: Optional[float] = Field(None, ge=0, le=100)
 
 
 class ParcelResponse(BaseModel):
@@ -387,6 +395,7 @@ def list_parcels(
     page_params: PageParams = Depends(),
     project_id: Optional[UUID] = Query(None),
     search: Optional[str] = Query(None, description="Search in survey_number, owner_name"),
+    q: Optional[str] = Query(None),
     status_filter: Optional[ParcelStatus] = Query(None, alias="status"),
     stage_filter: Optional[StageName] = Query(None, alias="stage"),
     district: Optional[str] = Query(None),
@@ -398,6 +407,7 @@ def list_parcels(
     current_user=Depends(get_current_user),
 ):
     """List parcels with pagination, search, and filters. Scope-enforced."""
+    search_term_val = search or q
     stmt = select(Parcel)
 
     # Apply geographic scope
@@ -407,8 +417,8 @@ def list_parcels(
     if project_id:
         stmt = stmt.where(Parcel.project_id == project_id)
 
-    if search:
-        search_term = f"%{search}%"
+    if search_term_val:
+        search_term = f"%{search_term_val}%"
         stmt = stmt.where(
             or_(
                 Parcel.survey_number.ilike(search_term),
@@ -489,6 +499,8 @@ def get_parcel(
     return _build_parcel_response(db, parcel)
 
 
+from typing import Union
+
 @router.put(
     "/{parcel_id}",
     response_model=ParcelResponse,
@@ -496,11 +508,24 @@ def get_parcel(
 )
 def update_parcel(
     parcel_id: UUID,
-    parcel_data: ParcelUpdate,
+    parcel_data: Union[ParcelAdminUpdate, ParcelUpdate],
     db: Session = Depends(get_db),
     current_user=Depends(require_district_or_above),
 ):
-    """Update a parcel. Requires DISTRICT role or above."""
+    """Update a parcel. Requires DISTRICT role or above. Direct workflow/risk overrides require ADMIN."""
+    # Enforce mass assignment protection on protected fields
+    user_role = getattr(current_user, "role", None)
+    role_val = user_role.value if hasattr(user_role, "value") else str(user_role)
+    is_admin = role_val in (UserRole.ADMIN.value, "ADMIN")
+
+    for protected_field in PROTECTED_PARCEL_FIELDS:
+        if getattr(parcel_data, protected_field, None) is not None and not is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Forbidden: Modifying '{protected_field}' directly requires ADMIN privileges. "
+                       f"Use the workflow transition service or ML re-scoring endpoint.",
+            )
+
     parcel = db.execute(select(Parcel).where(Parcel.parcel_id == parcel_id)).scalar_one_or_none()
     if not parcel:
         raise HTTPException(

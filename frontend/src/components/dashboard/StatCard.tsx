@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -21,7 +22,7 @@ export function StatCard({
   icon,
   trend,
   sparklineData,
-  sparklineColor = "#2B6D97",
+  sparklineColor = "#D47A22",
   className,
 }: StatCardProps) {
   return (
@@ -88,6 +89,7 @@ function MiniSparkline({
   color: string;
   height?: number;
 }) {
+  const gradId = useId().replace(/:/g, "");
   const width = 120;
   const min = Math.min(...data);
   const max = Math.max(...data);
@@ -95,9 +97,9 @@ function MiniSparkline({
   const padding = 2;
 
   const points = data.map((val, i) => {
-    const x = (i / (data.length - 1)) * (width - padding * 2) + padding;
+    const x = (i / Math.max(1, data.length - 1)) * (width - padding * 2) + padding;
     const y = height - ((val - min) / range) * (height - padding * 2) - padding;
-    return `${x},${y}`;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
 
   const polyline = points.join(" ");
@@ -115,23 +117,23 @@ function MiniSparkline({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
-      className="opacity-80"
+      className="overflow-visible"
     >
       <defs>
-        <linearGradient id={`grad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.02" />
+        <linearGradient id={`grad-${gradId}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+          <stop offset="100%" stopColor={color} stopOpacity={0.01} />
         </linearGradient>
       </defs>
       <polygon
         points={areaPoints}
-        fill={`url(#grad-${color.replace("#", "")})`}
+        fill={`url(#grad-${gradId})`}
       />
       <polyline
         points={polyline}
         fill="none"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />

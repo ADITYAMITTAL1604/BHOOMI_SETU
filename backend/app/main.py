@@ -120,8 +120,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
 )
 
 # ── Custom Middlewares ────────────────────────────────────────────────────────
@@ -157,7 +157,6 @@ app.include_router(parcels.router,       prefix="/api/v1/parcels",      tags=["P
 app.include_router(gis.router,           prefix="/api/v1/gis",          tags=["GIS"])
 app.include_router(dashboard.router,     prefix="/api/v1/dashboard",    tags=["Dashboard"])
 app.include_router(analytics.router,     prefix="/api/v1/analytics",    tags=["Analytics"])
-app.include_router(analytics.router,     prefix="/analytics",           tags=["Analytics"], include_in_schema=False)
 app.include_router(documents.router,     prefix="/api/v1/documents",    tags=["Documents"])
 app.include_router(alerts.router,        prefix="/api/v1/alerts",       tags=["Alerts"])
 app.include_router(compensation.router,  prefix="/api/v1/compensation", tags=["Compensation"])

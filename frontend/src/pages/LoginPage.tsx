@@ -86,7 +86,10 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex">
       {/* ── Left Panel — Hero ────────────────────── */}
-      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-brand-teal-blue">
+      <div
+        className="hidden lg:flex lg:w-[55%] relative overflow-hidden bg-[#D47A22] text-white"
+        style={{ backgroundColor: "#D47A22" }}
+      >
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-[0.08]">
           <div
@@ -111,22 +114,31 @@ export function LoginPage() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div className="flex-1 flex flex-col justify-center max-w-lg">
-            <h2 className="text-4xl xl:text-5xl font-bold leading-tight mb-6">
+            {/* Large Prominent Emblem Logo Above Text */}
+            <div className="mb-8 p-3.5 bg-white rounded-2xl shadow-xl border border-white/30 inline-block w-fit max-w-[340px]">
+              <img
+                src="/logo-bhoomisetu.jpeg"
+                alt="BhoomiSetu"
+                className="h-20 sm:h-24 w-auto object-contain rounded-lg"
+              />
+            </div>
+
+            <h2 className="text-4xl xl:text-5xl font-bold leading-tight mb-6 text-white drop-shadow-sm">
               National Land
               <br />
               Acquisition
               <br />
               Command
             </h2>
-            <p className="text-lg text-white/70 leading-relaxed">
+            <p className="text-lg text-white/90 leading-relaxed font-normal">
               Secure, centralized operational control for critical infrastructure
               and parcel monitoring workflows.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 pt-8 border-t border-white/15">
-            <ShieldCheck className="w-5 h-5 text-white/60" />
-            <span className="text-xs font-semibold text-white/60 uppercase tracking-widest">
+          <div className="flex items-center gap-3 pt-8 border-t border-white/20">
+            <ShieldCheck className="w-5 h-5 text-white/80" />
+            <span className="text-xs font-semibold text-white/80 uppercase tracking-widest">
               Gov-Grade Encryption Enabled
             </span>
           </div>
@@ -136,12 +148,15 @@ export function LoginPage() {
       {/* ── Right Panel — Login Form ─────────────── */}
       <div className="flex-1 flex items-center justify-center p-8 bg-brand-linen">
         <div className="w-full max-w-md">
-          {/* Logo */}
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-teal-blue/10 mb-4">
-              <span className="text-2xl font-black text-brand-teal-blue tracking-tight">
-                BS
-              </span>
+          {/* Header without duplicate logo above credentials */}
+          <div className="mb-8">
+            {/* Mobile-only compact logo fallback when left panel is hidden */}
+            <div className="lg:hidden mb-4 p-2 bg-white rounded-xl shadow-sm border border-gray-200 inline-block">
+              <img
+                src="/logo-bhoomisetu.jpeg"
+                alt="BhoomiSetu"
+                className="h-12 w-auto object-contain"
+              />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
               Sign In to Dashboard
@@ -177,7 +192,7 @@ export function LoginPage() {
                   placeholder="e.g. administrator"
                   className={cn(
                     "w-full pl-10 pr-4 py-3 rounded-xl border bg-white text-sm transition-all duration-200",
-                    "focus:outline-none focus:ring-2 focus:ring-brand-teal-blue/30 focus:border-brand-teal-blue",
+                    "focus:outline-none focus:ring-2 focus:ring-[#D47A22]/30 focus:border-[#D47A22]",
                     errors.username
                       ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                       : "border-gray-200 hover:border-gray-300"
@@ -210,7 +225,7 @@ export function LoginPage() {
                   placeholder="••••••••"
                   className={cn(
                     "w-full pl-10 pr-12 py-3 rounded-xl border bg-white text-sm transition-all duration-200",
-                    "focus:outline-none focus:ring-2 focus:ring-brand-teal-blue/30 focus:border-brand-teal-blue",
+                    "focus:outline-none focus:ring-2 focus:ring-[#D47A22]/30 focus:border-[#D47A22]",
                     errors.password
                       ? "border-red-300 focus:ring-red-200 focus:border-red-400"
                       : "border-gray-200 hover:border-gray-300"
@@ -242,7 +257,7 @@ export function LoginPage() {
             <div className="text-right">
               <button
                 type="button"
-                className="text-xs font-semibold text-brand-teal-blue hover:text-brand-sea-green transition-colors"
+                className="text-xs font-semibold text-[#D47A22] hover:text-[#B56315] transition-colors"
               >
                 Forgot Password?
               </button>
@@ -253,8 +268,8 @@ export function LoginPage() {
               type="submit"
               disabled={isLoading}
               className={cn(
-                "w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white transition-all duration-200",
-                "bg-brand-teal-blue hover:bg-[#245d82] active:scale-[0.98]",
+                "w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 shadow-md",
+                "bg-[#D47A22] hover:bg-[#B56315] active:scale-[0.98]",
                 "disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
               )}
             >
@@ -286,9 +301,9 @@ export function LoginPage() {
 
           {/* Demo Credentials (dev only) */}
           {import.meta.env.VITE_USE_MOCKS === "true" && (
-            <div className="mt-6 p-4 bg-brand-sea-green/5 border border-brand-sea-green/20 rounded-xl">
+            <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] text-brand-sea-green font-semibold uppercase tracking-wide">
+                <p className="text-[10px] text-[#D47A22] font-semibold uppercase tracking-wide">
                   Quick Demo Logins (Click to Fill)
                 </p>
                 <span className="text-[10px] text-gray-400">Password: password123</span>
@@ -306,10 +321,10 @@ export function LoginPage() {
                     key={user}
                     type="button"
                     onClick={() => handleDemoFill(user, "password123")}
-                    className="text-left px-2.5 py-1.5 rounded-lg bg-white/70 hover:bg-white border border-gray-200/80 hover:border-brand-teal-blue/40 text-gray-700 hover:text-brand-teal-blue transition-all group"
+                    className="text-left px-2.5 py-1.5 rounded-lg bg-white/70 hover:bg-white border border-gray-200/80 hover:border-[#D47A22]/40 text-gray-700 hover:text-[#D47A22] transition-all group"
                   >
                     <span className="font-semibold">{user}</span>
-                    <span className="block text-[10px] text-gray-400 font-sans group-hover:text-brand-teal-blue/80">
+                    <span className="block text-[10px] text-gray-400 font-sans group-hover:text-[#D47A22]/80">
                       {label}
                     </span>
                   </button>

@@ -58,30 +58,35 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen flex flex-col transition-all duration-300 ease-in-out shadow-sidebar",
-        "bg-sidebar text-sidebar-text",
+        "fixed left-0 top-0 z-40 h-screen flex flex-col transition-all duration-300 ease-in-out shadow-2xl",
+        "bg-[#D47A22] text-white",
         collapsed ? "w-[72px]" : "w-[248px]"
       )}
+      style={{ backgroundColor: "#D47A22" }}
     >
       {/* ── Logo ─────────────────────────────── */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-white/10">
-        <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
-          <Globe className="w-5 h-5 text-white" />
-        </div>
-        {!collapsed && (
-          <div className="animate-fade-in">
-            <h1 className="text-base font-bold leading-tight tracking-tight">
-              BhoomiSetu
-            </h1>
-            <p className="text-[10px] font-medium text-sidebar-text-muted uppercase tracking-widest">
-              Command Center
-            </p>
+      <div className="px-3.5 py-4 border-b border-white/20">
+        {collapsed ? (
+          <div className="w-12 h-12 mx-auto rounded-xl overflow-hidden bg-white p-1 shadow-md border border-white/20 flex items-center justify-center">
+            <img
+              src="/logo-bhoomisetu.jpeg"
+              alt="BhoomiSetu"
+              className="w-full h-full object-contain"
+            />
+          </div>
+        ) : (
+          <div className="w-full bg-white rounded-xl py-2 px-3 shadow-md border border-white/20 flex items-center justify-center transition-transform hover:scale-[1.01]">
+            <img
+              src="/logo-bhoomisetu.jpeg"
+              alt="BhoomiSetu"
+              className="w-full h-14 max-w-[215px] object-contain"
+            />
           </div>
         )}
       </div>
 
       {/* ── Main Navigation ──────────────────── */}
-      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 py-3 px-2 space-y-1 overflow-y-auto">
         {filterByRole(NAV_ITEMS).map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -94,17 +99,16 @@ export function Sidebar() {
               to={item.path}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                "hover:bg-sidebar-hover",
                 isActive
-                  ? "bg-sidebar-active text-white shadow-sm border-l-[3px] border-white ml-0 pl-[9px]"
-                  : "text-sidebar-text-muted hover:text-white border-l-[3px] border-transparent"
+                  ? "bg-[#A3540C] text-white shadow-sm font-semibold border-l-[3px] border-amber-200 ml-0 pl-[9px]"
+                  : "text-orange-100/90 hover:text-white hover:bg-[#BD6815] border-l-[3px] border-transparent"
               )}
               title={collapsed ? item.label : undefined}
             >
               <Icon
                 className={cn(
                   "w-[18px] h-[18px] flex-shrink-0",
-                  isActive ? "text-white" : "text-sidebar-text-muted"
+                  isActive ? "text-amber-200" : "text-orange-200/90"
                 )}
               />
               {!collapsed && (
@@ -116,7 +120,7 @@ export function Sidebar() {
       </nav>
 
       {/* ── Bottom Navigation ────────────────── */}
-      <div className="py-3 px-2 border-t border-white/10">
+      <div className="py-3 px-2 border-t border-white/20">
         {filterByRole(BOTTOM_NAV).map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -127,14 +131,13 @@ export function Sidebar() {
               to={item.path}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                "hover:bg-sidebar-hover",
                 isActive
-                  ? "bg-sidebar-active text-white"
-                  : "text-sidebar-text-muted hover:text-white"
+                  ? "bg-[#A3540C] text-white font-semibold border-l-[3px] border-amber-200 pl-[9px]"
+                  : "text-orange-100/90 hover:text-white hover:bg-[#BD6815] border-l-[3px] border-transparent"
               )}
               title={collapsed ? item.label : undefined}
             >
-              <Icon className="w-[18px] h-[18px] flex-shrink-0" />
+              <Icon className="w-[18px] h-[18px] flex-shrink-0 text-orange-200/90" />
               {!collapsed && (
                 <span className="animate-fade-in truncate">{item.label}</span>
               )}
@@ -146,7 +149,7 @@ export function Sidebar() {
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium w-full
-                     text-sidebar-text-muted hover:text-white hover:bg-sidebar-hover transition-all duration-200 mt-1"
+                     text-orange-100/90 hover:text-white hover:bg-[#BD6815] transition-all duration-200 mt-1"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (

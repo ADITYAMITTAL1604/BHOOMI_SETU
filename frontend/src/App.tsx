@@ -16,6 +16,9 @@ const ProjectListPage = lazy(() =>
 const ProjectDetailPage = lazy(() =>
   import("@/pages/ProjectDetailPage").then((m) => ({ default: m.ProjectDetailPage || (m as any).default }))
 );
+const ParcelListPage = lazy(() =>
+  import("@/pages/ParcelListPage").then((m) => ({ default: m.ParcelListPage || (m as any).default }))
+);
 const ParcelDetailPage = lazy(() =>
   import("@/pages/ParcelDetailPage").then((m) => ({ default: m.ParcelDetailPage || (m as any).default }))
 );
@@ -30,6 +33,9 @@ const DocumentsPage = lazy(() =>
 );
 const IntelligencePage = lazy(() =>
   import("@/pages/IntelligencePage").then((m) => ({ default: m.IntelligencePage || (m as any).default }))
+);
+const ReportsPage = lazy(() =>
+  import("@/pages/ReportsPage").then((m) => ({ default: m.ReportsPage || (m as any).default }))
 );
 
 function PageLoader() {
@@ -62,12 +68,13 @@ export default function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects" element={<ProjectListPage />} />
             <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-            <Route path="/parcels" element={<Navigate to="/projects" replace />} />
+            <Route path="/parcels" element={<ParcelListPage />} />
             <Route path="/parcels/:parcelId" element={<ParcelDetailPage />} />
             <Route path="/gis" element={<GISPage />} />
             <Route path="/alerts" element={<AlertsPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/intelligence" element={<IntelligencePage />} />
+            <Route path="/reports" element={<ReportsPage />} />
           </Route>
 
           {/* Error routes */}

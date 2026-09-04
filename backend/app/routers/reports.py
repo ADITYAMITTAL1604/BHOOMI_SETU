@@ -125,7 +125,7 @@ def _generate_executive_html(data: dict) -> str:
 )
 def get_executive_summary(
     project_id: Optional[UUID] = Query(None),
-    format: str = Query("json", regex="^(json|html)$"),
+    format: str = Query("json", pattern="^(json|html)$"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):

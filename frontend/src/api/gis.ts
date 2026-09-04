@@ -2,7 +2,7 @@ import apiClient from "./client";
 import type { ParcelGeoJSON } from "@/types/api";
 
 export async function getProjectGeoJSON(projectId?: string): Promise<ParcelGeoJSON> {
-  const targetId = projectId || "default";
+  const targetId = projectId || "all";
   const response = await apiClient.get<ParcelGeoJSON>(`/gis/projects/${targetId}/geojson`);
   return response.data;
 }

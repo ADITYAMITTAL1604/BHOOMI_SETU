@@ -1,0 +1,16 @@
+project_id,name,type,state,corridor_width_m,land_required_ha,target_days,total_parcels,data_source
+PRJ-001,Moradabad Urban Infrastructure Project,Urban Infrastructure Project,Uttar Pradesh,0,19.6,270,49,synthetic
+PRJ-003,Bahraich Industrial Corridor Project,Industrial Corridor Project,Uttar Pradesh,0,33.2,730,83,synthetic
+PRJ-005,Sitapur Industrial Corridor Project,Industrial Corridor Project,Uttar Pradesh,0,20.8,270,52,synthetic
+PRJ-007,Ghaziabad Power Transmission Line Project,Power Transmission Line Project,Uttar Pradesh,0,12.8,540,32,synthetic
+PRJ-009,Bara Banki Irrigation Canal Project,Irrigation Canal Project,Uttar Pradesh,0,27.2,365,68,synthetic
+PRJ-011,Bulandshahr Industrial Corridor Project,Industrial Corridor Project,Uttar Pradesh,0,15.6,540,39,synthetic
+PRJ-013,Sant Kabir Nagar Rural Connectivity Project,Rural Connectivity Project,Uttar Pradesh,0,39.2,365,98,synthetic
+PRJ-015,Pilibhit Industrial Corridor Project,Industrial Corridor Project,Uttar Pradesh,0,29.6,180,74,synthetic
+PRJ-017,Shahjahanpur Power Transmission Line Project,Power Transmission Line Project,Uttar Pradesh,0,8.8,365,22,synthetic
+PRJ-019,Lalitpur Power Transmission Line Project,Power Transmission Line Project,Uttar Pradesh,0,10.4,180,26,synthetic
+PRJ-021,Jhansi Railway Corridor Project,Railway Corridor Project,Uttar Pradesh,0,23.2,540,58,synthetic
+PRJ-023,Farrukhabad Urban Infrastructure Project,Urban Infrastructure Project,Uttar Pradesh,0,31.6,270,79,synthetic
+PRJ-025,Aligarh Railway Corridor Project,Railway Corridor Project,Uttar Pradesh,0,11.2,730,28,synthetic
+PRJ-027,Kheri Industrial Corridor Project,Industrial Corridor Project,Uttar Pradesh,0,8.4,540,21,synthetic
+PRJ-029,Hardoi Rural Connectivity Project,Rural Connectivity Project,Uttar Pradesh,0,31.6,540,79,synthetic

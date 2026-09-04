@@ -1,0 +1,27 @@
+{
+  "original_crs": "LCC_WGS84 (Lambert Conformal Conic, false_easting=4000000, central_meridian=80)",
+  "output_crs": "EPSG:4326 (WGS84)",
+  "data_sources": {
+    "states": {
+      "source": "Real - Government Shapefile",
+      "path": "D:/data/processed/states.geojson",
+      "records": 40
+    },
+    "districts": {
+      "source": "Real - Government Shapefile (filtered to UP)",
+      "path": "D:/data/processed/districts.geojson",
+      "records": 75
+    },
+    "subdistricts": {
+      "source": "Real - Government Shapefile (filtered to UP)",
+      "path": "D:/data/processed/subdistricts.geojson",
+      "records": 351
+    },
+    "villages": {
+      "source": "Real - Survey of India Shapefile",
+      "path": "D:/data/processed/villages.geojson",
+      "records": 104963
+    }
+  },
+  "state_column_detected": "STATE_UT"
+}

@@ -54,8 +54,20 @@ export async function getProjectSummary(projectId: string): Promise<ProjectSumma
 }
 
 export async function getRecentActivities(projectId: string): Promise<any[]> {
-  const response = await apiClient.get<any[]>(`/projects/${projectId}/timeline`);
-  return response.data || [];
+  const response = await apiClient.get<any>(`/projects/${projectId}/timeline`);
+  const data = response.data;
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.timeline)) {
+    return data.timeline.map((evt: any) => ({
+      id: evt.event_id || Math.random().toString(),
+      user: evt.actor_id || "System",
+      action: evt.title || evt.event_type || "Updated milestone",
+      entity: evt.description || "",
+      time_ago: evt.timestamp ? new Date(evt.timestamp).toLocaleDateString() : "Recently",
+      icon_color: "bg-brand-teal-blue",
+    }));
+  }
+  return [];
 }
 
 export async function createProject(projectData: Partial<Project>): Promise<Project> {

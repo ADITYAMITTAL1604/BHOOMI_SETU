@@ -1,0 +1,81 @@
+officer_id,name,district,role,assigned_cases,completed_cases,pending_cases,average_processing_days,sla_breaches,data_source
+OFC-51752,Yahvi Prashad,AGRA,District Land Acquisition Officer,136,59,77,77.2,14,synthetic
+OFC-71329,Avi Barad,AGRA,Tehsildar,177,150,27,20.0,22,synthetic
+OFC-74968,Hemangini Aurora,AGRA,Compensation Officer,178,73,105,46.5,29,synthetic
+OFC-16012,Pallavi Nadig,AGRA,R&R Officer,180,116,64,83.1,25,synthetic
+OFC-9729,Ekansh Saini,ALIGARH,District Land Acquisition Officer,136,101,35,45.2,15,synthetic
+OFC-48799,Janya Mall,ALIGARH,Tehsildar,109,88,21,30.6,22,synthetic
+OFC-47737,Andrew Saran,ALIGARH,Compensation Officer,58,27,31,36.0,8,synthetic
+OFC-88611,Girindra Tara,ALIGARH,R&R Officer,154,108,46,26.3,25,synthetic
+OFC-76997,Ria Varkey,AMBEDKAR NAGAR,District Land Acquisition Officer,48,38,10,39.9,6,synthetic
+OFC-32503,Sanaya Dalal,AMBEDKAR NAGAR,Tehsildar,89,71,18,35.3,18,synthetic
+OFC-37109,Avni Lall,AMBEDKAR NAGAR,Compensation Officer,86,59,27,36.1,12,synthetic
+OFC-74931,William Sami,AMBEDKAR NAGAR,R&R Officer,85,43,42,65.3,14,synthetic
+OFC-94993,Chandran Ramesh,AMETHI,District Land Acquisition Officer,74,63,11,26.6,17,synthetic
+OFC-86562,Hritik Chaudhary,AMETHI,Tehsildar,65,30,35,18.0,16,synthetic
+OFC-17060,Faris Dhingra,AMETHI,Compensation Officer,90,75,15,53.6,18,synthetic
+OFC-53263,Lohit Sibal,AMETHI,R&R Officer,62,49,13,87.8,10,synthetic
+OFC-40407,Wriddhish Borde,AMROHA,District Land Acquisition Officer,118,54,64,13.1,14,synthetic
+OFC-35977,Dominic Hayer,AMROHA,Tehsildar,101,85,16,76.8,13,synthetic
+OFC-13662,Aarnav Tank,AMROHA,Compensation Officer,194,90,104,78.8,24,synthetic
+OFC-83933,Varenya Chahal,AMROHA,R&R Officer,186,90,96,30.8,25,synthetic
+OFC-48122,Unnati Dasgupta,AURAIYA,District Land Acquisition Officer,119,92,27,75.4,23,synthetic
+OFC-8012,Baljiwan Sankaran,AURAIYA,Tehsildar,124,101,23,68.2,17,synthetic
+OFC-95992,Jagat Grewal,AURAIYA,Compensation Officer,59,39,20,62.0,11,synthetic
+OFC-11995,Yatan Nadig,AURAIYA,R&R Officer,177,96,81,76.7,33,synthetic
+OFC-80550,Amara Raj,AYODHYA,District Land Acquisition Officer,73,59,14,77.9,9,synthetic
+OFC-53040,Nisha Hayer,AYODHYA,Tehsildar,190,118,72,61.4,33,synthetic
+OFC-40194,Nimrat Rama,AYODHYA,Compensation Officer,152,91,61,18.5,22,synthetic
+OFC-14514,Wyatt Toor,AYODHYA,R&R Officer,177,154,23,66.0,32,synthetic
+OFC-1148,Aishani Trivedi,AZAMGARH,District Land Acquisition Officer,90,46,44,38.5,17,synthetic
+OFC-56027,Zashil Chowdhury,AZAMGARH,Tehsildar,88,78,10,50.2,17,synthetic
+OFC-18796,Joshua Sur,AZAMGARH,Compensation Officer,123,53,70,80.7,18,synthetic
+OFC-99675,Faraj Pradhan,AZAMGARH,R&R Officer,190,96,94,43.6,27,synthetic
+OFC-61139,Wakeeta Saxena,BAGHPAT,District Land Acquisition Officer,180,127,53,39.8,29,synthetic
+OFC-63224,Manya Wable,BAGHPAT,Tehsildar,76,53,23,57.3,7,synthetic
+OFC-13918,Warjas Virk,BAGHPAT,Compensation Officer,192,76,116,12.4,28,synthetic
+OFC-76289,Champak Balakrishnan,BAGHPAT,R&R Officer,184,98,86,88.9,26,synthetic
+OFC-21678,Matthew Lad,BAHRAICH,District Land Acquisition Officer,129,54,75,45.2,18,synthetic
+OFC-72998,Ansh Shukla,BAHRAICH,Tehsildar,83,66,17,60.7,15,synthetic
+OFC-17452,Luke Rana,BAHRAICH,Compensation Officer,64,55,9,32.0,6,synthetic
+OFC-97836,David Dugal,BAHRAICH,R&R Officer,119,89,30,14.9,21,synthetic
+OFC-63246,Jeet Krishna,BALLIA,District Land Acquisition Officer,84,75,9,36.7,17,synthetic
+OFC-7454,Yuvraj Bora,BALLIA,Tehsildar,114,90,24,18.5,19,synthetic
+OFC-90034,Ikbal Joshi,BALLIA,Compensation Officer,54,35,19,79.7,7,synthetic
+OFC-81509,Forum Ratta,BALLIA,R&R Officer,196,155,41,17.1,28,synthetic
+OFC-46164,Amol Grover,BALRAMPUR,District Land Acquisition Officer,76,55,21,73.1,16,synthetic
+OFC-83894,Vasana Thaker,BALRAMPUR,Tehsildar,42,37,5,87.8,9,synthetic
+OFC-22775,Darsh Rajagopal,BALRAMPUR,Compensation Officer,171,136,35,88.6,17,synthetic
+OFC-50647,Elijah Bhattacharyya,BALRAMPUR,R&R Officer,143,98,45,66.8,19,synthetic
+OFC-79469,Aryan Kuruvilla,BARA BANKI,District Land Acquisition Officer,50,31,19,52.8,4,synthetic
+OFC-21657,Yatin Mand,BARA BANKI,Tehsildar,86,43,43,27.3,13,synthetic
+OFC-17562,Raagini Nayak,BARA BANKI,Compensation Officer,190,133,57,86.5,36,synthetic
+OFC-99205,Bhavani Bedi,BARA BANKI,R&R Officer,106,75,31,31.6,11,synthetic
+OFC-19935,Lajita Bhagat,BAREILLY,District Land Acquisition Officer,191,123,68,61.1,30,synthetic
+OFC-56122,Anay Mitra,BAREILLY,Tehsildar,59,40,19,68.5,10,synthetic
+OFC-8270,Osha Das,BAREILLY,Compensation Officer,79,39,40,68.1,12,synthetic
+OFC-90433,Pallavi Kar,BAREILLY,R&R Officer,84,73,11,72.6,18,synthetic
+OFC-91951,Praneel Sangha,BASTI,District Land Acquisition Officer,171,147,24,43.9,27,synthetic
+OFC-4045,Mitesh Dada,BASTI,Tehsildar,182,104,78,41.6,21,synthetic
+OFC-2269,Fiyaz Chad,BASTI,Compensation Officer,100,61,39,44.1,15,synthetic
+OFC-73921,Oliver Jani,BASTI,R&R Officer,151,89,62,22.2,30,synthetic
+OFC-58038,Siya Dua,BHADOHI,District Land Acquisition Officer,144,65,79,46.9,20,synthetic
+OFC-88690,Dominic Vig,BHADOHI,Tehsildar,161,120,41,13.5,18,synthetic
+OFC-12836,Bhanumati Prakash,BHADOHI,Compensation Officer,34,15,19,39.1,5,synthetic
+OFC-76348,Arya Sengupta,BHADOHI,R&R Officer,79,35,44,30.5,8,synthetic
+OFC-89718,Chameli Kari,BIJNOR,District Land Acquisition Officer,172,143,29,39.0,35,synthetic
+OFC-1510,Ishaan Edwin,BIJNOR,Tehsildar,191,89,102,17.2,23,synthetic
+OFC-41304,Janaki Sidhu,BIJNOR,Compensation Officer,181,79,102,33.3,21,synthetic
+OFC-96822,Yashica Kamdar,BIJNOR,R&R Officer,150,67,83,83.9,17,synthetic
+OFC-46485,Nitesh Ratti,BUDAUN,District Land Acquisition Officer,184,89,95,65.6,29,synthetic
+OFC-2341,Jairaj Wagle,BUDAUN,Tehsildar,191,168,23,54.5,26,synthetic
+OFC-18481,Siddharth Rastogi,BUDAUN,Compensation Officer,86,51,35,88.2,14,synthetic
+OFC-61432,Rudra Borra,BUDAUN,R&R Officer,96,70,26,56.3,12,synthetic
+OFC-2916,Aayush Pandya,BULANDSHAHR,District Land Acquisition Officer,93,71,22,44.3,13,synthetic
+OFC-4145,Rachit Dhar,BULANDSHAHR,Tehsildar,65,33,32,73.4,7,synthetic
+OFC-84740,Gabriel Kalita,BULANDSHAHR,Compensation Officer,177,73,104,85.1,16,synthetic
+OFC-39750,Vrinda Banerjee,BULANDSHAHR,R&R Officer,53,26,27,77.4,8,synthetic
+OFC-38327,Tristan Mannan,CHANDAULI,District Land Acquisition Officer,114,51,63,67.3,16,synthetic
+OFC-25614,Alka Murty,CHANDAULI,Tehsildar,162,66,96,44.0,24,synthetic
+OFC-91309,Gaurika Choudhary,CHANDAULI,Compensation Officer,69,36,33,30.4,12,synthetic
+OFC-36395,Ladli Sarna,CHANDAULI,R&R Officer,36,29,7,18.5,7,synthetic

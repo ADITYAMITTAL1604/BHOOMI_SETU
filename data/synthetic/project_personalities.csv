@@ -1,0 +1,16 @@
+project_id,personality,description
+PRJ-001,smooth,"Fast processing, few delays"
+PRJ-003,rr_stuck,Rehabilitation & Resettlement bottleneck
+PRJ-005,ownership_stuck,"Ownership verification bottleneck (missing records, disputes)"
+PRJ-007,rr_stuck,Rehabilitation & Resettlement bottleneck
+PRJ-009,legal_dispute,"Legal disputes bottleneck (court cases, objections)"
+PRJ-011,compensation_stuck,Compensation disbursement bottleneck (cash flow issues)
+PRJ-013,compensation_stuck,Compensation disbursement bottleneck (cash flow issues)
+PRJ-015,smooth,"Fast processing, few delays"
+PRJ-017,ownership_stuck,"Ownership verification bottleneck (missing records, disputes)"
+PRJ-019,ownership_stuck,"Ownership verification bottleneck (missing records, disputes)"
+PRJ-021,compensation_stuck,Compensation disbursement bottleneck (cash flow issues)
+PRJ-023,rr_stuck,Rehabilitation & Resettlement bottleneck
+PRJ-025,ownership_stuck,"Ownership verification bottleneck (missing records, disputes)"
+PRJ-027,smooth,"Fast processing, few delays"
+PRJ-029,ownership_stuck,"Ownership verification bottleneck (missing records, disputes)"

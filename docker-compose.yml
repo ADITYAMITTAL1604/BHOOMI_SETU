@@ -5,16 +5,16 @@ services:
     image: postgis/postgis:15-3.4
     restart: unless-stopped
     environment:
-      POSTGRES_USER: bhoomi
-      POSTGRES_PASSWORD: changeme
-      POSTGRES_DB: bhoomisetu
+      POSTGRES_USER: ${POSTGRES_USER:-bhoomi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-bhoomisetu}
     ports:
       - "5434:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./backend/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bhoomi -d bhoomisetu"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bhoomi} -d ${POSTGRES_DB:-bhoomisetu}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -27,20 +27,22 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql+psycopg2://bhoomi:changeme@db:5432/bhoomisetu
-      JWT_SECRET: changeme_in_production
-      JWT_ALGORITHM: HS256
-      JWT_EXPIRY_MINUTES: "60"
-      CORS_ORIGINS: "http://localhost:5173,http://localhost:3000"
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg2://bhoomi:changeme@db:5432/bhoomisetu}
+      JWT_SECRET: ${JWT_SECRET:-changeme_in_production}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_EXPIRY_MINUTES: ${JWT_EXPIRY_MINUTES:-60}
+      REFRESH_TOKEN_EXPIRY_DAYS: ${REFRESH_TOKEN_EXPIRY_DAYS:-7}
+      DATA_SOURCE: ${DATA_SOURCE:-synthetic}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:3000}
       DOCUMENT_STORAGE_PATH: /app/storage/documents
       ML_MODEL_PATH: /app/ml/models
-      LOG_LEVEL: INFO
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app
-      - ./ml/models:/app/ml/models:ro
       - backend_storage:/app/storage/documents
+      - ./data/model:/app/data/model:ro
     depends_on:
       db:
         condition: service_healthy
@@ -51,14 +53,14 @@ services:
       retries: 5
       start_period: 30s
 
-  # ── React Frontend (placeholder — Nginx static server) ────────────────────
+  # ── React Frontend (Production Nginx Container) ───────────────────────────
   frontend:
-    image: nginx:1.25-alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "5173:80"
-    volumes:
-      - ./frontend/public:/usr/share/nginx/html:ro
     depends_on:
       backend:
         condition: service_healthy

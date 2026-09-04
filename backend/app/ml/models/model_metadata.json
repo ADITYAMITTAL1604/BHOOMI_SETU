@@ -1,0 +1,23 @@
+{
+  "model_type": "RandomForestClassifier",
+  "n_estimators": 200,
+  "max_depth": 8,
+  "features": [
+    "pending_parcels",
+    "completed_parcels",
+    "average_stage_days",
+    "sla_breaches",
+    "compensation_pending",
+    "rr_pending",
+    "possession_pending",
+    "processing_rate",
+    "pending_trend",
+    "rate_trend"
+  ],
+  "target": "elevated_risk_next_30d",
+  "train_size": 330,
+  "test_size": 105,
+  "auc_score": 0.8594771241830065,
+  "split_date": "2025-04-12",
+  "data_source": "synthetic"
+}

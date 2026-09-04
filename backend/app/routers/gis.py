@@ -49,14 +49,38 @@ VALID_BOUNDARY_LEVELS = {"state", "district", "village"}
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
 def _safe_geojson(db: Session, geometry_col) -> Optional[dict]:
-    """Convert a PostGIS geometry column to a GeoJSON dict, returning None on error."""
+    """Convert geometry column to GeoJSON dict across PostgreSQL (PostGIS) and SQLite."""
     if geometry_col is None:
         return None
+
+    # 1. If stored as WKT string (e.g. SQLite storage)
+    if isinstance(geometry_col, str):
+        try:
+            import shapely.wkt
+            import shapely.geometry
+            shape = shapely.wkt.loads(geometry_col)
+            return shapely.geometry.mapping(shape)
+        except Exception:
+            pass
+
+    # 2. Try PostGIS ST_AsGeoJSON
     try:
         raw = db.execute(select(ST_AsGeoJSON(geometry_col))).scalar()
-        return json.loads(raw) if raw else None
+        if raw:
+            return json.loads(raw)
     except Exception:
-        return None
+        pass
+
+    # 3. Try GeoAlchemy2 to_shape
+    try:
+        from geoalchemy2.shape import to_shape
+        import shapely.geometry
+        shape = to_shape(geometry_col)
+        return shapely.geometry.mapping(shape)
+    except Exception:
+        pass
+
+    return None
 
 
 def _build_feature(geometry_geojson: Optional[dict], properties: dict) -> dict:
@@ -116,16 +140,7 @@ def get_boundaries(
 
     features = []
     for boundary in boundaries:
-        geojson = None
-        if boundary.geometry is not None:
-            try:
-                raw = db.execute(
-                    select(ST_AsGeoJSON(boundary.geometry))
-                ).scalar()
-                geojson = json.loads(raw) if raw else None
-            except Exception:
-                geojson = None
-
+        geojson = _safe_geojson(db, boundary.geometry)
         features.append(_build_feature(
             geojson,
             {
@@ -147,63 +162,101 @@ def get_boundaries(
     response_model=dict,
 )
 def get_project_geojson(
-    project_id: UUID,
+    project_id: str,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> dict:
     """
     Return all parcels for a project as a GeoJSON FeatureCollection.
-
-    Each feature carries parcel metadata (survey_number, status, stage,
-    owner_name, area_ha, risk_score) in its `properties` object.
+    If project_id is 'all', returns parcels across all projects (scoped to user).
     """
-    # Verify project exists
-    project = db.execute(
-        select(Project).where(Project.project_id == project_id)
-    ).scalar_one_or_none()
+    from app.core.deps import get_user_geographic_scope
+    scope = get_user_geographic_scope(current_user)
+
+    if project_id in ("all", "ALL"):
+        stmt = select(Parcel).where(Parcel.geometry.isnot(None))
+        if scope.get("state"):
+            stmt = stmt.where(Parcel.state == scope["state"])
+        if scope.get("district"):
+            stmt = stmt.where(Parcel.district == scope["district"])
+        parcels = db.execute(stmt.limit(1000)).scalars().all()
+
+        features = []
+        for parcel in parcels:
+            geojson = _safe_geojson(db, parcel.geometry)
+            if geojson:
+                features.append(_build_feature(
+                    geojson,
+                    {
+                        "parcel_id": str(parcel.parcel_id),
+                        "project_id": str(parcel.project_id),
+                        "survey_number": parcel.survey_number,
+                        "area_ha": parcel.area_ha,
+                        "owner_name": parcel.owner_name,
+                        "owner_reference": parcel.owner_reference,
+                        "current_stage": parcel.current_stage,
+                        "status": parcel.status,
+                        "risk_score": parcel.risk_score,
+                        "village": parcel.village,
+                        "district": parcel.district,
+                        "state": parcel.state,
+                    },
+                ))
+
+        return {
+            **_feature_collection(features),
+            "project_id": "all",
+            "project_name": "All Projects (Portfolio View)",
+        }
+
+    # Resolve specific project
+    project = None
+    if project_id == "default":
+        proj_stmt = select(Project)
+        if scope.get("state"):
+            proj_stmt = proj_stmt.where(Project.states.any(scope["state"]))
+        if scope.get("district"):
+            proj_stmt = proj_stmt.where(Project.districts.any(scope["district"]))
+        project = db.execute(proj_stmt.order_by(Project.created_at.desc())).scalars().first()
+    else:
+        try:
+            pid = UUID(project_id)
+            project = db.execute(select(Project).where(Project.project_id == pid)).scalar_one_or_none()
+        except (ValueError, TypeError):
+            project = db.execute(select(Project).order_by(Project.created_at.desc())).scalars().first()
+
     if not project:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Project not found",
-        )
+        return _feature_collection([])
 
     parcels = db.execute(
-        select(Parcel).where(Parcel.project_id == project_id)
+        select(Parcel).where(Parcel.project_id == project.project_id)
     ).scalars().all()
 
     features = []
     for parcel in parcels:
-        geojson = None
-        if parcel.geometry is not None:
-            try:
-                raw = db.execute(
-                    select(ST_AsGeoJSON(parcel.geometry))
-                ).scalar()
-                geojson = json.loads(raw) if raw else None
-            except Exception:
-                geojson = None
-
-        features.append(_build_feature(
-            geojson,
-            {
-                "parcel_id": str(parcel.parcel_id),
-                "project_id": str(parcel.project_id),
-                "survey_number": parcel.survey_number,
-                "area_ha": parcel.area_ha,
-                "owner_name": parcel.owner_name,
-                "owner_reference": parcel.owner_reference,
-                "current_stage": parcel.current_stage,
-                "status": parcel.status,
-                "risk_score": parcel.risk_score,
-                "village": parcel.village,
-                "district": parcel.district,
-                "state": parcel.state,
-            },
-        ))
+        geojson = _safe_geojson(db, parcel.geometry)
+        if geojson:
+            features.append(_build_feature(
+                geojson,
+                {
+                    "parcel_id": str(parcel.parcel_id),
+                    "project_id": str(parcel.project_id),
+                    "survey_number": parcel.survey_number,
+                    "area_ha": parcel.area_ha,
+                    "owner_name": parcel.owner_name,
+                    "owner_reference": parcel.owner_reference,
+                    "current_stage": parcel.current_stage,
+                    "status": parcel.status,
+                    "risk_score": parcel.risk_score,
+                    "village": parcel.village,
+                    "district": parcel.district,
+                    "state": parcel.state,
+                },
+            ))
 
     return {
         **_feature_collection(features),
-        "project_id": str(project_id),
+        "project_id": str(project.project_id),
         "project_name": project.name,
     }
 

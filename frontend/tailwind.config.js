@@ -38,12 +38,22 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        "brand-teal-blue": "#2B6D97",
+        "brand-teal-blue": "#D47A22",
         "brand-sea-green": "#439288",
         "brand-sage-green": "#73A557",
         "brand-copper": "#D47A22",
         "brand-linen": "#F8F5EC",
         "brand-charcoal": "#2D3748",
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-bg))",
+          hover: "hsl(var(--sidebar-hover))",
+          active: "hsl(var(--sidebar-active))",
+          text: "hsl(var(--sidebar-text))",
+          "text-muted": "hsl(var(--sidebar-text-muted))",
+        },
+      },
+      boxShadow: {
+        sidebar: "2px 0 12px rgba(0, 0, 0, 0.12)",
       },
       borderRadius: {
         lg: "var(--radius)",

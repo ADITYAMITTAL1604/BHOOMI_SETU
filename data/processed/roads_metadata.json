@@ -1,0 +1,22 @@
+{
+  "source": "Real - OpenStreetMap PBF",
+  "pbf_file": "D:/data/real/roads/india-260903.osm.pbf",
+  "total_roads": 36375,
+  "highway_types": {
+    "trunk": 13552,
+    "secondary": 7356,
+    "motorway": 5475,
+    "primary": 4764,
+    "trunk_link": 2726,
+    "motorway_link": 1114,
+    "secondary_link": 758,
+    "primary_link": 630
+  },
+  "bounding_box": [
+    76.98394821879818,
+    23.77010989880279,
+    84.73466011961689,
+    30.506275764119074
+  ],
+  "crs": "EPSG:4326"
+}

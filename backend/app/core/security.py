@@ -10,12 +10,13 @@ from app.config import get_settings
 
 settings = get_settings()
 
-_pwd_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
-
-# ── Passwords ─────────────────────────────────────────────────────────────────
 def hash_password(plain: str) -> str:
-    return _pwd_ctx.hash(plain)
+    """Hash a plaintext password using standard bcrypt."""
+    pwd_bytes = plain.encode("utf-8")[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
 
 
 # Alias
@@ -23,7 +24,12 @@ get_password_hash = hash_password
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return _pwd_ctx.verify(plain, hashed)
+    """Verify a plaintext password against a bcrypt hash."""
+    try:
+        pwd_bytes = plain.encode("utf-8")[:72]
+        return bcrypt.checkpw(pwd_bytes, hashed.encode("utf-8"))
+    except Exception:
+        return False
 
 
 # ── JWT ───────────────────────────────────────────────────────────────────────

@@ -1,0 +1,9 @@
+{
+  "total_parcels": 5000,
+  "sampled_villages": 150,
+  "total_villages_available": 104963,
+  "avg_parcels_per_village": 33.3,
+  "min_area_ha": 0.011,
+  "max_area_ha": 5.914,
+  "mean_area_ha": 0.2458848
+}

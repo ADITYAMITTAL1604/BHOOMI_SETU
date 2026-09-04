@@ -114,6 +114,9 @@ class ProjectResponse(BaseModel):
     updated_at: datetime
     parcels_count: int = 0
     parcels_completed: int = 0
+    progress_pct: float = 0.0
+    total_parcels: int = 0
+    acquired_parcels: int = 0
 
     class Config:
         from_attributes = True
@@ -156,14 +159,27 @@ from datetime import datetime
 
 
 def _apply_geographic_scope(stmt, user, model):
-    """Apply geographic scope filtering based on user's assigned scope."""
+    """Apply geographic scope filtering based on user's assigned scope.
+    
+    Supports models with array columns (Project.states, Project.districts)
+    and scalar columns (Parcel.state, Parcel.district).
+    """
     scope = get_user_geographic_scope(user)
     conditions = []
 
-    if scope.get("state"):
-        conditions.append(model.state.in_([scope["state"]]))
-    if scope.get("district"):
-        conditions.append(model.district.in_([scope["district"]]))
+    state_scope = scope.get("state")
+    if state_scope:
+        if hasattr(model, "states"):
+            conditions.append(model.states.any(state_scope))
+        elif hasattr(model, "state"):
+            conditions.append(model.state == state_scope)
+
+    district_scope = scope.get("district")
+    if district_scope:
+        if hasattr(model, "districts"):
+            conditions.append(model.districts.any(district_scope))
+        elif hasattr(model, "district"):
+            conditions.append(model.district == district_scope)
 
     if conditions:
         stmt = stmt.where(and_(*conditions))
@@ -599,6 +615,12 @@ def _build_project_response(db: Session, project: Project) -> ProjectResponse:
         except Exception:
             pass
 
+    tot = parcel_stats.total or 0
+    comp = parcel_stats.completed or 0
+    prog = round((comp / tot * 100), 1) if tot > 0 else (
+        round((project.land_acquired_ha / project.land_required_ha * 100), 1) if (project.land_required_ha and project.land_required_ha > 0) else 0.0
+    )
+
     return ProjectResponse(
         project_id=project.project_id,
         name=project.name,
@@ -613,8 +635,11 @@ def _build_project_response(db: Session, project: Project) -> ProjectResponse:
         created_by=project.created_by,
         created_at=project.created_at,
         updated_at=project.updated_at,
-        parcels_count=parcel_stats.total,
-        parcels_completed=parcel_stats.completed,
+        parcels_count=tot,
+        parcels_completed=comp,
+        total_parcels=tot,
+        acquired_parcels=comp,
+        progress_pct=prog,
     )
 
 

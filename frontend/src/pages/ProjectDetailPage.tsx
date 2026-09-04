@@ -79,11 +79,22 @@ export function ProjectDetailPage() {
     );
   }
 
-  // Determine current lifecycle stage index (simulated)
+  // Safely derive metrics with fallbacks
+  const totalParcels = project.total_parcels ?? (project as any).parcels_count ?? 0;
+  const acquiredParcels = project.acquired_parcels ?? (project as any).parcels_completed ?? 0;
+  const progressPct = typeof project.progress_pct === "number"
+    ? project.progress_pct
+    : (totalParcels > 0 ? Math.round((acquiredParcels / totalParcels) * 100) : 0);
+
+  // Determine current lifecycle stage index
   const currentStageIndex = Math.min(
-    Math.floor(project.progress_pct / (100 / LIFECYCLE_STAGES.length)),
+    Math.floor((progressPct || 0) / (100 / LIFECYCLE_STAGES.length)),
     LIFECYCLE_STAGES.length - 1
   );
+
+  const statesStr = Array.isArray(project.states) ? project.states.join(", ") : String(project.states || "Uttar Pradesh");
+  const districtsStr = Array.isArray(project.districts) ? project.districts.join(", ") : String(project.districts || "");
+  const landRequired = project.land_required_ha ?? 0;
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -118,22 +129,22 @@ export function ProjectDetailPage() {
             <div className="flex items-center gap-6 text-sm text-gray-500">
               <span className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4" />
-                {project.states.join(", ")} / {project.districts.join(", ")}
+                {statesStr} {districtsStr ? `/ ${districtsStr}` : ""}
               </span>
               <span className="flex items-center gap-1.5">
                 <Train className="w-4 h-4" />
-                {project.land_required_ha.toLocaleString()} km Corridor
+                {landRequired.toLocaleString()} ha Corridor
               </span>
               <span className="flex items-center gap-1.5">
                 <Users className="w-4 h-4" />
-                {project.total_parcels.toLocaleString()} PAPs
+                {totalParcels.toLocaleString()} PAPs
               </span>
             </div>
           </div>
 
           {/* Donut Progress */}
           <div className="flex-shrink-0 ml-6">
-            <ProgressDonut pct={project.progress_pct} size={100} />
+            <ProgressDonut pct={progressPct} size={100} />
           </div>
         </div>
       </Card>
@@ -155,7 +166,7 @@ export function ProjectDetailPage() {
               <IndianRupee className="w-4 h-4 text-gray-300" />
             </div>
             <p className="text-2xl font-bold text-foreground">
-              {formatCurrency(summary.compensation.paid)}
+              {formatCurrency(summary.compensation?.paid ?? 0)}
             </p>
             <p className="text-xs text-emerald-600 font-medium mt-1">
               ↗ +12% this month
@@ -170,13 +181,13 @@ export function ProjectDetailPage() {
               <Home className="w-4 h-4 text-gray-300" />
             </div>
             <p className="text-2xl font-bold text-foreground">
-              {Math.round((summary.rr.rehabilitated / summary.rr.total_families) * 100)}%
+              {summary.rr?.total_families ? Math.round(((summary.rr.rehabilitated ?? 0) / summary.rr.total_families) * 100) : 0}%
             </p>
             <div className="h-2 bg-gray-100 rounded-full mt-2">
               <div
                 className="h-full bg-brand-teal-blue rounded-full"
                 style={{
-                  width: `${(summary.rr.rehabilitated / summary.rr.total_families) * 100}%`,
+                  width: `${summary.rr?.total_families ? Math.min(100, Math.round(((summary.rr.rehabilitated ?? 0) / summary.rr.total_families) * 100)) : 0}%`,
                 }}
               />
             </div>
@@ -190,9 +201,9 @@ export function ProjectDetailPage() {
               <BarChart3 className="w-4 h-4 text-gray-300" />
             </div>
             <p className="text-2xl font-bold text-foreground">
-              {Math.max(0, 100 - Math.round((summary.sla_breaches / project.total_parcels) * 100))}%
+              {totalParcels > 0 ? Math.max(0, 100 - Math.round(((summary.sla_breaches ?? 0) / totalParcels) * 100)) : 100}%
             </p>
-            {summary.sla_breaches > 0 && (
+            {(summary.sla_breaches ?? 0) > 0 && (
               <p className="text-xs text-brand-copper font-medium mt-1 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3" />
                 {summary.sla_breaches} cases delayed
@@ -274,29 +285,32 @@ export function ProjectDetailPage() {
           <CardContent>
             {summary ? (
               <div className="space-y-3">
-                {[
-                  { label: "Identified", count: summary.total_parcels, color: "bg-brand-teal-blue" },
-                  { label: "Notified (3A)", count: Math.round(summary.total_parcels * 0.85), color: "bg-red-400" },
-                  { label: "Declaration (3D)", count: Math.round(summary.total_parcels * 0.6), color: "bg-brand-sage-green" },
-                  { label: "Awarded (3G)", count: summary.acquired_parcels, color: "bg-brand-copper" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center gap-3">
-                    <p className="text-xs text-gray-500 w-28 flex-shrink-0">
-                      {item.label}
-                    </p>
-                    <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className={cn("h-full rounded-full", item.color)}
-                        style={{
-                          width: `${(item.count / summary.total_parcels) * 100}%`,
-                        }}
-                      />
+                {(() => {
+                  const sTotal = summary.total_parcels || totalParcels || 1;
+                  return [
+                    { label: "Identified", count: summary.total_parcels || totalParcels, color: "bg-brand-teal-blue" },
+                    { label: "Notified (3A)", count: Math.round(sTotal * 0.85), color: "bg-red-400" },
+                    { label: "Declaration (3D)", count: Math.round(sTotal * 0.6), color: "bg-brand-sage-green" },
+                    { label: "Awarded (3G)", count: summary.acquired_parcels ?? acquiredParcels, color: "bg-brand-copper" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center gap-3">
+                      <p className="text-xs text-gray-500 w-28 flex-shrink-0">
+                        {item.label}
+                      </p>
+                      <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={cn("h-full rounded-full", item.color)}
+                          style={{
+                            width: `${Math.min(100, Math.round((item.count / sTotal) * 100))}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-gray-700 w-12 text-right">
+                        {item.count.toLocaleString()}
+                      </span>
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 w-12 text-right">
-                      {item.count.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             ) : (
               <div className="space-y-3">
@@ -314,9 +328,9 @@ export function ProjectDetailPage() {
             <CardTitle>Recent Activities</CardTitle>
           </CardHeader>
           <CardContent>
-            {activities ? (
+            {Array.isArray(activities) && activities.length > 0 ? (
               <div className="space-y-4">
-                {activities.map((activity) => (
+                {activities.map((activity: any) => (
                   <div key={activity.id} className="flex gap-3">
                     <div
                       className={cn(
@@ -361,9 +375,10 @@ export function ProjectDetailPage() {
 
 // ── Donut Progress Component ───────────────────────────
 function ProgressDonut({ pct, size = 100 }: { pct: number; size?: number }) {
+  const safePct = typeof pct === "number" && !isNaN(pct) ? Math.max(0, Math.min(100, Math.round(pct))) : 0;
   const radius = (size - 12) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (pct / 100) * circumference;
+  const offset = circumference - (safePct / 100) * circumference;
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -380,7 +395,7 @@ function ProgressDonut({ pct, size = 100 }: { pct: number; size?: number }) {
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="#2B6D97"
+          stroke="#D47A22"
           strokeWidth="8"
           fill="none"
           strokeLinecap="round"
@@ -390,7 +405,7 @@ function ProgressDonut({ pct, size = 100 }: { pct: number; size?: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-xl font-bold text-brand-teal-blue">{pct}%</span>
+        <span className="text-xl font-bold text-[#D47A22]">{safePct}%</span>
         <span className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">
           Acquired
         </span>

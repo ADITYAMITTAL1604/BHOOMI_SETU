@@ -92,16 +92,17 @@ export interface Parcel {
   survey_number: string;
   area_ha: number;
   owner_name: string;
+  owner_reference?: string;
   current_stage: AcquisitionStage;
   status: ParcelStatus;
   risk_score: number;
   village: string;
   district: string;
   state: string;
-  days_pending: number;
-  assigned_officer: string | null;
-  created_at: string;
-  updated_at: string;
+  days_pending?: number;
+  assigned_officer?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ParcelGeoJSON {
@@ -211,6 +212,17 @@ export interface NationalDashboard {
     sla_breaches: number;
   }>;
   high_risk_project_list: Project[];
+  user_scope?: {
+    role: string;
+    state?: string | null;
+    district?: string | null;
+    title: string;
+  };
+  quarterly_progress?: Array<{
+    quarter: string;
+    target_ha: number;
+    acquired_ha: number;
+  }>;
 }
 
 export interface ProjectSummary {
@@ -300,6 +312,7 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   data: T[];
+  items?: T[];
 }
 
 // ── Auth Types ─────────────────────────────────────────

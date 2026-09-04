@@ -48,8 +48,8 @@ function mockStageRecords(parcel: Parcel): StageRecord[] {
     status:
       i < currentIdx ? "COMPLETED" :
       i === currentIdx ? "IN_PROGRESS" : "PENDING",
-    assigned_officer: parcel.assigned_officer,
-    remarks: i === currentIdx && parcel.days_pending > 30 ? "SLA breach — requires escalation" : null,
+    assigned_officer: parcel.assigned_officer ?? null,
+    remarks: i === currentIdx && (parcel.days_pending ?? 0) > 30 ? "SLA breach — requires escalation" : null,
   }));
 }
 
@@ -203,10 +203,10 @@ export function ParcelDetailPage() {
                             {stage.assigned_officer}
                           </span>
                         )}
-                        {isCurrent && parcel.days_pending > 0 && (
+                        {isCurrent && (parcel.days_pending ?? 0) > 0 && (
                           <span className={cn(
                             "flex items-center gap-1 font-semibold",
-                            parcel.days_pending > stageInfo.sla_days ? "text-red-600" : "text-amber-600"
+                            (parcel.days_pending ?? 0) > stageInfo.sla_days ? "text-red-600" : "text-amber-600"
                           )}>
                             <Clock className="w-3 h-3" />
                             {parcel.days_pending} days pending
@@ -305,7 +305,7 @@ export function ParcelDetailPage() {
 
               <div className="space-y-2">
                 {[
-                  { factor: "Stage Duration", impact: parcel.days_pending > 30 ? "high" : "low", desc: `${parcel.days_pending} days in current stage` },
+                  { factor: "Stage Duration", impact: (parcel.days_pending ?? 0) > 30 ? "high" : "low", desc: `${parcel.days_pending ?? 0} days in current stage` },
                   { factor: "Legal Complexity", impact: parcel.status === "BLOCKED" ? "high" : "low", desc: parcel.status === "BLOCKED" ? "Active dispute flagged" : "No disputes" },
                   { factor: "Compensation Status", impact: "medium", desc: "Valuation pending approval" },
                 ].map((f) => (

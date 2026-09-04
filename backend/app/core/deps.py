@@ -35,7 +35,11 @@ async def get_current_user(
     except JWTError:
         raise credentials_exc
 
-    stmt = select(User).where(User.id == UUID(user_id))
+    try:
+        user_uuid = UUID(user_id)
+        stmt = select(User).where(User.id == user_uuid)
+    except (ValueError, AttributeError):
+        stmt = select(User).where(User.username == user_id)
     user = db.execute(stmt).scalar_one_or_none()
     if user is None:
         raise credentials_exc
@@ -144,14 +148,28 @@ def apply_geographic_scope(query, user: User, state_field: str = "state", distri
     return query
 
 
-def filter_by_geographic_scope(user: User, model, state_field: str = "state", district_field: str = "district"):
-    """Return filter conditions for geographic scope."""
+def filter_by_geographic_scope(user: User, model, state_field: Optional[str] = None, district_field: Optional[str] = None):
+    """Return filter conditions for geographic scope supporting scalar and array columns."""
     conditions = []
     scope = get_user_geographic_scope(user)
-    if scope.get("state"):
-        conditions.append(getattr(model, state_field) == scope["state"])
-    if scope.get("district"):
-        conditions.append(getattr(model, district_field) == scope["district"])
+
+    s_field = state_field or ("states" if hasattr(model, "states") else "state")
+    d_field = district_field or ("districts" if hasattr(model, "districts") else "district")
+
+    if scope.get("state") and hasattr(model, s_field):
+        col = getattr(model, s_field)
+        if hasattr(col, "any"):
+            conditions.append(col.any(scope["state"]))
+        else:
+            conditions.append(col == scope["state"])
+
+    if scope.get("district") and hasattr(model, d_field):
+        col = getattr(model, d_field)
+        if hasattr(col, "any"):
+            conditions.append(col.any(scope["district"]))
+        else:
+            conditions.append(col == scope["district"])
+
     return conditions
 
 

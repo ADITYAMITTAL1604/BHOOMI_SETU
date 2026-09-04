@@ -7,7 +7,7 @@
 @layer base {
   :root {
     /* Brand Colors — "The Harmonious Earth" palette */
-    --bs-teal-blue: 203 55% 38%;       /* #2B6D97 — Deep Teal Blue */
+    --bs-teal-blue: 30 73% 48%;        /* Warm Copper #D47A22 */
     --bs-sea-green: 172 36% 40%;       /* #439288 — Muted Sea Green */
     --bs-sage-green: 98 32% 49%;       /* #73A557 — Sage Green */
     --bs-copper: 30 73% 48%;           /* #D47A22 — Warm Copper */
@@ -21,7 +21,7 @@
     --card-foreground: 215 19% 25%;
     --popover: 0 0% 100%;
     --popover-foreground: 215 19% 25%;
-    --primary: 203 55% 38%;
+    --primary: 30 73% 48%;
     --primary-foreground: 0 0% 100%;
     --secondary: 172 36% 40%;
     --secondary-foreground: 0 0% 100%;
@@ -37,14 +37,15 @@
     --warning-foreground: 0 0% 100%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 203 55% 38%;
+    --ring: 30 73% 48%;
     --radius: 0.625rem;
 
     /* Sidebar */
-    --sidebar-bg: 203 55% 28%;
+    --sidebar-bg: 30 73% 48%;
     --sidebar-text: 0 0% 100%;
-    --sidebar-hover: 203 55% 35%;
-    --sidebar-active: 203 55% 42%;
+    --sidebar-hover: 30 73% 42%;
+    --sidebar-active: 30 78% 34%;
+    --sidebar-text-muted: 36 60% 90%;
   }
 
   * {

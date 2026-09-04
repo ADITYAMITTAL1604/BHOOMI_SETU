@@ -22,35 +22,21 @@ export async function getNationalDashboard(): Promise<NationalDashboard> {
   const data = response.data || {};
   const summary = data.summary || {};
 
-  // Build state summary from top_districts if present
-  const stateSummaryMap: Record<string, { state: string; projects: number; land_ha: number; acquired_pct: number; risk_level: any; sla_breaches: number }> = {};
-  if (Array.isArray(data.top_districts)) {
-    data.top_districts.forEach((d: any) => {
-      const stateName = d.state || "Maharashtra";
-      if (!stateSummaryMap[stateName]) {
-        stateSummaryMap[stateName] = {
-          state: stateName,
-          projects: 0,
-          land_ha: 0,
-          acquired_pct: summary.overall_acquisition_progress_pct ?? 58.6,
-          risk_level: "MEDIUM",
-          sla_breaches: 0,
-        };
-      }
-      stateSummaryMap[stateName].projects += 1;
-      stateSummaryMap[stateName].land_ha += Math.round((d.parcel_count || 0) * 3.3);
-    });
-  }
-
-  const defaultStates = Object.values(stateSummaryMap).length > 0
-    ? Object.values(stateSummaryMap)
-    : [
-        { state: "Maharashtra", projects: 4, land_ha: 1850, acquired_pct: 64.2, risk_level: "MEDIUM" as const, sla_breaches: 14 },
-        { state: "Rajasthan", projects: 2, land_ha: 940, acquired_pct: 51.8, risk_level: "LOW" as const, sla_breaches: 6 },
-        { state: "Uttar Pradesh", projects: 3, land_ha: 1420, acquired_pct: 48.0, risk_level: "HIGH" as const, sla_breaches: 28 },
-      ];
-
   const pendingCount = (data.parcels_by_status?.IN_PROGRESS || 0) + (data.parcels_by_status?.NOT_STARTED || 0);
+
+  // Use real scoped state_summary from backend
+  const stateSummary = Array.isArray(data.state_summary) && data.state_summary.length > 0
+    ? data.state_summary
+    : (Array.isArray(data.top_districts) && data.top_districts.length > 0
+        ? data.top_districts.map((d: any) => ({
+            state: d.district || d.state || "District",
+            projects: 1,
+            land_ha: Math.round((d.parcel_count || 0) * 0.4),
+            acquired_pct: summary.overall_acquisition_progress_pct ?? 45,
+            risk_level: "MEDIUM" as const,
+            sla_breaches: 0,
+          }))
+        : []);
 
   return {
     active_projects: summary.total_projects ?? data.active_projects ?? 0,
@@ -61,26 +47,41 @@ export async function getNationalDashboard(): Promise<NationalDashboard> {
     high_risk_projects: summary.high_risk_parcels_count ?? data.high_risk_projects ?? 0,
     sla_breaches: summary.active_sla_breaches ?? data.sla_breaches ?? 0,
     stage_distribution: data.parcels_by_stage || data.stage_distribution || {},
-    compensation_summary: data.compensation_summary || { assessed: 420000000, approved: 350000000, paid: 280000000 },
-    state_summary: Array.isArray(data.state_summary) && data.state_summary.length > 0 ? data.state_summary : defaultStates,
+    compensation_summary: data.compensation_summary || {
+      assessed: Math.round((summary.total_land_required_ha || 100) * 1500000),
+      approved: Math.round((summary.total_land_required_ha || 100) * 1200000),
+      paid: Math.round((summary.total_land_acquired_ha || 50) * 1200000),
+    },
+    state_summary: stateSummary,
     high_risk_project_list: data.high_risk_project_list || [],
+    user_scope: data.user_scope,
+    quarterly_progress: data.quarterly_progress,
   };
 }
 
 export const fetchNationalDashboard = getNationalDashboard;
 
 export async function fetchQuarterlyProgress(): Promise<QuarterlyProgress[]> {
+  const response = await apiClient.get<any>("/dashboard/national");
+  const data = response.data || {};
+  if (Array.isArray(data.quarterly_progress) && data.quarterly_progress.length > 0) {
+    return data.quarterly_progress;
+  }
+  const landReq = Number(data.summary?.total_land_required_ha) || 100;
+  const landAcq = Number(data.summary?.total_land_acquired_ha) || 45;
   return [
-    { quarter: "Q1 2025", target_ha: 1200, acquired_ha: 1050 },
-    { quarter: "Q2 2025", target_ha: 1400, acquired_ha: 1280 },
-    { quarter: "Q3 2025", target_ha: 1600, acquired_ha: 1410 },
-    { quarter: "Q4 2025", target_ha: 1800, acquired_ha: 1690 },
+    { quarter: "Q1 2025", target_ha: Math.round(landReq * 0.35), acquired_ha: Math.round(landAcq * 0.25) },
+    { quarter: "Q2 2025", target_ha: Math.round(landReq * 0.60), acquired_ha: Math.round(landAcq * 0.55) },
+    { quarter: "Q3 2025", target_ha: Math.round(landReq * 0.85), acquired_ha: Math.round(landAcq * 0.80) },
+    { quarter: "Q4 2025", target_ha: Math.round(landReq), acquired_ha: Math.round(landAcq) },
   ];
 }
 
 export async function fetchDashboardAlerts(): Promise<DashboardAlert[]> {
-  const response = await apiClient.get<any[]>("/alerts");
-  return (response.data || []).slice(0, 5).map((a) => ({
+  const response = await apiClient.get<any>("/alerts");
+  const raw = response.data;
+  const list: any[] = Array.isArray(raw) ? raw : (raw?.items && Array.isArray(raw.items) ? raw.items : []);
+  return list.slice(0, 5).map((a) => ({
     id: a.alert_id || a.id,
     title: a.message || a.title,
     severity: a.severity || "INFO",
@@ -91,15 +92,37 @@ export async function fetchDashboardAlerts(): Promise<DashboardAlert[]> {
   }));
 }
 
+const STAGE_LABELS: Record<string, string> = {
+  SURVEY: "Survey & Mapping",
+  VERIFICATION: "Verification & Claims",
+  NOTIFICATION: "Sec 11 Notification",
+  OBJECTION: "Sec 15 Objections",
+  COMPENSATION: "Award & Compensation",
+  REHABILITATION_RESETTLEMENT: "R&R Resettlement",
+  POSSESSION: "Possession Transfer",
+  CLOSURE: "Project Closure",
+};
+
 export async function fetchStageBreakdown(): Promise<Array<{ stage: string; percentage: number; count: number }>> {
-  return [
-    { stage: "Survey", percentage: 25, count: 450 },
-    { stage: "Verification", percentage: 20, count: 360 },
-    { stage: "Notification", percentage: 15, count: 270 },
-    { stage: "Objection", percentage: 10, count: 180 },
-    { stage: "Award", percentage: 15, count: 270 },
-    { stage: "Possession", percentage: 15, count: 270 },
-  ];
+  const response = await apiClient.get<any>("/dashboard/national");
+  const stagesObj = response.data?.parcels_by_stage || {};
+  const entries = Object.entries(stagesObj) as [string, number][];
+
+  if (entries.length === 0) {
+    return [];
+  }
+
+  const total = entries.reduce((acc, [, count]) => acc + (Number(count) || 0), 0) || 1;
+
+  return entries.map(([key, count]) => {
+    const num = Number(count) || 0;
+    const label = STAGE_LABELS[key] || key.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+    return {
+      stage: label,
+      percentage: Math.round((num / total) * 100),
+      count: num,
+    };
+  }).sort((a, b) => b.count - a.count);
 }
 
 export async function getStateDashboard(stateName: string): Promise<any> {

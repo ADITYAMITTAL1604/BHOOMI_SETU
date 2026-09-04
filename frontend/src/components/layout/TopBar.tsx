@@ -104,7 +104,7 @@ export function TopBar() {
                 {user ? getRoleLabel(user.role) : ""}
               </p>
             </div>
-            <div className="w-8 h-8 rounded-full bg-brand-teal-blue flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-[#D47A22] flex items-center justify-center shadow-sm">
               <UserIcon className="w-4 h-4 text-white" />
             </div>
           </button>
@@ -117,7 +117,7 @@ export function TopBar() {
                   {user?.username}
                 </p>
                 <p className="text-xs text-gray-500">{user?.email}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 bg-brand-teal-blue/10 text-brand-teal-blue text-[10px] font-semibold rounded-full uppercase">
+                <span className="inline-block mt-1 px-2 py-0.5 bg-amber-50 text-[#D47A22] border border-amber-200/60 text-[10px] font-semibold rounded-full uppercase">
                   {user ? getRoleLabel(user.role) : ""}
                 </span>
               </div>
