@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,15 +27,21 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setAuth, isAuthenticated } = useAuthStore();
+  const { setAuth, isAuthenticated, user, logout } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate("/dashboard", { replace: true });
-    return null;
+  // If local storage has corrupt state (authenticated but no user), clear it
+  useEffect(() => {
+    if (isAuthenticated && !user) {
+      logout();
+    }
+  }, [isAuthenticated, user, logout]);
+
+  // Safe redirect if already authenticated with valid user
+  if (isAuthenticated && user) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   const from = (location.state as { from?: { pathname: string } })?.from
@@ -44,11 +50,18 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { username: "", password: "" },
   });
+
+  const handleDemoFill = (username: string, pass: string) => {
+    setValue("username", username, { shouldValidate: true });
+    setValue("password", pass, { shouldValidate: true });
+    setError(null);
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
@@ -274,14 +287,33 @@ export function LoginPage() {
           {/* Demo Credentials (dev only) */}
           {import.meta.env.VITE_USE_MOCKS === "true" && (
             <div className="mt-6 p-4 bg-brand-sea-green/5 border border-brand-sea-green/20 rounded-xl">
-              <p className="text-[10px] text-brand-sea-green font-semibold uppercase tracking-wide mb-2">
-                Demo Credentials
-              </p>
-              <div className="space-y-1 text-xs text-gray-600 font-mono">
-                <p>admin / Admin@123</p>
-                <p>central_officer / Central@123</p>
-                <p>up_state_officer / State@123</p>
-                <p>gbn_district_officer / District@123</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] text-brand-sea-green font-semibold uppercase tracking-wide">
+                  Quick Demo Logins (Click to Fill)
+                </p>
+                <span className="text-[10px] text-gray-400">Password: password123</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs font-mono">
+                {[
+                  { user: "admin", label: "Admin" },
+                  { user: "central_user", label: "Central Officer" },
+                  { user: "state_user", label: "State Officer (MH)" },
+                  { user: "district_user", label: "District Officer (Pune)" },
+                  { user: "agency_user", label: "Project Agency" },
+                  { user: "field_officer", label: "Field Officer" },
+                ].map(({ user, label }) => (
+                  <button
+                    key={user}
+                    type="button"
+                    onClick={() => handleDemoFill(user, "password123")}
+                    className="text-left px-2.5 py-1.5 rounded-lg bg-white/70 hover:bg-white border border-gray-200/80 hover:border-brand-teal-blue/40 text-gray-700 hover:text-brand-teal-blue transition-all group"
+                  >
+                    <span className="font-semibold">{user}</span>
+                    <span className="block text-[10px] text-gray-400 font-sans group-hover:text-brand-teal-blue/80">
+                      {label}
+                    </span>
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -290,3 +322,5 @@ export function LoginPage() {
     </div>
   );
 }
+
+export default LoginPage;

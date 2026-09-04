@@ -327,3 +327,5 @@ export function ParcelDetailPage() {
     </div>
   );
 }
+
+export default ParcelDetailPage;

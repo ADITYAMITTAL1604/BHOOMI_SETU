@@ -253,3 +253,5 @@ export function IntelligencePage() {
     </div>
   );
 }
+
+export default IntelligencePage;

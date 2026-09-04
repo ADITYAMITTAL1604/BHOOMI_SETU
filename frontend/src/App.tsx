@@ -3,11 +3,10 @@ import { Suspense, lazy } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import { UnauthorizedPage, NotFoundPage } from "@/pages/ErrorPages";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import LoginPage from "@/pages/LoginPage";
 
-// Lazy-loaded pages for code splitting with named export handling
-const LoginPage = lazy(() =>
-  import("@/pages/LoginPage").then((m) => ({ default: m.LoginPage || (m as any).default }))
-);
+// Lazy-loaded secondary pages for code splitting with named export handling
 const DashboardPage = lazy(() =>
   import("@/pages/DashboardPage").then((m) => ({ default: m.DashboardPage || (m as any).default }))
 );
@@ -37,7 +36,7 @@ function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-3 border-brand-teal-blue/30 border-t-brand-teal-blue rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-brand-teal-blue/30 border-t-brand-teal-blue rounded-full animate-spin" />
         <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     </div>
@@ -46,36 +45,39 @@ function PageLoader() {
 
 export default function App() {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* Public */}
-        <Route path="/login" element={<LoginPage />} />
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          {/* Public */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Protected — wrapped in AuthGuard + AppLayout */}
-        <Route
-          element={
-            <AuthGuard>
-              <AppLayout />
-            </AuthGuard>
-          }
-        >
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/projects" element={<ProjectListPage />} />
-          <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-          <Route path="/parcels/:parcelId" element={<ParcelDetailPage />} />
-          <Route path="/gis" element={<GISPage />} />
-          <Route path="/alerts" element={<AlertsPage />} />
-          <Route path="/documents" element={<DocumentsPage />} />
-          <Route path="/intelligence" element={<IntelligencePage />} />
-        </Route>
+          {/* Protected — wrapped in AuthGuard + AppLayout */}
+          <Route
+            element={
+              <AuthGuard>
+                <AppLayout />
+              </AuthGuard>
+            }
+          >
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/projects" element={<ProjectListPage />} />
+            <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
+            <Route path="/parcels" element={<Navigate to="/projects" replace />} />
+            <Route path="/parcels/:parcelId" element={<ParcelDetailPage />} />
+            <Route path="/gis" element={<GISPage />} />
+            <Route path="/alerts" element={<AlertsPage />} />
+            <Route path="/documents" element={<DocumentsPage />} />
+            <Route path="/intelligence" element={<IntelligencePage />} />
+          </Route>
 
-        {/* Error routes */}
-        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+          {/* Error routes */}
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-        {/* Redirects */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
+          {/* Redirects */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   );
 }

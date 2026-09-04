@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
-import type { Layer, PathOptions } from "leaflet";
+import L, { type Layer, type PathOptions } from "leaflet";
 import "leaflet/dist/leaflet.css";
 import {
   Globe,
@@ -32,15 +32,13 @@ function getParcelStyle(parcel: Parcel): PathOptions {
 // Auto-fit map to GeoJSON bounds
 function FitBounds({ geojson }: { geojson: GeoJSON.FeatureCollection }) {
   const map = useMap();
-  useMemo(() => {
-    if (geojson.features.length > 0) {
-      import("leaflet").then((L) => {
-        const layer = L.geoJSON(geojson);
-        const bounds = layer.getBounds();
-        if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [50, 50] });
-        }
-      });
+  useEffect(() => {
+    if (geojson.features && geojson.features.length > 0) {
+      const layer = L.geoJSON(geojson);
+      const bounds = layer.getBounds();
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+      }
     }
   }, [geojson, map]);
   return null;
@@ -256,3 +254,5 @@ export function GISPage() {
     </div>
   );
 }
+
+export default GISPage;

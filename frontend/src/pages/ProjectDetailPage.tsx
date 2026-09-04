@@ -398,3 +398,5 @@ function ProgressDonut({ pct, size = 100 }: { pct: number; size?: number }) {
     </div>
   );
 }
+
+export default ProjectDetailPage;

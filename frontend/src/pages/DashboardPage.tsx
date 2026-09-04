@@ -80,21 +80,21 @@ export function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           <StatCard
             label="Total Projects"
-            value={formatNumber(dashboard.active_projects)}
+            value={formatNumber(dashboard.active_projects ?? 0)}
             icon={<Building2 className="w-4 h-4" />}
             sparklineData={[800, 920, 1050, 1100, 1180, 1248]}
             sparklineColor="#2B6D97"
           />
           <StatCard
             label="Total Parcels"
-            value={`${(dashboard.total_parcels / 1000).toFixed(1)}K`}
+            value={`${(((dashboard.total_parcels ?? 0) / 1000) || 0).toFixed(1)}K`}
             icon={<Map className="w-4 h-4" />}
             sparklineData={[28, 32, 36, 38, 42, 45.2]}
             sparklineColor="#439288"
           />
           <StatCard
             label="Land Acquired"
-            value={`${dashboard.acquired_pct}%`}
+            value={`${dashboard.acquired_pct ?? 0}%`}
             icon={<TrendingUp className="w-4 h-4" />}
             trend={{ value: "+12%", direction: "up", label: "this month" }}
             sparklineData={[42, 48, 52, 58, 63, 68.4]}
@@ -102,14 +102,14 @@ export function DashboardPage() {
           />
           <StatCard
             label="Pending Cases"
-            value={formatNumber(dashboard.pending_cases)}
+            value={formatNumber(dashboard.pending_cases ?? 0)}
             trend={{ value: "-12%", direction: "down", label: "this month" }}
             sparklineData={[4200, 4000, 3800, 3600, 3500, 3402]}
             sparklineColor="#D47A22"
           />
           <StatCard
             label="SLA Breaches"
-            value={dashboard.sla_breaches.toString()}
+            value={(dashboard.sla_breaches ?? 0).toString()}
             icon={<Timer className="w-4 h-4" />}
             trend={{ value: "Action required", direction: "up" }}
             sparklineData={[28, 32, 35, 38, 40, 42]}
@@ -137,7 +137,7 @@ export function DashboardPage() {
               <div className="h-[280px] bg-brand-linen rounded-xl flex items-center justify-center relative overflow-hidden">
                 {/* Mini state summary cards inside the map area */}
                 <div className="absolute inset-4 flex flex-wrap gap-2 content-start overflow-y-auto">
-                  {dashboard?.state_summary.map((s) => (
+                  {(dashboard?.state_summary || []).map((s) => (
                     <div
                       key={s.state}
                       className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
@@ -249,3 +249,5 @@ export function DashboardPage() {
     </div>
   );
 }
+
+export default DashboardPage;

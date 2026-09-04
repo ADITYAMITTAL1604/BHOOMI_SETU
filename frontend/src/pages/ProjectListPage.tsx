@@ -268,3 +268,5 @@ export function ProjectListPage() {
     </div>
   );
 }
+
+export default ProjectListPage;
