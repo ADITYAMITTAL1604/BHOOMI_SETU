@@ -270,30 +270,57 @@ class DelayRiskService:
         raw_dict: Dict[str, Any],
         reason: str = "limited historical data",
     ) -> Dict[str, Any]:
-        """Produce calibrated demo baseline prediction matching both backend and frontend schemas."""
+        """Produce calibrated dynamic fallback prediction matching both backend and frontend schemas."""
+        pending_p = float(raw_dict.get("pending_parcels", 24) or 24)
+        completed_p = float(raw_dict.get("completed_parcels", 10) or 10)
+        total_p = pending_p + completed_p
+        completion_ratio = completed_p / max(1.0, total_p) if total_p > 0 else 0.5
+        sla_breaches = float(raw_dict.get("sla_breaches", 4) or 4)
+        avg_days = float(raw_dict.get("average_stage_days", 35) or 35)
+        proc_rate = float(raw_dict.get("processing_rate", 0.35) or 0.35)
+
+        # Dynamically compute calibrated risk score
+        calc_risk = 0.35
+        calc_risk -= (completion_ratio - 0.5) * 0.45
+        calc_risk += min(0.35, sla_breaches * 0.02)
+        calc_risk += min(0.25, max(-0.15, (avg_days - 35.0) / 100.0))
+        calc_risk -= min(0.15, max(-0.15, (proc_rate - 0.25) * 0.3))
+        risk_score = round(max(0.05, min(0.95, calc_risk)), 4)
+
+        if risk_score <= self.low_max:
+            risk_level = "LOW"
+        elif risk_score <= self.medium_max:
+            risk_level = "MEDIUM"
+        else:
+            risk_level = "HIGH"
+
         top_factors = [
             {
                 "feature": "pending_parcels",
                 "title": "Pending Parcel Backlog",
-                "value": float(raw_dict.get("pending_parcels", 24) or 24),
-                "shap_value": 0.14,
-                "impact": "risk_driver",
+                "value": pending_p,
+                "shap_value": 0.14 if pending_p > 20 else -0.08,
+                "impact": "risk_driver" if pending_p > 20 else "risk_mitigator",
                 "description": "Backlog Trajectory: Active parcels progressing through statutory survey stages.",
             },
             {
                 "feature": "sla_breaches",
                 "title": "SLA Deadline Breaches",
-                "value": float(raw_dict.get("sla_breaches", 4) or 4),
-                "shap_value": 0.10,
-                "impact": "risk_driver",
-                "description": "Statutory Milestones: Several stages requiring expedited review.",
+                "value": sla_breaches,
+                "shap_value": min(0.30, sla_breaches * 0.02) if sla_breaches > 0 else -0.05,
+                "impact": "risk_driver" if sla_breaches > 0 else "risk_mitigator",
+                "description": (
+                    "Statutory Milestones: Several stages requiring expedited review."
+                    if sla_breaches > 0
+                    else "Statutory Milestones: All stages within SLA thresholds."
+                ),
             },
             {
                 "feature": "processing_rate",
                 "title": "Acquisition Velocity",
-                "value": float(raw_dict.get("processing_rate", 0.35) or 0.35),
-                "shap_value": -0.08,
-                "impact": "risk_mitigator",
+                "value": proc_rate,
+                "shap_value": -0.10 if proc_rate >= 0.2 else 0.12,
+                "impact": "risk_mitigator" if proc_rate >= 0.2 else "risk_driver",
                 "description": "Clearance Velocity: Daily clearance velocity maintains steady administrative progress.",
             },
             {
@@ -318,8 +345,8 @@ class DelayRiskService:
 
         return {
             "status": "degraded",
-            "risk_score": 0.4200,
-            "risk_level": "MEDIUM",
+            "risk_score": risk_score,
+            "risk_level": risk_level,
             "confidence": 0.72,
             "fallback_applied": True,
             "insufficient_data": False,

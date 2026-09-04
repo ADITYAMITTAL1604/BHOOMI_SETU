@@ -506,9 +506,10 @@ from typing import Union
     response_model=ParcelResponse,
     summary="Update parcel",
 )
-def update_parcel(
+async def update_parcel(
     parcel_id: UUID,
-    parcel_data: Union[ParcelAdminUpdate, ParcelUpdate],
+    parcel_data: ParcelAdminUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user=Depends(require_district_or_above),
 ):
@@ -518,13 +519,21 @@ def update_parcel(
     role_val = user_role.value if hasattr(user_role, "value") else str(user_role)
     is_admin = role_val in (UserRole.ADMIN.value, "ADMIN")
 
-    for protected_field in PROTECTED_PARCEL_FIELDS:
-        if getattr(parcel_data, protected_field, None) is not None and not is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Forbidden: Modifying '{protected_field}' directly requires ADMIN privileges. "
-                       f"Use the workflow transition service or ML re-scoring endpoint.",
-            )
+    try:
+        raw_body = await request.json()
+    except Exception:
+        raw_body = {}
+
+    if not is_admin:
+        for protected_field in PROTECTED_PARCEL_FIELDS:
+            has_in_model = getattr(parcel_data, protected_field, None) is not None
+            has_in_raw = isinstance(raw_body, dict) and protected_field in raw_body and raw_body[protected_field] is not None
+            if has_in_model or has_in_raw:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Forbidden: Modifying '{protected_field}' directly requires ADMIN privileges. "
+                           f"Use the workflow transition service or ML re-scoring endpoint.",
+                )
 
     parcel = db.execute(select(Parcel).where(Parcel.parcel_id == parcel_id)).scalar_one_or_none()
     if not parcel:
