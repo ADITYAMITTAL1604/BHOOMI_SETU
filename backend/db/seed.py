@@ -404,19 +404,22 @@ def seed_from_synthetic(db, user_map: dict[str, User], data_dir: Path) -> None:
     properties_lookup: dict[str, dict] = {}
     if geojson_path.exists():
         print("2. Parsing parcels_geometry.geojson for spatial bounds...")
-        with open(geojson_path, mode="r", encoding="utf-8") as f:
-            gdata = json.load(f)
-            for feat in gdata.get("features", []):
-                props = feat.get("properties", {})
-                pid = props.get("parcel_id")
-                if pid:
-                    properties_lookup[pid] = props
-                    geom = feat.get("geometry", {})
-                    coords = geom.get("coordinates", [])
-                    if coords and len(coords[0]) >= 3:
-                        ring = ", ".join([f"{pt[0]:.6f} {pt[1]:.6f}" for pt in coords[0]])
-                        geometry_lookup[pid] = f"POLYGON(({ring}))"
-        print(f"   [OK] Cached geometry for {len(geometry_lookup)} parcels.")
+        try:
+            with open(geojson_path, mode="r", encoding="utf-8") as f:
+                gdata = json.load(f)
+                for feat in gdata.get("features", []):
+                    props = feat.get("properties", {})
+                    pid = props.get("parcel_id")
+                    if pid:
+                        properties_lookup[pid] = props
+                        geom = feat.get("geometry", {})
+                        coords = geom.get("coordinates", [])
+                        if coords and len(coords[0]) >= 3:
+                            ring = ", ".join([f"{pt[0]:.6f} {pt[1]:.6f}" for pt in coords[0]])
+                            geometry_lookup[pid] = f"POLYGON(({ring}))"
+            print(f"   [OK] Cached geometry for {len(geometry_lookup)} parcels.")
+        except Exception as e:
+            print(f"   [WARN] Could not parse parcels_geometry.geojson ({e}). Proceeding without cached geometry.")
 
     # 3. Project-Parcel Links
     links_csv = data_dir / "project_parcel_links.csv"
