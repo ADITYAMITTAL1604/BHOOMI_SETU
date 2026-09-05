@@ -359,7 +359,7 @@ def get_state_dashboard(
         .join(Parcel, Parcel.parcel_id == AcquisitionStage.parcel_id)
         .where(
             Parcel.state == state_name,
-            AcquisitionStage.status == StageStatus.IN_PROGRESS.value,
+            AcquisitionStage.status.in_([StageStatus.IN_PROGRESS.value, "BLOCKED"]),
             AcquisitionStage.target_date.isnot(None),
             AcquisitionStage.target_date < today,
         )
@@ -472,7 +472,7 @@ def get_district_dashboard(
         .join(Parcel, Parcel.parcel_id == AcquisitionStage.parcel_id)
         .where(
             Parcel.district == district_name,
-            AcquisitionStage.status == StageStatus.IN_PROGRESS.value,
+            AcquisitionStage.status.in_([StageStatus.IN_PROGRESS.value, "BLOCKED"]),
             AcquisitionStage.target_date.isnot(None),
             AcquisitionStage.target_date < today,
         )
@@ -490,7 +490,7 @@ def get_district_dashboard(
         .join(Parcel, Parcel.parcel_id == AcquisitionStage.parcel_id)
         .where(
             Parcel.district == district_name,
-            AcquisitionStage.status == StageStatus.IN_PROGRESS.value,
+            AcquisitionStage.status.in_([StageStatus.IN_PROGRESS.value, "BLOCKED"]),
         )
         .group_by(AcquisitionStage.stage_name)
     ).all()

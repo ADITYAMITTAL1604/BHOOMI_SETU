@@ -214,16 +214,26 @@ def sync_database():
 
         # 5. Update acquisition_stages table for this parcel
         stage_idx = STAGE_ORDER.index(stage_mapped)
+        days_in_stage = int(row.get("days_in_stage", 30))
+        sla_days = int(row.get("sla_days", 30))
+        is_breached = (p_status == "BLOCKED") or (risk >= 70.0)
+
         for s_order, s_name in enumerate(STAGE_ORDER, start=1):
             if s_order <= stage_idx:
                 s_status = "COMPLETED"
-                s_start = (today - timedelta(days=(stage_idx - s_order + 1) * 30 + 15)).isoformat()
-                s_target = (today - timedelta(days=(stage_idx - s_order) * 30 + 15)).isoformat()
-                s_comp = (today - timedelta(days=(stage_idx - s_order) * 30 + 20)).isoformat()
+                s_start = (today - timedelta(days=(stage_idx - s_order + 1) * 30 + days_in_stage)).isoformat()
+                s_target = (today - timedelta(days=(stage_idx - s_order) * 30 + max(1, days_in_stage - sla_days))).isoformat()
+                s_comp = (today - timedelta(days=(stage_idx - s_order) * 30 + max(1, days_in_stage - 5))).isoformat()
             elif s_order == stage_idx + 1:
                 s_status = "BLOCKED" if p_status == "BLOCKED" else ("COMPLETED" if p_status == "COMPLETED" else "IN_PROGRESS")
-                s_start = (today - timedelta(days=min(180, int(row.get("days_in_stage", 15))))).isoformat()
-                s_target = (today + timedelta(days=int(row.get("sla_days", 30)))).isoformat()
+                s_start = (today - timedelta(days=days_in_stage)).isoformat()
+                if is_breached and p_status != "COMPLETED":
+                    # Statutory deadline has passed: target_date in the past
+                    breach_days_ago = max(5, days_in_stage - sla_days) if days_in_stage > sla_days else 15
+                    s_target = (today - timedelta(days=breach_days_ago)).isoformat()
+                else:
+                    # On track parcel or completed: target date in future
+                    s_target = (today + timedelta(days=max(10, sla_days))).isoformat()
                 s_comp = s_start if p_status == "COMPLETED" else None
             else:
                 s_status = "NOT_STARTED"
