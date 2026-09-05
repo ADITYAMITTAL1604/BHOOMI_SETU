@@ -63,30 +63,30 @@ def get_national_dashboard(
         func.coalesce(func.avg(Parcel.risk_score), 0.0).label("avg_risk_score"),
     )
     if scope.get("state"):
-        parcel_stmt = parcel_stmt.where(Parcel.state == scope["state"])
+        parcel_stmt = parcel_stmt.where(func.lower(Parcel.state) == scope["state"].lower())
     if scope.get("district"):
-        parcel_stmt = parcel_stmt.where(Parcel.district == scope["district"])
+        parcel_stmt = parcel_stmt.where(func.lower(Parcel.district) == scope["district"].lower())
     parcel_totals = db.execute(parcel_stmt).one()
 
     parcel_status_stmt = select(Parcel.status, func.count(Parcel.parcel_id))
     if scope.get("state"):
-        parcel_status_stmt = parcel_status_stmt.where(Parcel.state == scope["state"])
+        parcel_status_stmt = parcel_status_stmt.where(func.lower(Parcel.state) == scope["state"].lower())
     if scope.get("district"):
-        parcel_status_stmt = parcel_status_stmt.where(Parcel.district == scope["district"])
+        parcel_status_stmt = parcel_status_stmt.where(func.lower(Parcel.district) == scope["district"].lower())
     parcel_status_counts = dict(db.execute(parcel_status_stmt.group_by(Parcel.status)).all())
 
     parcel_stage_stmt = select(Parcel.current_stage, func.count(Parcel.parcel_id))
     if scope.get("state"):
-        parcel_stage_stmt = parcel_stage_stmt.where(Parcel.state == scope["state"])
+        parcel_stage_stmt = parcel_stage_stmt.where(func.lower(Parcel.state) == scope["state"].lower())
     if scope.get("district"):
-        parcel_stage_stmt = parcel_stage_stmt.where(Parcel.district == scope["district"])
+        parcel_stage_stmt = parcel_stage_stmt.where(func.lower(Parcel.district) == scope["district"].lower())
     parcel_stage_counts = dict(db.execute(parcel_stage_stmt.group_by(Parcel.current_stage)).all())
 
     high_risk_stmt = select(func.count(Parcel.parcel_id)).where(Parcel.risk_score >= 70.0)
     if scope.get("state"):
-        high_risk_stmt = high_risk_stmt.where(Parcel.state == scope["state"])
+        high_risk_stmt = high_risk_stmt.where(func.lower(Parcel.state) == scope["state"].lower())
     if scope.get("district"):
-        high_risk_stmt = high_risk_stmt.where(Parcel.district == scope["district"])
+        high_risk_stmt = high_risk_stmt.where(func.lower(Parcel.district) == scope["district"].lower())
     high_risk_count = db.execute(high_risk_stmt).scalar() or 0
 
     today = datetime.now(timezone.utc).date()
@@ -165,10 +165,10 @@ def get_national_dashboard(
                 func.coalesce(func.sum(Parcel.area_ha), 0.0).label("area_ha"),
                 func.coalesce(func.avg(Parcel.risk_score), 0.0).label("avg_risk"),
             )
-            .where(Parcel.state == scope["state"], Parcel.district != "")
+            .where(func.lower(Parcel.state) == scope["state"].lower(), Parcel.district != "")
             .group_by(Parcel.district)
             .order_by(desc("parcels_count"))
-            .limit(12)
+            .limit(15)
         )
         for row in db.execute(dist_agg_stmt).all():
             avg_risk = float(row[3])
@@ -221,7 +221,10 @@ def get_national_dashboard(
 
     user_role_str = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
     title_str = "National Land Acquisition Command Dashboard"
-    if scope.get("district"):
+    if user_role_str == "FIELD_OFFICER":
+        dist_name = scope.get("district") or "Ghaziabad"
+        title_str = f"{dist_name} Field Operations Command"
+    elif scope.get("district"):
         title_str = f"{scope['district']} District Command Dashboard"
     elif scope.get("state"):
         title_str = f"{scope['state']} State Command Dashboard"

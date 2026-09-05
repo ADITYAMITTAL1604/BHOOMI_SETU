@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   Clock,
   Download,
   Building2,
@@ -78,35 +77,43 @@ export function DashboardPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* ── Header ───────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2.5">
-              <LayoutDashboard className="w-6 h-6 text-[#D47A22]" />
-              {title}
-            </h1>
-            {dashboard?.user_scope?.district ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                District: {dashboard.user_scope.district}
-              </span>
-            ) : dashboard?.user_scope?.state ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-[#D47A22] border border-amber-200">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                State: {dashboard.user_scope.state}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                National Central Officer
-              </span>
-            )}
+      {/* ── Header with Prominent BhoomiSetu Emblem ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/70 backdrop-blur-sm p-4 rounded-2xl border border-gray-200/80 shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="bg-white p-2.5 rounded-2xl shadow-md border border-amber-200/90 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105">
+            <img
+              src="/logo-bhoomisetu.jpeg"
+              alt="BhoomiSetu"
+              className="h-14 w-auto object-contain"
+            />
           </div>
-          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" />
-            Active Role: <span className="font-semibold text-gray-700">{user?.role || "CENTRAL"}</span> · Real-time synchronized
-          </p>
+          <div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-2xl font-bold text-foreground">
+                {title}
+              </h1>
+              {user?.role === "FIELD_OFFICER" ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Field Officer · Ghaziabad Unit (UP)
+                </span>
+              ) : user?.role === "STATE" || dashboard?.user_scope?.state ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-[#D47A22] border border-amber-200 shadow-sm">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  State Officer · Uttar Pradesh
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 shadow-sm">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Administrator · National & State Oversight
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              Active Persona: <span className="font-semibold text-gray-800">{user?.role === "FIELD_OFFICER" ? "Field Officer (Ghaziabad)" : user?.role === "STATE" ? "State Officer (UP)" : "Administrator"}</span> · Real-time synchronized
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -119,6 +126,43 @@ export function DashboardPage() {
         </div>
       </div>
 
+      {/* ── Field Officer Operations Quick Action Hub ── */}
+      {user?.role === "FIELD_OFFICER" && (
+        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in shadow-sm">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <h3 className="text-sm font-bold text-gray-900">
+                Ground Deployment Active · Ghaziabad Field Unit
+              </h3>
+            </div>
+            <p className="text-xs text-gray-600 mt-0.5">
+              32 assigned parcels under physical inspection & joint measurement survey.
+            </p>
+          </div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              onClick={() => navigate("/parcels")}
+              className="px-3.5 py-2 bg-white border border-gray-200 hover:border-[#D47A22] rounded-xl text-xs font-semibold text-gray-800 hover:text-[#D47A22] transition-colors shadow-sm"
+            >
+              📋 View 32 Assigned Parcels
+            </button>
+            <button
+              onClick={() => navigate("/gis")}
+              className="px-3.5 py-2 bg-[#D47A22] text-white hover:bg-[#B56315] rounded-xl text-xs font-semibold transition-colors shadow-sm"
+            >
+              🗺️ Open GIS Demarcation Map
+            </button>
+            <button
+              onClick={() => navigate("/documents")}
+              className="px-3.5 py-2 bg-white border border-gray-200 hover:border-[#D47A22] rounded-xl text-xs font-semibold text-gray-800 hover:text-[#D47A22] transition-colors shadow-sm"
+            >
+              📄 Inspection Logs
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Stat Cards ───────────────────────────── */}
       {dashLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
@@ -129,36 +173,36 @@ export function DashboardPage() {
       ) : dashboard ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
           <StatCard
-            label="Total Projects"
+            label={user?.role === "FIELD_OFFICER" ? "Assigned Projects" : "Total Projects"}
             value={formatNumber(dashboard.active_projects ?? 0)}
             icon={<Building2 className="w-4 h-4" />}
             sparklineData={sparkProjects}
             sparklineColor="#D47A22"
           />
           <StatCard
-            label="Total Parcels"
+            label={user?.role === "FIELD_OFFICER" ? "Assigned Parcels" : "Total Parcels"}
             value={formatNumber(dashboard.total_parcels ?? 0)}
             icon={<Map className="w-4 h-4" />}
             sparklineData={sparkParcels}
             sparklineColor="#439288"
           />
           <StatCard
-            label="Land Acquired"
+            label={user?.role === "FIELD_OFFICER" ? "Land Surveyed" : "Land Acquired"}
             value={`${dashboard.acquired_pct ?? 0}%`}
             icon={<TrendingUp className="w-4 h-4" />}
-            trend={{ value: `${formatNumber(dashboard.total_land_ha ?? 0)} ha`, direction: "up", label: "required" }}
+            trend={{ value: `${formatNumber(dashboard.total_land_ha ?? 0)} ha`, direction: "up", label: user?.role === "FIELD_OFFICER" ? "scope" : "required" }}
             sparklineData={sparkAcq}
             sparklineColor="#73A557"
           />
           <StatCard
-            label="Pending Cases"
+            label={user?.role === "FIELD_OFFICER" ? "Pending Inspections" : "Pending Cases"}
             value={formatNumber(dashboard.pending_cases ?? 0)}
-            trend={{ value: `${dashboard.high_risk_projects ?? 0}`, direction: "down", label: "high risk" }}
+            trend={{ value: `${dashboard.high_risk_projects ?? 0}`, direction: "down", label: user?.role === "FIELD_OFFICER" ? "high priority" : "high risk" }}
             sparklineData={sparkPending}
             sparklineColor="#D47A22"
           />
           <StatCard
-            label="SLA Breaches"
+            label={user?.role === "FIELD_OFFICER" ? "Field SLA Breaches" : "SLA Breaches"}
             value={(dashboard.sla_breaches ?? 0).toString()}
             icon={<Timer className="w-4 h-4" />}
             trend={{ value: dashboard.sla_breaches > 0 ? "Action required" : "Healthy", direction: dashboard.sla_breaches > 0 ? "down" : "up" }}
@@ -175,11 +219,11 @@ export function DashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="flex items-center gap-2">
-                {dashboard?.user_scope?.district
-                  ? "District Project Performance"
-                  : dashboard?.user_scope?.state
-                  ? `Regional Breakdown — ${dashboard.user_scope.state}`
-                  : "National Jurisdiction Breakdown"}
+                {user?.role === "FIELD_OFFICER"
+                  ? "Assigned Infrastructure Corridors"
+                  : user?.role === "STATE" || dashboard?.user_scope?.state
+                  ? `Uttar Pradesh District Breakdown (${(dashboard?.state_summary || []).length} Divisions)`
+                  : "National & State Jurisdiction Breakdown"}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Live metrics scoped to your operational authority

@@ -115,11 +115,11 @@ export function LoginPage() {
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div className="flex-1 flex flex-col justify-center max-w-lg">
             {/* Large Prominent Emblem Logo Above Text */}
-            <div className="mb-8 p-3.5 bg-white rounded-2xl shadow-xl border border-white/30 inline-block w-fit max-w-[340px]">
+            <div className="mb-8 p-4 bg-white rounded-3xl shadow-2xl border-2 border-white/40 inline-block w-fit max-w-[380px]">
               <img
                 src="/logo-bhoomisetu.jpeg"
                 alt="BhoomiSetu"
-                className="h-20 sm:h-24 w-auto object-contain rounded-lg"
+                className="h-28 sm:h-36 w-auto object-contain rounded-2xl drop-shadow-md"
               />
             </div>
 
@@ -151,11 +151,11 @@ export function LoginPage() {
           {/* Header without duplicate logo above credentials */}
           <div className="mb-8">
             {/* Mobile-only compact logo fallback when left panel is hidden */}
-            <div className="lg:hidden mb-4 p-2 bg-white rounded-xl shadow-sm border border-gray-200 inline-block">
+            <div className="lg:hidden mb-4 p-3 bg-white rounded-2xl shadow-md border border-gray-200 inline-block">
               <img
                 src="/logo-bhoomisetu.jpeg"
                 alt="BhoomiSetu"
-                className="h-12 w-auto object-contain"
+                className="h-16 w-auto object-contain"
               />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
@@ -301,31 +301,61 @@ export function LoginPage() {
 
           {/* Demo Credentials (dev only) */}
           {import.meta.env.VITE_USE_MOCKS === "true" && (
-            <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] text-[#D47A22] font-semibold uppercase tracking-wide">
-                  Quick Demo Logins (Click to Fill)
+            <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[11px] text-[#D47A22] font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Quick Demo Logins (Select Persona)
                 </p>
-                <span className="text-[10px] text-gray-400">Password: password123</span>
+                <span className="text-[10px] font-medium text-gray-500 bg-amber-100/60 px-2 py-0.5 rounded-md">
+                  Password: password123
+                </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs font-mono">
+              <div className="grid grid-cols-1 gap-2">
                 {[
-                  { user: "admin", label: "Admin" },
-                  { user: "central_user", label: "Central Officer" },
-                  { user: "state_user", label: "State Officer (MH)" },
-                  { user: "district_user", label: "District Officer (Pune)" },
-                  { user: "agency_user", label: "Project Agency" },
-                  { user: "field_officer", label: "Field Officer" },
-                ].map(({ user, label }) => (
+                  {
+                    user: "admin",
+                    roleBadge: "ADMIN",
+                    label: "Administrator",
+                    sublabel: "National & State Executive Command",
+                    desc: "Full portfolio oversight · 15 projects, 808 parcels, all UP district divisions",
+                  },
+                  {
+                    user: "state_user",
+                    roleBadge: "STATE OFFICER",
+                    label: "State Officer (UP)",
+                    sublabel: "Uttar Pradesh State Headquarters",
+                    desc: "State-wide jurisdiction · 15 UP districts (Ghaziabad, Bahraich, Farrukhabad...)",
+                  },
+                  {
+                    user: "field_officer",
+                    roleBadge: "FIELD OFFICER",
+                    label: "Field Officer",
+                    sublabel: "Ghaziabad Field Operations Command",
+                    desc: "Ground operations · 32 assigned parcels, physical surveys & inspection logs",
+                  },
+                ].map(({ user, roleBadge, label, sublabel, desc }) => (
                   <button
                     key={user}
                     type="button"
                     onClick={() => handleDemoFill(user, "password123")}
-                    className="text-left px-2.5 py-1.5 rounded-lg bg-white/70 hover:bg-white border border-gray-200/80 hover:border-[#D47A22]/40 text-gray-700 hover:text-[#D47A22] transition-all group"
+                    className="text-left p-3 rounded-xl bg-white hover:bg-amber-50/60 border border-gray-200/90 hover:border-[#D47A22] shadow-sm hover:shadow transition-all group relative cursor-pointer"
                   >
-                    <span className="font-semibold">{user}</span>
-                    <span className="block text-[10px] text-gray-400 font-sans group-hover:text-[#D47A22]/80">
-                      {label}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="font-bold text-xs text-gray-900 group-hover:text-[#D47A22]">
+                          {label}
+                        </span>
+                        <span className="text-[10px] text-gray-500 hidden sm:inline">
+                          — {sublabel}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 rounded-full bg-amber-100 text-[#B56315] border border-amber-200/80 flex-shrink-0">
+                        {roleBadge}
+                      </span>
+                    </div>
+                    <span className="block text-[11px] text-gray-500 mt-1">
+                      {desc}
                     </span>
                   </button>
                 ))}

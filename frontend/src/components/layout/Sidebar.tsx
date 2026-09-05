@@ -60,14 +60,14 @@ export function Sidebar() {
       className={cn(
         "fixed left-0 top-0 z-40 h-screen flex flex-col transition-all duration-300 ease-in-out shadow-2xl",
         "bg-[#D47A22] text-white",
-        collapsed ? "w-[72px]" : "w-[248px]"
+        collapsed ? "w-[72px]" : "w-[270px]"
       )}
       style={{ backgroundColor: "#D47A22" }}
     >
       {/* ── Logo ─────────────────────────────── */}
-      <div className="px-3.5 py-4 border-b border-white/20">
+      <div className="px-3 py-4 border-b border-white/20">
         {collapsed ? (
-          <div className="w-12 h-12 mx-auto rounded-xl overflow-hidden bg-white p-1 shadow-md border border-white/20 flex items-center justify-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl overflow-hidden bg-white p-1.5 shadow-md border border-white/30 flex items-center justify-center">
             <img
               src="/logo-bhoomisetu.jpeg"
               alt="BhoomiSetu"
@@ -75,11 +75,11 @@ export function Sidebar() {
             />
           </div>
         ) : (
-          <div className="w-full bg-white rounded-xl py-2 px-3 shadow-md border border-white/20 flex items-center justify-center transition-transform hover:scale-[1.01]">
+          <div className="w-full bg-white rounded-2xl py-3 px-3 shadow-lg border border-white/30 flex items-center justify-center transition-transform hover:scale-[1.02]">
             <img
               src="/logo-bhoomisetu.jpeg"
               alt="BhoomiSetu"
-              className="w-full h-14 max-w-[215px] object-contain"
+              className="w-full h-20 max-w-[235px] object-contain drop-shadow-sm"
             />
           </div>
         )}
