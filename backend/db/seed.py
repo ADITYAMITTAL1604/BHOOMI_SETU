@@ -517,7 +517,8 @@ def seed_from_synthetic(db, user_map: dict[str, User], data_dir: Path) -> None:
                 s_target = s_start + timedelta(days=30)
                 s_comp = s_start + timedelta(days=25)
             elif s_order == stage_idx + 1:
-                s_status = StageStatus.BLOCKED.value if sla_breach else StageStatus.IN_PROGRESS.value
+                is_breached = (p_status == ParcelStatus.BLOCKED.value) or (risk >= 70.0)
+                s_status = StageStatus.BLOCKED.value if is_breached else StageStatus.IN_PROGRESS.value
                 s_start = today - timedelta(days=min(180, int(row.get("days_in_stage", 15))))
                 s_target = s_start + timedelta(days=int(row.get("sla_days", 30)))
                 s_comp = None
