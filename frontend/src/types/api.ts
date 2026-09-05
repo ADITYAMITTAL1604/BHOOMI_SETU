@@ -246,6 +246,9 @@ export interface ProjectSummary {
     pending: number;
   };
   sla_breaches: number;
+  sla_compliance_pct?: number;
+  sla_compliant_parcels?: number;
+  sla_high_risk_parcels?: number;
   possession: {
     possessed: number;
     pending: number;

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,6 +15,10 @@ import {
   Lock,
   Layers,
   Clock,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
 } from "lucide-react";
 import { getProject, getProjectSummary, getRecentActivities } from "@/api/projects";
 import { Badge } from "@/components/ui/Badge";
@@ -21,6 +26,60 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StatCardSkeleton } from "@/components/ui/Skeleton";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { AcquisitionStage } from "@/types/api";
+
+// Statutory terms & abbreviations glossary
+const STATUTORY_GLOSSARY = [
+  {
+    acronym: "SLA",
+    term: "Service Level Agreement (Statutory Timeline)",
+    desc: "Mandated legal completion limits for statutory stages under RFCTLARR 2013 (e.g. 60 days for hearings, 12 months for awards).",
+  },
+  {
+    acronym: "R&R",
+    term: "Rehabilitation & Resettlement",
+    desc: "Mandatory social safeguard entitlements, alternate housing, and resettlement grants under Schedules II & III.",
+  },
+  {
+    acronym: "PAF / PAP",
+    term: "Project Affected Families / Persons",
+    desc: "Families or individuals whose agricultural land, dwelling, or primary livelihood is acquired for the corridor.",
+  },
+  {
+    acronym: "DBT",
+    term: "Direct Benefit Transfer",
+    desc: "Electronic compensation funds disbursed directly from state treasury escrow into verified land titleholder bank accounts.",
+  },
+  {
+    acronym: "CALA",
+    term: "Competent Authority for Land Acquisition",
+    desc: "The designated Sub-Divisional Magistrate (SDM) or ADM authorized to conduct hearings, gazette notices, and awards.",
+  },
+  {
+    acronym: "SLAO",
+    term: "Special Land Acquisition Officer",
+    desc: "Senior state revenue officer leading ground cadastral valuation, spot joint measurement surveys, and claims inquiries.",
+  },
+  {
+    acronym: "3A & 3D",
+    term: "Gazette Statutory Notifications",
+    desc: "Section 3A publishes official state intent to acquire land; Section 3D is the final gazette declaration vesting land title.",
+  },
+  {
+    acronym: "JMS / DGPS",
+    term: "Joint Measurement Survey (DGPS)",
+    desc: "Precision field demarcation using Differential GPS to fix physical Khasra parcel boundaries on revenue maps.",
+  },
+  {
+    acronym: "RFCTLARR",
+    term: "RFCTLARR Act, 2013",
+    desc: "The Right to Fair Compensation and Transparency in Land Acquisition, Rehabilitation and Resettlement Act, 2013.",
+  },
+  {
+    acronym: "HA",
+    term: "Hectares (Area Unit)",
+    desc: "Metric land area measurement. 1 Hectare = 10,000 square meters ≈ 2.471 Acres ≈ 3.95 Pucca Bigha (UP).",
+  },
+];
 
 // Lifecycle stages for the statutory RFCTLARR stepper
 const LIFECYCLE_STAGES: { key: AcquisitionStage; label: string; short?: string }[] = [
@@ -56,6 +115,8 @@ export function ProjectDetailPage() {
     queryFn: () => getRecentActivities(projectId!),
     enabled: !!projectId,
   });
+
+  const [showGlossary, setShowGlossary] = useState(true);
 
   if (projectLoading) {
     return (
@@ -244,14 +305,49 @@ export function ProjectDetailPage() {
           {/* SLA Statutory Compliance */}
           <Card className="p-5 rounded-none border border-gray-300 bg-white shadow-none">
             <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+              <p
+                className="text-[11px] font-bold uppercase tracking-wider text-gray-500 cursor-help flex items-center gap-1"
+                title="Service Level Agreement compliance: Percentage of parcels proceeding within legal statutory limits under RFCTLARR 2013"
+              >
                 SLA Statutory Compliance
+                <HelpCircle className="w-3 h-3 text-gray-400" />
               </p>
               <BarChart3 className="w-4 h-4 text-[#D47A22]" />
             </div>
-            <p className="text-2xl font-bold text-gray-900 font-mono">
-              {totalParcels > 0 ? Math.max(0, 100 - Math.round(((summary.sla_breaches ?? 0) / totalParcels) * 100)) : 100}%
-            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-gray-900 font-mono">
+                {typeof summary.sla_compliance_pct === "number"
+                  ? Math.round(summary.sla_compliance_pct)
+                  : totalParcels > 0
+                  ? Math.max(0, 100 - Math.round(((summary.sla_breaches ?? 0) / totalParcels) * 100))
+                  : 100}%
+              </p>
+              <span className="text-xs font-semibold text-gray-500 font-mono">
+                ({summary.sla_compliant_parcels ?? Math.max(0, totalParcels - (summary.sla_breaches ?? 0))} of {totalParcels} on track)
+              </span>
+            </div>
+            <div className="h-2.5 bg-gray-100 border border-gray-300 rounded-none overflow-hidden mt-2">
+              <div
+                className={cn(
+                  "h-full rounded-none transition-all duration-500",
+                  (summary.sla_compliance_pct ?? 50) >= 70
+                    ? "bg-emerald-600"
+                    : (summary.sla_compliance_pct ?? 50) >= 50
+                    ? "bg-[#D47A22]"
+                    : "bg-amber-600"
+                )}
+                style={{
+                  width: `${Math.min(
+                    100,
+                    typeof summary.sla_compliance_pct === "number"
+                      ? summary.sla_compliance_pct
+                      : totalParcels > 0
+                      ? Math.max(0, 100 - Math.round(((summary.sla_breaches ?? 0) / totalParcels) * 100))
+                      : 100
+                  )}%`,
+                }}
+              />
+            </div>
             <div className="mt-2">
               {(summary.sla_breaches ?? 0) > 0 ? (
                 <p className="text-xs text-amber-800 font-semibold flex items-center gap-1.5">
@@ -268,6 +364,57 @@ export function ProjectDetailPage() {
           </Card>
         </div>
       ) : null}
+
+      {/* ── Statutory Acronyms & Abbreviations Reference Guide ─────────────── */}
+      <Card className="rounded-none border border-gray-300 bg-white shadow-none overflow-hidden">
+        <div
+          className="flex items-center justify-between px-4 py-2.5 bg-gray-50 border-b border-gray-200 cursor-pointer select-none hover:bg-gray-100/80 transition-colors"
+          onClick={() => setShowGlossary(!showGlossary)}
+        >
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-[#D47A22]" />
+            <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+              Statutory Terms & Acronyms Reference Guide
+            </span>
+            <span className="hidden sm:inline text-[11px] text-gray-500">
+              (SLA, R&R, PAF, DBT, CALA, SLAO, 3A/3D, JMS, DGPS, HA)
+            </span>
+          </div>
+          <div className="flex items-center gap-1 text-xs font-semibold text-[#D47A22]">
+            <span>{showGlossary ? "Hide Guide" : "Show Guide"}</span>
+            {showGlossary ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+          </div>
+        </div>
+
+        {showGlossary && (
+          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 bg-white">
+            {STATUTORY_GLOSSARY.map((item) => (
+              <div
+                key={item.acronym}
+                className="p-2.5 rounded-none border border-gray-200 bg-gray-50/50 hover:border-[#D47A22]/50 hover:bg-amber-50/30 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-1 mb-1">
+                    <span className="px-1.5 py-0.5 font-mono text-[11px] font-bold bg-amber-100/70 text-[#A3540C] border border-amber-300/80 rounded-none">
+                      {item.acronym}
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-gray-900 leading-tight mb-1">
+                    {item.term}
+                  </p>
+                  <p className="text-[11px] text-gray-600 leading-relaxed">
+                    {item.desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* ── Statutory Acquisition Lifecycle Stepper ─────────────── */}
       <Card className="rounded-none border border-gray-300 bg-white shadow-none">

@@ -776,12 +776,22 @@ def get_project_summary(
     acq_ratio = (project.land_acquired_ha / project.land_required_ha) if (project.land_required_ha and project.land_required_ha > 0) else 0.0
     rehab_count = int(round(rr_count * acq_ratio)) if rr_count > 0 else 0
 
-    # SLA Breaches / delay risks
-    sla_breaches = db.execute(
+    # SLA Breaches: parcels in statutory delay or BLOCKED status
+    blocked_parcels = db.execute(
         select(func.count(Parcel.parcel_id))
         .where(Parcel.project_id == project_id)
-        .where(or_(Parcel.status == "BLOCKED", Parcel.risk_score >= 70.0))
+        .where(Parcel.status == "BLOCKED")
     ).scalar() or 0
+
+    high_risk_parcels = db.execute(
+        select(func.count(Parcel.parcel_id))
+        .where(Parcel.project_id == project_id)
+        .where(Parcel.risk_score >= 70.0)
+    ).scalar() or 0
+
+    sla_breaches = blocked_parcels
+    compliant_parcels = max(0, total_parcels - sla_breaches)
+    sla_compliance_pct = round((compliant_parcels / max(1, total_parcels)) * 100, 1)
 
     acquisition_pct = round(acq_ratio * 100, 1)
 
@@ -826,6 +836,9 @@ def get_project_summary(
             "pending": max(0, rr_count - rehab_count),
         },
         "sla_breaches": sla_breaches,
+        "sla_compliance_pct": sla_compliance_pct,
+        "sla_compliant_parcels": compliant_parcels,
+        "sla_high_risk_parcels": high_risk_parcels,
         "possession": {
             "possessed": completed_parcels,
             "pending": max(0, total_parcels - completed_parcels),
