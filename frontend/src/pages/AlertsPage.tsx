@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import { getAlerts, markAlertAsRead, markAllAlertsAsRead } from "@/api/alerts";
+import type { Alert } from "@/types/api";
 
 const SEVERITY_ICON: Record<string, React.ReactNode> = {
   CRITICAL: <AlertCircle className="w-4 h-4 text-red-500" />,
@@ -42,7 +43,7 @@ export function AlertsPage() {
   const filtered = filter === "ALL" ? alerts : alerts.filter((a) => a.severity === filter);
   const unreadCount = alerts.filter((a) => !a.is_read).length;
 
-  const handleAlertClick = (alert: any) => {
+  const handleAlertClick = (alert: Alert) => {
     if (!alert.is_read) {
       markReadMutation.mutate(alert.alert_id);
     }

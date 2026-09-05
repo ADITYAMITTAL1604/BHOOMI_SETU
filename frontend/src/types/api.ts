@@ -165,14 +165,23 @@ export interface DocumentRecord {
 
 export interface Alert {
   alert_id: string;
-  user_id: string;
-  alert_type: string;
-  severity: AlertSeverity;
-  entity_id: string;
-  entity_type: string;
+  user_id?: string | null;
+  project_id?: string | null;
+  parcel_id?: string | null;
+  title?: string;
   message: string;
+  severity: AlertSeverity;
   is_read: boolean;
+  read_at?: string | null;
+  metadata?: any;
+  metadata_json?: any;
   created_at: string;
+  alert_type?: string;
+  entity_id?: string;
+  entity_type?: string;
+  project_name?: string;
+  issue_type?: string;
+  time_ago?: string;
 }
 
 export interface AuditLogEntry {

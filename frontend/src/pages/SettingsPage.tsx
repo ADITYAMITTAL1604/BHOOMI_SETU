@@ -1,4 +1,4 @@
-import { Settings, User, Bell, Shield, Map } from "lucide-react";
+import { Settings, User, Bell, Shield } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 
 export function SettingsPage() {

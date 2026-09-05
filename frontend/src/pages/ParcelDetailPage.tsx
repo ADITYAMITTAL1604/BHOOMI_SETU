@@ -63,9 +63,6 @@ export function ParcelDetailPage() {
     enabled: !!parcelId,
   });
   const stages = parcel ? mockStageRecords(parcel) : [];
-  const currentStageIdx = parcel
-    ? STAGES.findIndex((s) => s.key === parcel.current_stage)
-    : -1;
 
   if (isLoading) {
     return (
