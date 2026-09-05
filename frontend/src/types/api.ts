@@ -231,6 +231,7 @@ export interface ProjectSummary {
   total_parcels: number;
   acquired_parcels: number;
   pending_parcels: number;
+  acquisition_progress_pct?: number;
   stage_distribution: Record<AcquisitionStage, number>;
   compensation: {
     assessed: number;

@@ -65,11 +65,17 @@ export async function getRecentActivities(projectId: string): Promise<any[]> {
   if (data && Array.isArray(data.timeline)) {
     return data.timeline.map((evt: any) => ({
       id: evt.event_id || Math.random().toString(),
-      user: evt.actor_id || "System",
+      user: evt.actor_id || "Competent Authority",
       action: evt.title || evt.event_type || "Updated milestone",
       entity: evt.description || "",
-      time_ago: evt.timestamp ? new Date(evt.timestamp).toLocaleDateString() : "Recently",
-      icon_color: "bg-brand-teal-blue",
+      time_ago: evt.timestamp
+        ? new Date(evt.timestamp).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "Recently",
+      icon_color: evt.icon_color || "bg-[#D47A22]",
     }));
   }
   return [];
