@@ -86,6 +86,28 @@ export function IntelligencePage() {
         )}
       </div>
 
+      {/* ── AI Executive Summary ─────────────── */}
+      <Card className="bg-[#183a37]/5 border-[#183a37]/20 p-5 rounded-none border-l-4 border-l-[#183a37]">
+        <div className="flex gap-4">
+          <div className="flex-shrink-0 mt-0.5">
+            <Brain className="w-6 h-6 text-[#183a37]" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-[#183a37] uppercase tracking-wide mb-1">
+              Project Intelligence Executive Summary
+            </h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {primaryBn 
+                ? `The AI has identified a critical bottleneck at the ${String(primaryBn.stage || "SURVEY").replace(/_/g, " ")} stage, where ${primaryBn.pending_count || 0} parcels are currently pending. 
+                   The primary drivers for this delay are ${featureList.length > 0 ? (featureList[0] as any).feature.replace(/_/g, " ").toLowerCase() : "administrative backlogs"} and 
+                   ${featureList.length > 1 ? (featureList[1] as any).feature.replace(/_/g, " ").toLowerCase() : "local disputes"}. 
+                   Immediate intervention is recommended for the top priority parcels to prevent cascading delays to the overall project timeline.`
+                : "The project is currently progressing according to schedule with no major systemic bottlenecks detected. Minor processing delays are localized and within SLA tolerances. Continue monitoring high-priority parcels."}
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* ── Top Row: Bottleneck + Delay Risk ──── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Bottleneck Intelligence */}

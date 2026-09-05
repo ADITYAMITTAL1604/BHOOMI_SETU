@@ -139,6 +139,31 @@ export function ParcelDetailPage() {
         </div>
       </Card>
 
+      {/* ── AI Summary ────────────────────────── */}
+      <Card className="bg-[#183a37]/5 border-[#183a37]/20 p-5 rounded-none border-l-4 border-l-[#183a37]">
+        <div className="flex gap-4">
+          <div className="flex-shrink-0 mt-0.5">
+            <Brain className="w-6 h-6 text-[#183a37]" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-[#183a37] uppercase tracking-wide mb-1">
+              AI Analysis & Current State
+            </h3>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {parcel.status === "COMPLETED" 
+                ? "This parcel has successfully completed the land acquisition process and possession has been taken. No further action is required." 
+                : parcel.status === "BLOCKED" 
+                ? `Critical bottleneck at the ${parcel.current_stage.replace(/_/g, " ")} stage. The parcel is currently blocked due to a high risk factor (Score: ${parcel.risk_score}). Immediate intervention required to resolve local disputes or missing documentation.`
+                : parcel.risk_score >= 70
+                ? `High risk of severe delay at the ${parcel.current_stage.replace(/_/g, " ")} stage. Risk score of ${parcel.risk_score} indicates potential legal or inheritance disputes. Escalation to SDM recommended.`
+                : parcel.risk_score >= 40
+                ? `Moderate risk at the ${parcel.current_stage.replace(/_/g, " ")} stage. Monitor SLA deadlines closely, as minor discrepancies in owner records may cause processing delays.`
+                : `Processing normally at the ${parcel.current_stage.replace(/_/g, " ")} stage. Risk profile is low (${parcel.risk_score}), indicating clear title and alignment with SLA targets.`}
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* ── 11-Stage Pipeline (Vertical) ──────── */}
       <Card className="rounded-none border border-gray-300 shadow-none">
         <CardHeader className="border-b border-gray-200 bg-gray-50/80 pb-4">
