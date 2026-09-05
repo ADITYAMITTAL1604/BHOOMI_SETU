@@ -299,8 +299,8 @@ export function LoginPage() {
             </p>
           </div>
 
-          {/* Demo Credentials (dev only) */}
-          {import.meta.env.VITE_USE_MOCKS === "true" && (
+          {/* Demo Credentials (visible by default for rapid testing; disable with VITE_USE_MOCKS=false) */}
+          {import.meta.env.VITE_USE_MOCKS !== "false" && (
             <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[11px] text-[#D47A22] font-bold uppercase tracking-wider flex items-center gap-1.5">
