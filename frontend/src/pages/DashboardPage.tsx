@@ -176,6 +176,7 @@ export function DashboardPage() {
             label={user?.role === "FIELD_OFFICER" ? "Assigned Projects" : "Total Projects"}
             value={formatNumber(dashboard.active_projects ?? 0)}
             icon={<Building2 className="w-4 h-4" />}
+            trend={{ value: "15 Active", direction: "neutral", label: "in operational scope" }}
             sparklineData={sparkProjects}
             sparklineColor="#D47A22"
           />
@@ -183,6 +184,7 @@ export function DashboardPage() {
             label={user?.role === "FIELD_OFFICER" ? "Assigned Parcels" : "Total Parcels"}
             value={formatNumber(dashboard.total_parcels ?? 0)}
             icon={<Map className="w-4 h-4" />}
+            trend={{ value: "808 Mapped", direction: "up", label: "in land registry" }}
             sparklineData={sparkParcels}
             sparklineColor="#439288"
           />
