@@ -8,12 +8,12 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, func, update, or_
+from sqlalchemy import select, func, update, or_, and_
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user, require_central_or_above, filter_by_geographic_scope
+from app.core.deps import get_current_user, require_central_or_above, filter_by_geographic_scope, get_user_geographic_scope
 from app.database import get_db
-from app.models import Alert, User, Project
+from app.models import Alert, User, Project, Parcel
 from app.models.enums import AlertSeverity, UserRole
 from app.utils.pagination import create_page_response
 
@@ -49,21 +49,37 @@ def list_alerts(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
-    """Return paginated alerts for the authenticated user with unread count in meta."""
+    """Return paginated alerts for the authenticated user with unread count in meta.
+
+    Alerts are always constrained to the user's geographic scope (state/district),
+    even when the alert is addressed directly to the user (Alert.user_id match).
+    A user should never see — and then be unable to open — an alert for a
+    project/parcel outside their jurisdiction.
+    """
     stmt = select(Alert).outerjoin(Project, Alert.project_id == Project.project_id)
     stmt = stmt.where(or_(Alert.user_id == current_user.id, Alert.user_id.is_(None)))
 
-    # Apply geographic scope for global alerts (if user_id is None, must match scope)
-    scope_conditions = filter_by_geographic_scope(current_user, Project)
-    if scope_conditions:
-        # If it's a global alert, it must either have no project, or the project must be in scope
-        # If it's a direct alert to the user, we show it anyway.
-        scope_filter = or_(
-            Alert.user_id == current_user.id,
-            Alert.project_id.is_(None),
-            *scope_conditions
-        )
-        stmt = stmt.where(scope_filter)
+    scope = get_user_geographic_scope(current_user)
+    if scope:
+        # An alert is visible if:
+        #   - it has no project/parcel attached (system-wide notice), OR
+        #   - its project is within the user's state/district scope, OR
+        #   - its parcel is within the user's state/district scope
+        # This applies uniformly whether the alert was broadcast or sent directly
+        # to this user — being the addressee does not bypass jurisdiction.
+        no_location = and_(Alert.project_id.is_(None), Alert.parcel_id.is_(None))
+
+        project_scope_conditions = filter_by_geographic_scope(current_user, Project)
+        parcel_scope_conditions = filter_by_geographic_scope(current_user, Parcel)
+
+        in_scope_clauses = [no_location]
+        if project_scope_conditions:
+            in_scope_clauses.append(and_(Alert.project_id.isnot(None), *project_scope_conditions))
+        if parcel_scope_conditions:
+            stmt = stmt.outerjoin(Parcel, Alert.parcel_id == Parcel.parcel_id)
+            in_scope_clauses.append(and_(Alert.parcel_id.isnot(None), *parcel_scope_conditions))
+
+        stmt = stmt.where(or_(*in_scope_clauses))
 
     if is_read is not None:
         stmt = stmt.where(Alert.is_read == is_read)

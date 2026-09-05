@@ -61,3 +61,6 @@ frontend/.vite/
 
 # Large processed GIS datasets (>100MB)
 data/processed/*.geojson
+
+# Zip archives
+*.zip

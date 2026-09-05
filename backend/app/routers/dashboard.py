@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, func, desc, and_
 from sqlalchemy.orm import Session
 
-from app.core.deps import get_current_user, require_admin, require_state_or_above
+from app.core.deps import get_current_user, require_admin, require_state_or_above, require_district_or_above
 from app.database import get_db
 from app.models import Project, Parcel, AcquisitionStage, AuditLog, User, Compensation, RRRecord
 from app.models.enums import ParcelStatus, ProjectStatus, StageStatus, StageName, RehabilitationStatus
@@ -599,12 +599,16 @@ def get_sla_status(
 ) -> dict:
     """Return per-stage SLA timer information (days_pending, is_breached, days_until_deadline).
 
-    Optionally trigger an SLA sweep to auto-update parcel statuses.
+    Optionally trigger an SLA sweep to auto-update parcel statuses. Running the
+    sweep mutates data (blocks parcels, writes audit logs, fans out alerts),
+    so it requires DISTRICT role or above — plain read access to this report
+    does not.
     """
     from app.services.sla_service import compute_stage_sla, run_sla_sweep, STAGE_SLA_DAYS
 
     sweep_result = None
     if run_sweep:
+        require_district_or_above(current_user)
         sweep_result = run_sla_sweep(db, project_id=project_id, create_alerts=True)
 
     today = datetime.now(timezone.utc).date()

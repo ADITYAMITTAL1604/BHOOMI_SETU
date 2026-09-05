@@ -98,10 +98,16 @@ const LIFECYCLE_STAGES: { key: AcquisitionStage; label: string; short?: string }
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
 
-  const { data: project, isLoading: projectLoading } = useQuery({
+  const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => getProject(projectId!),
     enabled: !!projectId,
+    retry: (failureCount, err: any) => {
+      // Don't retry on permission/not-found errors — retrying won't help.
+      const status = err?.response?.status;
+      if (status === 403 || status === 404) return false;
+      return failureCount < 2;
+    },
   });
 
   const { data: summary, isLoading: summaryLoading } = useQuery({
@@ -132,9 +138,21 @@ export function ProjectDetailPage() {
   }
 
   if (!project) {
+    const status = (projectError as any)?.response?.status;
+    const isForbidden = status === 403;
+    const serverDetail = (projectError as any)?.response?.data?.detail;
+
     return (
       <div className="text-center py-20 bg-white border border-gray-300 rounded-none p-8">
-        <p className="text-gray-600 font-semibold text-base">Project record not found</p>
+        <p className="text-gray-600 font-semibold text-base">
+          {isForbidden ? "You don't have access to this project" : "Project record not found"}
+        </p>
+        <p className="text-gray-400 text-sm mt-2 max-w-md mx-auto">
+          {isForbidden
+            ? serverDetail ||
+              "This project is outside your assigned state/district scope. Contact an administrator if you believe this is an error."
+            : "This project may have been removed, or the link is invalid."}
+        </p>
         <Link to="/projects" className="text-[#D47A22] font-semibold text-sm mt-3 inline-block hover:underline">
           ← Back to Project Inventory
         </Link>

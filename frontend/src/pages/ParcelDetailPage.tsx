@@ -57,10 +57,15 @@ function mockStageRecords(parcel: Parcel): StageRecord[] {
 export function ParcelDetailPage() {
   const { parcelId } = useParams<{ parcelId: string }>();
 
-  const { data: parcel, isLoading } = useQuery({
+  const { data: parcel, isLoading, error: parcelError } = useQuery({
     queryKey: ["parcel-detail", parcelId],
     queryFn: () => getParcelById(parcelId!),
     enabled: !!parcelId,
+    retry: (failureCount, err: any) => {
+      const status = err?.response?.status;
+      if (status === 403 || status === 404) return false;
+      return failureCount < 2;
+    },
   });
   const stages = parcel ? mockStageRecords(parcel) : [];
 
@@ -74,9 +79,21 @@ export function ParcelDetailPage() {
   }
 
   if (!parcel) {
+    const status = (parcelError as any)?.response?.status;
+    const isForbidden = status === 403;
+    const serverDetail = (parcelError as any)?.response?.data?.detail;
+
     return (
       <div className="text-center py-20">
-        <p className="text-gray-500">Parcel not found</p>
+        <p className="text-gray-500">
+          {isForbidden ? "You don't have access to this parcel" : "Parcel not found"}
+        </p>
+        <p className="text-gray-400 text-xs mt-2 max-w-md mx-auto">
+          {isForbidden
+            ? serverDetail ||
+              "This parcel is outside your assigned state/district scope. Contact an administrator if you believe this is an error."
+            : "This parcel may have been removed, or the link is invalid."}
+        </p>
         <Link to="/projects" className="text-brand-teal-blue text-sm mt-2 inline-block">← Back to Projects</Link>
       </div>
     );

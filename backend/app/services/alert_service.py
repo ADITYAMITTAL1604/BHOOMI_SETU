@@ -10,10 +10,24 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Alert, AcquisitionStage, Parcel, User
+from app.models import Alert, AcquisitionStage, Parcel, Project, User
 from app.models.enums import AlertSeverity, UserRole
 
 logger = logging.getLogger(__name__)
+
+
+def _user_in_scope(user: User, *, state: Optional[str] = None, district: Optional[str] = None) -> bool:
+    """Return True if the given user's geographic scope covers the alert's location.
+
+    A user with no state_scope/district_scope is treated as national (unrestricted).
+    A user with a district_scope must match the district exactly.
+    A user with only a state_scope must match the state.
+    """
+    if user.district_scope:
+        return bool(district) and user.district_scope == district
+    if user.state_scope:
+        return bool(state) and user.state_scope == state
+    return True
 
 
 def create_alert(
@@ -54,16 +68,47 @@ def broadcast_alert(
     parcel_id: Optional[UUID] = None,
     metadata: Optional[dict] = None,
 ) -> int:
-    """Fan-out an alert to all active users with the given role.
+    """Fan-out an alert to active users with the given role who are within the
+    geographic scope of the referenced project/parcel.
+
+    A DISTRICT-scoped user only receives the alert if it belongs to their district;
+    a STATE-scoped user only if it belongs to their state. Users with no scope
+    (e.g. ADMIN/CENTRAL-style unrestricted accounts) always receive it.
 
     Returns the number of alert records created.
     """
+    # Resolve the location the alert is about, so we can filter recipients.
+    alert_state: Optional[str] = None
+    alert_district: Optional[str] = None
+
+    if parcel_id is not None:
+        parcel = db.execute(
+            select(Parcel).where(Parcel.parcel_id == parcel_id)
+        ).scalar_one_or_none()
+        if parcel:
+            alert_state = parcel.state or None
+            alert_district = parcel.district or None
+
+    if project_id is not None and alert_state is None and alert_district is None:
+        project = db.execute(
+            select(Project).where(Project.project_id == project_id)
+        ).scalar_one_or_none()
+        if project:
+            # Projects can span multiple states/districts; fall back to the
+            # first entry for scope-matching purposes.
+            if project.states:
+                alert_state = project.states[0]
+            if project.districts:
+                alert_district = project.districts[0]
+
     users = db.execute(
         select(User).where(User.role == role, User.is_active == True)  # noqa: E712
     ).scalars().all()
 
     count = 0
     for user in users:
+        if not _user_in_scope(user, state=alert_state, district=alert_district):
+            continue
         create_alert(
             db,
             user_id=user.id,
@@ -76,7 +121,10 @@ def broadcast_alert(
         )
         count += 1
 
-    logger.info("broadcast_alert: created %d alerts for role=%s", count, role)
+    logger.info(
+        "broadcast_alert: created %d/%d alerts for role=%s (state=%s, district=%s)",
+        count, len(users), role, alert_state, alert_district,
+    )
     return count
 
 

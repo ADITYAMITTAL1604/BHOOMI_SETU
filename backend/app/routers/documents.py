@@ -11,16 +11,57 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, select, and_, or_
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.deps import get_current_user, require_state_or_above
+from app.core.deps import get_current_user, require_state_or_above, get_user_geographic_scope
 from app.database import get_db
 from app.models import Document, Parcel, Project
 from app.models.enums import DocumentType
 
 router = APIRouter()
+
+
+# ── Scope helper ──────────────────────────────────────────────────────────────
+
+def _document_in_scope(db: Session, doc: Document, current_user) -> bool:
+    """Return True if the document's linked parcel/project is within the
+    current user's geographic scope. Documents with no location (project_id
+    and parcel_id both null) are treated as system-wide and always visible.
+    """
+    scope = get_user_geographic_scope(current_user)
+    if not scope:
+        return True  # Unscoped (national) role — sees everything.
+
+    state = None
+    district = None
+
+    if doc.parcel_id:
+        parcel = db.execute(
+            select(Parcel).where(Parcel.parcel_id == doc.parcel_id)
+        ).scalar_one_or_none()
+        if parcel:
+            state = parcel.state or None
+            district = parcel.district or None
+    elif doc.project_id:
+        project = db.execute(
+            select(Project).where(Project.project_id == doc.project_id)
+        ).scalar_one_or_none()
+        if project:
+            if project.states:
+                state = project.states[0]
+            if project.districts:
+                district = project.districts[0]
+
+    if state is None and district is None:
+        return True  # No location on the document — treat as system-wide.
+
+    if scope.get("district"):
+        return district == scope["district"]
+    if scope.get("state"):
+        return state == scope["state"]
+    return True
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -139,6 +180,12 @@ def download_document(
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found.")
 
+    if not _document_in_scope(db, doc, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: this document belongs to a project/parcel outside your assigned scope.",
+        )
+
     if not os.path.exists(doc.file_path):
         raise HTTPException(
             status_code=404,
@@ -170,7 +217,8 @@ def list_documents(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> dict:
-    """Return paginated document list filtered by project, parcel, or type."""
+    """Return paginated document list filtered by project, parcel, type, and
+    the current user's geographic scope."""
     stmt = select(Document)
     if project_id:
         stmt = stmt.where(Document.project_id == project_id)
@@ -178,6 +226,24 @@ def list_documents(
         stmt = stmt.where(Document.parcel_id == parcel_id)
     if document_type:
         stmt = stmt.where(Document.document_type == document_type)
+
+    scope = get_user_geographic_scope(current_user)
+    if scope:
+        from app.core.deps import filter_by_geographic_scope
+
+        no_location = Document.project_id.is_(None) & Document.parcel_id.is_(None)
+        project_conditions = filter_by_geographic_scope(current_user, Project)
+        parcel_conditions = filter_by_geographic_scope(current_user, Parcel)
+
+        in_scope_clauses = [no_location]
+        if project_conditions:
+            stmt = stmt.outerjoin(Project, Document.project_id == Project.project_id)
+            in_scope_clauses.append(and_(Document.project_id.isnot(None), *project_conditions))
+        if parcel_conditions:
+            stmt = stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
+            in_scope_clauses.append(and_(Document.parcel_id.isnot(None), *parcel_conditions))
+
+        stmt = stmt.where(or_(*in_scope_clauses))
 
     stmt = stmt.order_by(Document.created_at.desc())
     total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0

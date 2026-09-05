@@ -8,6 +8,10 @@ from app.database import check_db_connection
 
 settings = get_settings()
 
+# Fail fast if this is a production deployment running with the default
+# development JWT secret — otherwise anyone can forge valid access tokens.
+settings.validate_secrets()
+
 # ── Application ───────────────────────────────────────────────────────────────
 app = FastAPI(
     title="BhoomiSetu API",

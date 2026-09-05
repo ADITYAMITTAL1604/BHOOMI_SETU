@@ -130,6 +130,10 @@ def get_sla_status(stage: AcquisitionStage) -> dict:
 
     return {
         "breached": breached,
+        # Alias kept for backward compatibility with callers (and the
+        # alert-hook check below) that expect "is_breached", matching the
+        # key name used by app.services.sla_service.compute_stage_sla.
+        "is_breached": breached,
         "days_elapsed": days_elapsed,
         "days_remaining": days_remaining,
         "target_date": stage.target_date.isoformat() if stage.target_date else None,
@@ -266,7 +270,9 @@ def execute_transition(
         remarks=remarks,
     )
 
-    # Alert hooks
+    # Alert hooks — failures here must never block the transition itself
+    # (the DB write above already succeeded), but they must be logged
+    # rather than silently discarded, or bugs in this block go unnoticed.
     sla_info = get_sla_status(target_stage_row)
     try:
         from app.services.alert_service import create_stage_completion_alert, create_sla_breach_alert
@@ -280,8 +286,12 @@ def execute_transition(
             )
         if sla_info.get("is_breached"):
             create_sla_breach_alert(db=db, parcel=parcel, stage=target_stage_row)
-    except Exception as exc:
-        pass
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception(
+            "Alert-hook failed during stage transition for parcel %s (%s -> %s)",
+            parcel.parcel_id, old_stage, target_stage,
+        )
 
     db.commit()
     db.refresh(parcel)

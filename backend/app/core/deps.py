@@ -173,19 +173,12 @@ def filter_by_geographic_scope(user: User, model, state_field: Optional[str] = N
     return conditions
 
 
-# Permission decorators
-def permission_required(resource: str, action: str):
-    """
-    Decorator to check if user has permission for a specific resource/action.
-    Usage: @permission_required("projects", "read")
-    """
-    def decorator(func):
-        async def wrapper(*args, **kwargs):
-            # The current_user will be injected by FastAPI
-            # This is a placeholder for more complex permission logic
-            return await func(*args, **kwargs)
-        return wrapper
-    return decorator
+# NOTE: a previous `permission_required` decorator lived here as a no-op
+# placeholder (it called the wrapped function without checking anything).
+# It was never applied to any route, but has been removed entirely so it
+# can't be mistaken for real authorization in the future. Use the
+# require_admin / require_central_or_above / require_state_or_above /
+# require_district_or_above dependencies below instead.
 
 
 # Convenience dependencies for common role checks
