@@ -90,3 +90,34 @@ export async function updateProject(projectId: string, projectData: Partial<Proj
   const response = await apiClient.put<Project>(`/projects/${projectId}`, projectData);
   return response.data;
 }
+
+export async function downloadProjectsCsv(params: {
+  search?: string;
+  state?: string;
+  district?: string;
+  sort_by?: string;
+  sort_order?: string;
+} = {}): Promise<void> {
+  const response = await apiClient.get("/projects/export/csv", {
+    params: {
+      search: params.search || undefined,
+      state: params.state && params.state !== "All States" ? params.state : undefined,
+      district: params.district && params.district !== "All Districts" ? params.district : undefined,
+      sort_by: params.sort_by,
+      sort_order: params.sort_order,
+    },
+    responseType: "blob",
+  });
+
+  const blob = new Blob([response.data], { type: "text/csv;charset=utf-8;" });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  link.setAttribute("download", `BhoomiSetu_Projects_Inventory_${dateStr}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}
+

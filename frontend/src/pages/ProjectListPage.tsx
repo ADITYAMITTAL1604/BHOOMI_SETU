@@ -1,17 +1,23 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
   FolderKanban,
   Search,
   Download,
-  Plus,
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
   RotateCcw,
+  ChevronDown,
+  FileSpreadsheet,
+  FileText,
+  Printer,
+  Check,
+  Loader2,
 } from "lucide-react";
-import { listProjects, getProjectDistricts } from "@/api/projects";
+import { listProjects, getProjectDistricts, downloadProjectsCsv } from "@/api/projects";
+import { getExecutiveSummaryHtmlUrl } from "@/api/reports";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { cn, formatDate } from "@/lib/utils";
@@ -24,7 +30,22 @@ export function ProjectListPage() {
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<string | undefined>("created_at");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState<string | null>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
   const limit = 10;
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Dynamically fetch districts across active projects
   const { data: availableDistricts = [] } = useQuery({
@@ -45,6 +66,36 @@ export function ProjectListPage() {
         sort_order: sortOrder,
       }),
   });
+
+  const handleExportCsv = async () => {
+    try {
+      setIsExporting(true);
+      setShowExportMenu(false);
+      await downloadProjectsCsv({
+        search: search || undefined,
+        state: selectedState,
+        district: selectedDistrict,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      });
+      setExportSuccess(`Projects exported successfully (${data?.total || 15} projects).`);
+      setTimeout(() => setExportSuccess(null), 4000);
+    } catch (err) {
+      console.error("Failed to export projects CSV", err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportHtml = () => {
+    setShowExportMenu(false);
+    window.open(getExecutiveSummaryHtmlUrl(), "_blank");
+  };
+
+  const handlePrint = () => {
+    setShowExportMenu(false);
+    window.print();
+  };
 
   const handleSort = (key: string) => {
     if (sortBy === key) {
@@ -86,15 +137,80 @@ export function ProjectListPage() {
             Manage and monitor land acquisition projects across all active districts and corridors.
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          <button className="inline-flex items-center gap-2 px-3.5 py-2 border border-gray-300 bg-white text-sm font-semibold text-gray-700 rounded-none hover:bg-gray-50 transition-colors">
-            <Download className="w-4 h-4 text-gray-500" />
-            Export Report
-          </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-[#D47A22] text-white text-sm font-semibold rounded-none hover:bg-[#b86518] transition-colors shadow-sm">
-            <Plus className="w-4 h-4" />
-            Create New Project
-          </button>
+
+        {/* Action Controls */}
+        <div className="flex items-center gap-3">
+          {exportSuccess && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold rounded-none">
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+              {exportSuccess}
+            </div>
+          )}
+
+          <div className="relative z-30" ref={exportMenuRef}>
+            <div className="inline-flex items-stretch border border-gray-300 shadow-sm bg-white">
+              <button
+                onClick={handleExportCsv}
+                disabled={isExporting}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white text-sm font-semibold text-gray-800 hover:bg-amber-50/60 hover:text-[#D47A22] transition-colors rounded-none disabled:opacity-50"
+                title="Download Projects Inventory CSV"
+              >
+                {isExporting ? (
+                  <Loader2 className="w-4 h-4 text-[#D47A22] animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 text-[#D47A22]" />
+                )}
+                <span>{isExporting ? "Generating Report..." : "Export Report"}</span>
+              </button>
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="px-2.5 py-2 border-l border-gray-300 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors rounded-none"
+                aria-label="More export options"
+                title="Select export format"
+              >
+                <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showExportMenu && "rotate-180")} />
+              </button>
+            </div>
+
+            {/* Dropdown Menu */}
+            {showExportMenu && (
+              <div className="absolute right-0 mt-1 w-64 bg-white border border-gray-300 shadow-2xl z-50 py-1 rounded-none text-left">
+                <div className="px-3 py-1.5 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50/80">
+                  Export Formats
+                </div>
+                <button
+                  onClick={handleExportCsv}
+                  className="w-full flex items-start gap-2.5 px-3 py-2 text-xs text-gray-800 hover:bg-amber-50/60 hover:text-[#D47A22] transition-colors text-left"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Spreadsheet Data (.csv)</p>
+                    <p className="text-[11px] text-gray-500">Filtered project inventory with land, progress & risk</p>
+                  </div>
+                </button>
+                <button
+                  onClick={handleExportHtml}
+                  className="w-full flex items-start gap-2.5 px-3 py-2 text-xs text-gray-800 hover:bg-amber-50/60 hover:text-[#D47A22] transition-colors text-left"
+                >
+                  <FileText className="w-4 h-4 text-[#D47A22] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Executive Summary (.html)</p>
+                    <p className="text-[11px] text-gray-500">Official RFCTLARR statutory portfolio briefing</p>
+                  </div>
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="w-full flex items-start gap-2.5 px-3 py-2 text-xs text-gray-800 hover:bg-amber-50/60 hover:text-[#D47A22] transition-colors text-left border-t border-gray-100"
+                >
+                  <Printer className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">Print Inventory</p>
+                    <p className="text-[11px] text-gray-500">Official printable registry sheet</p>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

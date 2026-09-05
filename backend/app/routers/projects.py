@@ -1,10 +1,12 @@
 """FastAPI router for Project CRUD operations."""
 
+import csv
+import io
 from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field, validator
 from sqlalchemy import select, func, or_, and_
 from sqlalchemy.orm import Session, selectinload
@@ -399,6 +401,124 @@ def list_projects(
         response_items.sort(key=lambda x: getattr(x, sort_by, 0.0), reverse=(sort_order == "desc"))
 
     return create_page_response(response_items, total, page_params.page, page_params.page_size)
+
+
+@router.get(
+    "/export/csv",
+    summary="Export projects inventory as CSV",
+)
+def export_projects_csv(
+    search: Optional[str] = Query(None, description="Search in name, type"),
+    status_filter: Optional[ProjectStatus] = Query(None, alias="status"),
+    type_filter: Optional[str] = Query(None, alias="type"),
+    state: Optional[str] = Query(None),
+    district: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("asc"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Generate and download a comprehensive CSV report of the project inventory."""
+    stmt = select(Project)
+    stmt = _apply_geographic_scope(stmt, current_user, Project)
+
+    if search:
+        search_term = f"%{search}%"
+        stmt = stmt.where(
+            or_(
+                Project.name.ilike(search_term),
+                Project.type.ilike(search_term),
+            )
+        )
+
+    if status_filter:
+        stmt = stmt.where(Project.status == status_filter)
+
+    if type_filter:
+        stmt = stmt.where(Project.type.ilike(f"%{type_filter}%"))
+
+    if state and state not in ("All States", "All"):
+        stmt = stmt.where(Project.states.any(state))
+
+    if district and district not in ("All Districts", "All"):
+        stmt = stmt.where(Project.districts.any(district))
+
+    order_col = getattr(Project, sort_by, None) if sort_by and hasattr(Project, sort_by) else None
+    if order_col is not None:
+        stmt = stmt.order_by(order_col.desc() if sort_order == "desc" else order_col.asc())
+    else:
+        stmt = stmt.order_by(Project.created_at.desc())
+
+    projects = db.execute(stmt).scalars().all()
+    project_ids = [p.project_id for p in projects]
+
+    parcel_stats = {}
+    if project_ids:
+        parcel_stmt = select(
+            Parcel.project_id,
+            func.count(Parcel.parcel_id).label("total"),
+            func.count(Parcel.parcel_id).filter(
+                or_(Parcel.status == "COMPLETED", Parcel.current_stage == "POSSESSION")
+            ).label("completed"),
+            func.avg(Parcel.risk_score).label("avg_risk"),
+        ).where(Parcel.project_id.in_(project_ids)).group_by(Parcel.project_id)
+
+        for row in db.execute(parcel_stmt):
+            parcel_stats[row.project_id] = {
+                "total": row.total,
+                "completed": row.completed,
+                "avg_risk": float(row.avg_risk or 50.0),
+            }
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        "Project ID",
+        "Project Name",
+        "Type",
+        "State",
+        "Districts",
+        "Land Required (HA)",
+        "Land Acquired (HA)",
+        "Acquisition Progress (%)",
+        "Risk Level",
+        "Risk Score",
+        "Target Date",
+        "Status",
+        "Total Parcels",
+        "Acquired Parcels",
+    ])
+
+    for p in projects:
+        stats = parcel_stats.get(p.project_id, {"total": 0, "completed": 0, "avg_risk": 50.0})
+        prog_pct = round((p.land_acquired_ha / p.land_required_ha) * 100, 1) if p.land_required_ha > 0 else 0.0
+        risk_val = round(stats["avg_risk"], 1)
+        risk_lvl = "HIGH" if risk_val >= 70.0 else "MEDIUM" if risk_val >= 40.0 else "LOW"
+
+        writer.writerow([
+            str(p.project_id),
+            p.name,
+            p.type,
+            ", ".join(p.states or []),
+            ", ".join(p.districts or []),
+            f"{p.land_required_ha:.2f}",
+            f"{p.land_acquired_ha:.2f}",
+            f"{prog_pct:.1f}%",
+            risk_lvl,
+            f"{risk_val:.1f}",
+            p.target_date.isoformat() if p.target_date else "TBD",
+            p.status.value if hasattr(p.status, "value") else str(p.status),
+            stats["total"],
+            stats["completed"],
+        ])
+
+    csv_data = output.getvalue()
+    filename = f"BhoomiSetu_Projects_Inventory_{datetime.now().strftime('%Y%m%d_%H%M')}.csv"
+    return Response(
+        content=csv_data,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get(
