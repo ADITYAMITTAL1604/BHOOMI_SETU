@@ -143,20 +143,22 @@ def migrate(sqlite_path: Path, target_url: str, wipe: bool = False) -> None:
             tgt_existing = tgt_db.query(func.count()).select_from(model).scalar() or 0
 
             if tgt_existing > 0 and not wipe:
-                # Merge existing
-                print(f"   * {tbl_name:22} : Merging {src_count} records (target already had {tgt_existing})...")
-                for obj in src_records:
-                    src_db.expunge(obj)
-                    tgt_db.merge(obj)
-                tgt_db.commit()
+                print(f"   * {tbl_name:22} : Already populated ({tgt_existing} records). Skipping.")
             else:
-                print(f"   * {tbl_name:22} : Inserting {src_count} records...")
-                # Bulk save for speed
-                for i in range(0, src_count, 500):
-                    batch = src_records[i : i + 500]
-                    for item in batch:
-                        src_db.expunge(item)
-                        tgt_db.merge(item)
+                print(f"   * {tbl_name:22} : Bulk inserting {src_count} records...")
+                table = model.__table__
+                data_rows = []
+                for item in src_records:
+                    row_dict = {}
+                    for col in table.columns:
+                        val = getattr(item, col.name)
+                        row_dict[col.name] = val
+                    data_rows.append(row_dict)
+
+                # Batch insert 500 rows per single round trip
+                for i in range(0, len(data_rows), 500):
+                    batch = data_rows[i : i + 500]
+                    tgt_db.execute(table.insert(), batch)
                     tgt_db.commit()
 
             tgt_final = tgt_db.query(func.count()).select_from(model).scalar() or 0

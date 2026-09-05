@@ -16,9 +16,9 @@ class PlatformUUID(TypeDecorator):
     cache_ok = True
 
     def load_dialect_impl(self, dialect: Any) -> TypeEngine:
-        if dialect.name == "postgresql":
+        if dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql":
             return dialect.type_descriptor(PG_UUID(as_uuid=True))
-        return dialect.type_descriptor(Uuid())
+        return dialect.type_descriptor(Uuid()) if dialect is not None else Uuid()
 
 
 class PlatformJSON(TypeDecorator):
@@ -52,13 +52,14 @@ class ArrayOrJSON(TypeDecorator):
         self.item_type = item_type
 
     def load_dialect_impl(self, dialect: Any) -> TypeEngine:
-        if dialect.name == "postgresql":
+        if dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql":
             return dialect.type_descriptor(PG_ARRAY(self.item_type))
-        return dialect.type_descriptor(JSON())
+        return dialect.type_descriptor(JSON()) if dialect is not None else JSON()
 
     def process_bind_param(self, value: Any, dialect: Any) -> Any:
+        is_pg = dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql"
         if value is None:
-            return [] if dialect.name != "postgresql" else []
+            return [] if not is_pg else []
         return value
 
     def process_result_value(self, value: Any, dialect: Any) -> Any:
@@ -86,7 +87,7 @@ class PlatformGeometry(TypeDecorator):
         self.spatial_index = spatial_index
 
     def load_dialect_impl(self, dialect: Any) -> TypeEngine:
-        if dialect.name == "postgresql":
+        if dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql":
             return dialect.type_descriptor(
                 PostGISGeometry(
                     geometry_type=self.geometry_type,
@@ -94,12 +95,13 @@ class PlatformGeometry(TypeDecorator):
                     spatial_index=self.spatial_index,
                 )
             )
-        return dialect.type_descriptor(Text())
+        return dialect.type_descriptor(Text()) if dialect is not None else Text()
 
     def process_bind_param(self, value: Any, dialect: Any) -> Any:
         if value is None:
             return None
-        if dialect.name == "postgresql":
+        is_pg = dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql"
+        if is_pg:
             from geoalchemy2.elements import WKTElement
             if isinstance(value, str):
                 return WKTElement(value, srid=self.srid)
