@@ -8,7 +8,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, require_central_or_above
@@ -50,7 +50,7 @@ def list_alerts(
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """Return paginated alerts for the authenticated user with unread count in meta."""
-    stmt = select(Alert).where(Alert.user_id == current_user.id)
+    stmt = select(Alert).where(or_(Alert.user_id == current_user.id, Alert.user_id.is_(None)))
 
     if is_read is not None:
         stmt = stmt.where(Alert.is_read == is_read)
@@ -216,6 +216,10 @@ def mark_all_read(
 # ── Serializer ────────────────────────────────────────────────────────────────
 
 def _serialize_alert(a: Alert) -> dict:
+    meta = a.metadata_json or {}
+    project_name = meta.get("project_name")
+    if not project_name and a.project:
+        project_name = a.project.name
     return {
         "alert_id": str(a.alert_id),
         "user_id": str(a.user_id) if a.user_id else None,
@@ -228,4 +232,7 @@ def _serialize_alert(a: Alert) -> dict:
         "read_at": a.read_at.isoformat() if a.read_at else None,
         "metadata": a.metadata_json,
         "created_at": a.created_at.isoformat() if a.created_at else None,
+        "project_name": project_name or "Uttar Pradesh Corridors",
+        "issue_type": meta.get("issue_type") or a.title,
+        "time_ago": meta.get("time_ago") or "Active",
     }

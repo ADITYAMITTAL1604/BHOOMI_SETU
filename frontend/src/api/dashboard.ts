@@ -78,17 +78,17 @@ export async function fetchQuarterlyProgress(): Promise<QuarterlyProgress[]> {
 }
 
 export async function fetchDashboardAlerts(): Promise<DashboardAlert[]> {
-  const response = await apiClient.get<any>("/alerts");
+  const response = await apiClient.get<any>("/alerts?page_size=20");
   const raw = response.data;
   const list: any[] = Array.isArray(raw) ? raw : (raw?.items && Array.isArray(raw.items) ? raw.items : []);
-  return list.slice(0, 5).map((a) => ({
+  return list.map((a) => ({
     id: a.alert_id || a.id,
-    title: a.message || a.title,
-    severity: a.severity || "INFO",
+    title: a.title || a.message,
+    severity: (a.severity as any) || "CRITICAL",
     timestamp: a.created_at || new Date().toISOString(),
-    project_name: a.entity_type || "System",
-    issue_type: a.alert_type || "General",
-    time_ago: "Recently",
+    project_name: a.project_name || a.metadata?.project_name || "Uttar Pradesh Corridor",
+    issue_type: a.issue_type || a.metadata?.issue_type || "Dispute",
+    time_ago: a.time_ago || a.metadata?.time_ago || "Active",
   }));
 }
 

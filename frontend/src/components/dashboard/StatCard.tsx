@@ -1,4 +1,3 @@
-import { useId } from "react";
 import { cn } from "@/lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -28,115 +27,111 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border border-gray-100 shadow-card p-5 flex flex-col gap-1.5 hover:shadow-card-hover transition-shadow",
+        "bg-white border border-gray-300 shadow-sm p-4 flex flex-col gap-1.5 border-t-4 transition-colors",
         className
       )}
+      style={{ borderTopColor: sparklineColor }}
     >
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-600 truncate">
           {label}
         </p>
-        {icon && <div className="text-gray-300">{icon}</div>}
+        {icon && <div className="text-gray-400">{icon}</div>}
       </div>
 
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-2xl font-bold text-gray-900 font-mono tracking-tight">{value}</p>
 
       {/* Trend indicator */}
       {trend && (
-        <div className="flex items-center gap-1.5">
-          {trend.direction === "up" && (
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
-          )}
-          {trend.direction === "down" && (
-            <TrendingDown className="w-3.5 h-3.5 text-red-500" />
-          )}
-          {trend.direction === "neutral" && (
-            <Minus className="w-3.5 h-3.5 text-gray-400" />
-          )}
+        <div className="flex items-center gap-1.5 flex-wrap">
           <span
             className={cn(
-              "text-xs font-medium",
-              trend.direction === "up" && "text-emerald-600",
-              trend.direction === "down" && "text-red-600",
-              trend.direction === "neutral" && "text-gray-500"
+              "inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-bold uppercase border",
+              trend.direction === "up" && "bg-emerald-50 text-emerald-800 border-emerald-300",
+              trend.direction === "down" && "bg-red-50 text-red-800 border-red-300",
+              trend.direction === "neutral" && "bg-gray-100 text-gray-700 border-gray-300"
             )}
           >
+            {trend.direction === "up" && <TrendingUp className="w-3 h-3 text-emerald-600" />}
+            {trend.direction === "down" && <TrendingDown className="w-3 h-3 text-red-600" />}
+            {trend.direction === "neutral" && <Minus className="w-3 h-3 text-gray-500" />}
             {trend.value}
           </span>
           {trend.label && (
-            <span className="text-[10px] text-gray-400">{trend.label}</span>
+            <span className="text-[10px] font-medium text-gray-500">{trend.label}</span>
           )}
         </div>
       )}
 
-      {/* Mini sparkline */}
+      {/* Government MIS Column Indicator */}
       {sparklineData && sparklineData.length > 0 && (
-        <div className="mt-1">
-          <MiniSparkline data={sparklineData} color={sparklineColor} />
+        <div className="mt-2 pt-2 border-t border-gray-100">
+          <GovernmentMiniBars data={sparklineData} color={sparklineColor} />
         </div>
       )}
     </div>
   );
 }
 
-// Simple SVG sparkline
-function MiniSparkline({
+// Government MIS Mini Column Chart (Sharp rectangular bars, no wavy curves)
+function GovernmentMiniBars({
   data,
   color,
-  height = 32,
+  height = 24,
 }: {
   data: number[];
   color: string;
   height?: number;
 }) {
-  const gradId = useId().replace(/:/g, "");
-  const width = 120;
   const min = Math.min(...data);
   const max = Math.max(...data);
   const range = max - min || 1;
-  const padding = 2;
-
-  const points = data.map((val, i) => {
-    const x = (i / Math.max(1, data.length - 1)) * (width - padding * 2) + padding;
-    const y = height - ((val - min) / range) * (height - padding * 2) - padding;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  });
-
-  const polyline = points.join(" ");
-
-  // Area fill
-  const areaPoints = [
-    `${padding},${height}`,
-    ...points,
-    `${width - padding},${height}`,
-  ].join(" ");
+  const count = data.length;
+  const barWidth = 14;
+  const gap = 6;
+  const totalWidth = count * barWidth + (count - 1) * gap;
 
   return (
-    <svg
-      width="100%"
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      preserveAspectRatio="none"
-      className="overflow-visible"
-    >
-      <defs>
-        <linearGradient id={`grad-${gradId}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.25} />
-          <stop offset="100%" stopColor={color} stopOpacity={0.01} />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={areaPoints}
-        fill={`url(#grad-${gradId})`}
-      />
-      <polyline
-        points={polyline}
-        fill="none"
-        stroke={color}
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+    <div className="flex items-center justify-between">
+      <svg
+        width={totalWidth}
+        height={height}
+        viewBox={`0 0 ${totalWidth} ${height}`}
+        className="overflow-visible"
+      >
+        {/* Baseline */}
+        <line
+          x1={0}
+          y1={height - 1}
+          x2={totalWidth}
+          y2={height - 1}
+          stroke="#CBD5E1"
+          strokeWidth="1"
+        />
+        {data.map((val, i) => {
+          const barHeight = Math.max(3, Math.round(((val - min) / range) * (height - 4)));
+          const x = i * (barWidth + gap);
+          const y = height - 1 - barHeight;
+          const isLatest = i === count - 1;
+
+          return (
+            <rect
+              key={i}
+              x={x}
+              y={y}
+              width={barWidth}
+              height={barHeight}
+              fill={color}
+              fillOpacity={isLatest ? 1.0 : 0.45 + (i / count) * 0.45}
+              stroke={color}
+              strokeWidth="0.5"
+            />
+          );
+        })}
+      </svg>
+      <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider font-semibold">
+        MIS Trend
+      </span>
+    </div>
   );
 }

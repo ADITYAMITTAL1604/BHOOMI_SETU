@@ -9,15 +9,27 @@ interface StageBreakdownChartProps {
   className?: string;
 }
 
-const STAGE_BAR_COLORS = [
-  "from-[#D47A22] to-[#ea9039]",
-  "from-[#439288] to-[#59b8ab]",
-  "from-[#73A557] to-[#8ec76f]",
-  "from-[#b45309] to-[#d97706]",
-  "from-[#52525b] to-[#71717a]",
-  "from-[#d97706] to-[#f59e0b]",
-  "from-[#0f766e] to-[#14b8a6]",
-];
+const GOV_STAGE_COLORS: Record<string, string> = {
+  "Survey & Mapping": "#2B6D97",
+  "Verification & Claims": "#0F766E",
+  "Sec 11 Notification": "#D47A22",
+  "Sec 15 Objections": "#B45309",
+  "Award & Compensation": "#15803D",
+  "R&R Resettlement": "#4338CA",
+  "Possession Transfer": "#7C2D12",
+  "Project Closure": "#334155",
+};
+
+const STAGE_CODES: Record<string, string> = {
+  "Survey & Mapping": "SURV",
+  "Verification & Claims": "VERIF",
+  "Sec 11 Notification": "SEC-11",
+  "Sec 15 Objections": "SEC-15",
+  "Award & Compensation": "AWARD",
+  "R&R Resettlement": "R&R",
+  "Possession Transfer": "POSS",
+  "Project Closure": "CLOSE",
+};
 
 export function StageBreakdownChart({ data, className }: StageBreakdownChartProps) {
   if (!data || data.length === 0) {
@@ -28,40 +40,63 @@ export function StageBreakdownChart({ data, className }: StageBreakdownChartProp
     );
   }
 
+  const totalParcels = data.reduce((acc, item) => acc + item.count, 0);
+
   return (
-    <div className={cn("space-y-3.5", className)}>
-      {data.map((item, index) => {
-        const colorGradient = STAGE_BAR_COLORS[index % STAGE_BAR_COLORS.length];
-        return (
-          <div
-            key={item.stage}
-            className="group rounded-lg p-1.5 -mx-1.5 transition-colors hover:bg-gray-50/80"
-          >
-            <div className="flex items-center justify-between mb-1.5 text-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="font-semibold text-gray-800 truncate group-hover:text-[#D47A22] transition-colors">
-                  {item.stage}
-                </span>
-                <span className="px-1.5 py-0.5 rounded-md bg-gray-100 text-[10px] font-semibold text-gray-600 flex-shrink-0">
-                  {item.count.toLocaleString("en-IN")} parcels
-                </span>
+    <div className={cn("space-y-3", className)}>
+      <div className="divide-y divide-gray-100 border border-gray-200 bg-white">
+        {data.map((item) => {
+          const barColor = GOV_STAGE_COLORS[item.stage] || "#475569";
+          const code = STAGE_CODES[item.stage] || "MIS";
+
+          return (
+            <div
+              key={item.stage}
+              className="p-2.5 hover:bg-amber-50/30 transition-colors"
+            >
+              <div className="flex items-center justify-between mb-1.5 text-xs">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-gray-100 text-gray-700 border border-gray-300">
+                    {code}
+                  </span>
+                  <span className="font-bold text-gray-800 truncate">
+                    {item.stage}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-right flex-shrink-0">
+                  <span className="font-mono text-[11px] text-gray-600">
+                    {item.count.toLocaleString("en-IN")} parcels
+                  </span>
+                  <span className="font-mono font-bold text-gray-900 w-9 text-right">
+                    {item.percentage}%
+                  </span>
+                </div>
               </div>
-              <span className="font-bold text-gray-900 ml-2 flex-shrink-0">
-                {item.percentage}%
-              </span>
+
+              {/* Sharp Government Progress Bar */}
+              <div className="h-2 bg-gray-100 overflow-hidden border border-gray-300">
+                <div
+                  className="h-full transition-all duration-500 ease-out"
+                  style={{
+                    width: `${Math.max(2, item.percentage)}%`,
+                    backgroundColor: barColor,
+                  }}
+                />
+              </div>
             </div>
-            <div className="h-2 bg-gray-100/90 rounded-full overflow-hidden p-[1px]">
-              <div
-                className={cn(
-                  "h-full rounded-full bg-gradient-to-r transition-all duration-700 ease-out group-hover:brightness-110",
-                  colorGradient
-                )}
-                style={{ width: `${Math.max(2, item.percentage)}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* Summary Footer */}
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border border-gray-200 text-xs">
+        <span className="font-semibold text-gray-600 uppercase text-[10px] tracking-wider">
+          Total Monitored Land Pipeline
+        </span>
+        <span className="font-mono font-bold text-gray-900">
+          {totalParcels.toLocaleString("en-IN")} Parcels
+        </span>
+      </div>
     </div>
   );
 }

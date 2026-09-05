@@ -92,12 +92,17 @@ def get_national_dashboard(
     today = datetime.now(timezone.utc).date()
     sla_breach_stmt = (
         select(func.count(AcquisitionStage.stage_id))
+        .join(Parcel, AcquisitionStage.parcel_id == Parcel.parcel_id)
         .where(
-            AcquisitionStage.status == StageStatus.IN_PROGRESS.value,
+            AcquisitionStage.status.in_([StageStatus.IN_PROGRESS.value, "BLOCKED"]),
             AcquisitionStage.target_date.isnot(None),
             AcquisitionStage.target_date < today,
         )
     )
+    if scope.get("state"):
+        sla_breach_stmt = sla_breach_stmt.where(func.lower(Parcel.state) == scope["state"].lower())
+    if scope.get("district"):
+        sla_breach_stmt = sla_breach_stmt.where(func.lower(Parcel.district) == scope["district"].lower())
     sla_breaches_count = db.execute(sla_breach_stmt).scalar() or 0
 
     districts_stmt = (

@@ -56,9 +56,15 @@ export default {
         sidebar: "2px 0 12px rgba(0, 0, 0, 0.12)",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        none: "0px",
+        sm: "0px",
+        DEFAULT: "0px",
+        md: "0px",
+        lg: "0px",
+        xl: "0px",
+        "2xl": "0px",
+        "3xl": "0px",
+        full: "0px",
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],

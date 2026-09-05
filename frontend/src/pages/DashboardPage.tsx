@@ -77,48 +77,48 @@ export function DashboardPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* ── Header with Prominent BhoomiSetu Emblem ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/70 backdrop-blur-sm p-4 rounded-2xl border border-gray-200/80 shadow-sm">
+      {/* ── Dashboard Header Banner ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 border border-gray-300 shadow-sm border-l-4 border-l-[#D47A22]">
         <div className="flex items-center gap-4">
-          <div className="bg-white p-2.5 rounded-2xl shadow-md border border-amber-200/90 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105">
+          <div className="border border-gray-300 bg-white p-1.5 flex items-center justify-center flex-shrink-0">
             <img
               src="/logo-bhoomisetu.jpeg"
               alt="BhoomiSetu"
-              className="h-14 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                 {title}
               </h1>
               {user?.role === "FIELD_OFFICER" ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Field Officer · Ghaziabad Unit (UP)
                 </span>
               ) : user?.role === "STATE" || dashboard?.user_scope?.state ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-[#D47A22] border border-amber-200 shadow-sm">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-amber-50 text-[#A3540C] border border-amber-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   State Officer · Uttar Pradesh
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 shadow-sm">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-gray-100 text-gray-800 border border-gray-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Administrator · National & State Oversight
                 </span>
               )}
             </div>
-            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1.5">
+            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 font-medium">
               <Clock className="w-3.5 h-3.5" />
-              Active Persona: <span className="font-semibold text-gray-800">{user?.role === "FIELD_OFFICER" ? "Field Officer (Ghaziabad)" : user?.role === "STATE" ? "State Officer (UP)" : "Administrator"}</span> · Real-time synchronized
+              Active Persona: <span className="font-bold text-gray-800">{user?.role === "FIELD_OFFICER" ? "Field Officer (Ghaziabad)" : user?.role === "STATE" ? "State Officer (UP)" : "Administrator"}</span> · Real-time synchronized
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate("/reports")}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#D47A22] text-white text-sm font-medium rounded-xl hover:bg-[#B56315] transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#D47A22] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#B56315] transition-colors shadow-sm"
           >
             <Download className="w-4 h-4" />
             Executive Reports
@@ -128,10 +128,10 @@ export function DashboardPage() {
 
       {/* ── Field Officer Operations Quick Action Hub ── */}
       {user?.role === "FIELD_OFFICER" && (
-        <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in shadow-sm">
+        <div className="bg-amber-50/60 border border-amber-300 border-l-4 border-l-[#D47A22] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in shadow-sm">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="inline-block h-2.5 w-2.5 bg-emerald-600" />
               <h3 className="text-sm font-bold text-gray-900">
                 Ground Deployment Active · Ghaziabad Field Unit
               </h3>
@@ -143,19 +143,19 @@ export function DashboardPage() {
           <div className="flex items-center gap-2.5 flex-wrap">
             <button
               onClick={() => navigate("/parcels")}
-              className="px-3.5 py-2 bg-white border border-gray-200 hover:border-[#D47A22] rounded-xl text-xs font-semibold text-gray-800 hover:text-[#D47A22] transition-colors shadow-sm"
+              className="px-3.5 py-2 bg-white border border-gray-300 hover:border-[#D47A22] text-xs font-bold text-gray-800 hover:text-[#D47A22] transition-colors shadow-sm"
             >
               📋 View 32 Assigned Parcels
             </button>
             <button
               onClick={() => navigate("/gis")}
-              className="px-3.5 py-2 bg-[#D47A22] text-white hover:bg-[#B56315] rounded-xl text-xs font-semibold transition-colors shadow-sm"
+              className="px-3.5 py-2 bg-[#D47A22] text-white hover:bg-[#B56315] text-xs font-bold transition-colors shadow-sm"
             >
               🗺️ Open GIS Demarcation Map
             </button>
             <button
               onClick={() => navigate("/documents")}
-              className="px-3.5 py-2 bg-white border border-gray-200 hover:border-[#D47A22] rounded-xl text-xs font-semibold text-gray-800 hover:text-[#D47A22] transition-colors shadow-sm"
+              className="px-3.5 py-2 bg-white border border-gray-300 hover:border-[#D47A22] text-xs font-bold text-gray-800 hover:text-[#D47A22] transition-colors shadow-sm"
             >
               📄 Inspection Logs
             </button>
@@ -240,8 +240,8 @@ export function DashboardPage() {
             {dashLoading ? (
               <div className="h-[280px] animate-shimmer rounded-lg" />
             ) : (
-              <div className="h-[280px] bg-brand-linen/60 rounded-xl p-4 overflow-y-auto border border-gray-100">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="h-[280px] bg-gray-50 p-3 overflow-y-auto border border-gray-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   {(dashboard?.state_summary || []).length === 0 ? (
                     <div className="col-span-2 py-12 text-center text-gray-400 text-xs font-medium">
                       No jurisdiction sub-districts found.
@@ -250,41 +250,41 @@ export function DashboardPage() {
                     (dashboard?.state_summary || []).map((s) => (
                       <div
                         key={s.state}
-                        className="bg-white/95 backdrop-blur-sm rounded-xl p-3.5 shadow-sm border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all cursor-pointer"
+                        className="bg-white p-3 border border-gray-200 hover:border-[#D47A22] transition-colors cursor-pointer shadow-sm border-l-2 border-l-[#D47A22]"
                         onClick={() => navigate("/projects")}
                       >
-                        <div className="flex items-center justify-between mb-1.5">
-                          <p className="text-xs font-bold text-gray-800 truncate" title={s.state}>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-xs font-bold text-gray-900 truncate" title={s.state}>
                             {s.state}
                           </p>
                           <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            className={`px-1.5 py-0.2 text-[9px] font-bold border uppercase ${
                               s.risk_level === "LOW"
-                                ? "bg-emerald-100 text-emerald-800"
+                                ? "bg-emerald-50 text-emerald-800 border-emerald-300"
                                 : s.risk_level === "MEDIUM"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-red-100 text-red-800"
+                                ? "bg-amber-50 text-amber-800 border-amber-300"
+                                : "bg-red-50 text-red-800 border-red-300"
                             }`}
                           >
                             {s.risk_level}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1.5">
+                        <div className="flex items-center justify-between text-[11px] text-gray-600 mb-1">
                           <span>{s.projects} {dashboard?.user_scope?.district ? "Unit" : "Projects"}</span>
-                          <span className="font-semibold text-gray-700">{s.land_ha} ha</span>
+                          <span className="font-mono font-bold text-gray-800">{s.land_ha} ha</span>
                         </div>
-                        <div className="flex items-center justify-between text-[11px]">
-                          <span className="text-gray-400">Acquired</span>
-                          <span className="font-bold text-gray-800">{s.acquired_pct}%</span>
+                        <div className="flex items-center justify-between text-[11px] mb-1">
+                          <span className="text-gray-500">Acquired</span>
+                          <span className="font-bold text-gray-900 font-mono">{s.acquired_pct}%</span>
                         </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                        <div className="h-1.5 bg-gray-200 overflow-hidden border border-gray-300">
                           <div
-                            className={`h-full rounded-full transition-all duration-500 ${
+                            className={`h-full ${
                               s.acquired_pct >= 70
-                                ? "bg-emerald-500"
+                                ? "bg-emerald-600"
                                 : s.acquired_pct >= 40
-                                ? "bg-amber-500"
-                                : "bg-red-500"
+                                ? "bg-[#D47A22]"
+                                : "bg-red-600"
                             }`}
                             style={{ width: `${Math.max(3, s.acquired_pct)}%` }}
                           />

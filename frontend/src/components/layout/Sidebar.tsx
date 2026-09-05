@@ -65,23 +65,19 @@ export function Sidebar() {
       style={{ backgroundColor: "#D47A22" }}
     >
       {/* ── Logo ─────────────────────────────── */}
-      <div className="px-3 py-4 border-b border-white/20">
+      <div className="w-full bg-white border-b-2 border-[#A3540C] flex items-center justify-center p-2.5 shadow-sm">
         {collapsed ? (
-          <div className="w-14 h-14 mx-auto rounded-2xl overflow-hidden bg-white p-1.5 shadow-md border border-white/30 flex items-center justify-center">
-            <img
-              src="/logo-bhoomisetu.jpeg"
-              alt="BhoomiSetu"
-              className="w-full h-full object-contain"
-            />
-          </div>
+          <img
+            src="/logo-bhoomisetu.jpeg"
+            alt="BhoomiSetu"
+            className="w-full h-12 object-contain"
+          />
         ) : (
-          <div className="w-full bg-white rounded-2xl py-3 px-3 shadow-lg border border-white/30 flex items-center justify-center transition-transform hover:scale-[1.02]">
-            <img
-              src="/logo-bhoomisetu.jpeg"
-              alt="BhoomiSetu"
-              className="w-full h-20 max-w-[235px] object-contain drop-shadow-sm"
-            />
-          </div>
+          <img
+            src="/logo-bhoomisetu.jpeg"
+            alt="BhoomiSetu"
+            className="w-full h-24 object-contain"
+          />
         )}
       </div>
 
@@ -98,10 +94,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-[#A3540C] text-white shadow-sm font-semibold border-l-[3px] border-amber-200 ml-0 pl-[9px]"
-                  : "text-orange-100/90 hover:text-white hover:bg-[#BD6815] border-l-[3px] border-transparent"
+                  ? "bg-[#964705] text-white shadow-none font-bold border-l-4 border-amber-300 ml-0 pl-[9px]"
+                  : "text-orange-100 hover:text-white hover:bg-[#BD6815] border-l-4 border-transparent"
               )}
               title={collapsed ? item.label : undefined}
             >
@@ -130,10 +126,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 isActive
-                  ? "bg-[#A3540C] text-white font-semibold border-l-[3px] border-amber-200 pl-[9px]"
-                  : "text-orange-100/90 hover:text-white hover:bg-[#BD6815] border-l-[3px] border-transparent"
+                  ? "bg-[#964705] text-white font-bold border-l-4 border-amber-300 pl-[9px]"
+                  : "text-orange-100 hover:text-white hover:bg-[#BD6815] border-l-4 border-transparent"
               )}
               title={collapsed ? item.label : undefined}
             >
@@ -148,8 +144,8 @@ export function Sidebar() {
         {/* Collapse Toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium w-full
-                     text-orange-100/90 hover:text-white hover:bg-[#BD6815] transition-all duration-200 mt-1"
+          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full
+                     text-orange-100 hover:text-white hover:bg-[#BD6815] transition-all duration-150 mt-1"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? (

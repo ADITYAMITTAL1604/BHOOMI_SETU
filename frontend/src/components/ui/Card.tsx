@@ -11,8 +11,8 @@ export function Card({ children, className, hoverable = false, onClick }: CardPr
   return (
     <div
       className={cn(
-        "bg-white rounded-xl border border-gray-100 shadow-card",
-        hoverable && "hover:shadow-card-hover transition-shadow cursor-pointer",
+        "bg-white border border-gray-300 shadow-sm",
+        hoverable && "hover:border-[#D47A22] transition-colors cursor-pointer",
         onClick && "cursor-pointer",
         className
       )}
