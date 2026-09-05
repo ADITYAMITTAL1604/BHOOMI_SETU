@@ -22,11 +22,22 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Ensure database tables and default demo users exist on application startup."""
+    """Ensure database tables, PostGIS extensions, and default seed data exist on application startup."""
     try:
-        from app.database import Base, engine, SessionLocal
+        from app.database import Base, engine, SessionLocal, is_sqlite
         import app.models  # register all models
-        from sqlalchemy import select, func
+        from sqlalchemy import select, func, text
+
+        # On PostgreSQL, ensure required extensions are loaded
+        if not is_sqlite:
+            try:
+                with engine.connect() as conn:
+                    conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+                    conn.execute(text("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"))
+                    conn.commit()
+            except Exception as ext_err:
+                logger.warning("PostgreSQL extension check notice: %s", ext_err)
+
         Base.metadata.create_all(bind=engine)
 
         db = SessionLocal()
@@ -34,10 +45,16 @@ async def lifespan(app: FastAPI):
             from app.models.user import User
             user_count = db.execute(select(func.count(User.id))).scalar() or 0
             if user_count == 0:
-                logger.info("Fresh database detected: auto-seeding canonical demo users...")
-                from db.seed import seed_users
-                seed_users(db)
-                logger.info("Demo users auto-seeded successfully.")
+                logger.info("Fresh database detected: auto-bootstrapping database and demo users...")
+                try:
+                    from db.seed import seed_database
+                    seed_database(source=settings.data_source, reset=False)
+                    logger.info("Database bootstrap completed successfully.")
+                except Exception as seed_err:
+                    logger.warning("Auto-seed exception: %s. Falling back to core demo users...", seed_err)
+                    from db.seed import seed_users
+                    seed_users(db)
+                    logger.info("Core demo users seeded successfully.")
         finally:
             db.close()
     except Exception as e:

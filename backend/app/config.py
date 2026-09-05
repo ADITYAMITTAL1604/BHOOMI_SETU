@@ -17,6 +17,19 @@ class Settings(BaseSettings):
     # ── Database ──────────────────────────────────────────────────────────────
     database_url: str = "sqlite:///./bhoomisetu.db"
 
+    @property
+    def normalized_database_url(self) -> str:
+        """Ensure PostgreSQL connection strings use the psycopg2 driver and handle cloud prefixes."""
+        url = (self.database_url or "").strip()
+        if not url:
+            return "sqlite:///./bhoomisetu.db"
+        # Supabase and Heroku/Render often output 'postgres://'
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+psycopg2://"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        return url
+
     # ── Auth ──────────────────────────────────────────────────────────────────
     jwt_secret: str = "changeme_in_production"
     jwt_algorithm: str = "HS256"

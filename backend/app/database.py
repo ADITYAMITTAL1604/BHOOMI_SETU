@@ -10,13 +10,15 @@ from app.config import get_settings
 settings = get_settings()
 
 # ── Engine ────────────────────────────────────────────────────────────────────
-is_sqlite = settings.database_url.startswith("sqlite")
+db_url = settings.normalized_database_url
+is_sqlite = db_url.startswith("sqlite")
 
 engine = create_engine(
-    settings.database_url,
-    pool_pre_ping=not is_sqlite,
+    db_url,
+    pool_pre_ping=True,
     pool_size=10 if not is_sqlite else 5,
     max_overflow=20 if not is_sqlite else 0,
+    pool_recycle=300 if not is_sqlite else -1,
     echo=settings.log_level == "DEBUG",
     connect_args={"check_same_thread": False} if is_sqlite else {},
 )

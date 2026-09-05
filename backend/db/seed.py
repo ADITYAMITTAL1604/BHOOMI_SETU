@@ -930,10 +930,17 @@ def seed_database(source: str = "demo", reset: bool = False) -> None:
         user_map = seed_users(db)
         seed_boundaries(db)
 
-        repo_root = Path(parent_dir).parent
-        data_synthetic_dir = repo_root / "data" / "synthetic"
+        # Robust path discovery for synthetic dataset
+        candidate_dirs = [
+            Path(parent_dir).parent / "data" / "synthetic",
+            Path(parent_dir) / "data" / "synthetic",
+            Path("data/synthetic").resolve(),
+            Path("../data/synthetic").resolve(),
+            Path("/app/data/synthetic"),
+        ]
+        data_synthetic_dir = next((cd for cd in candidate_dirs if cd.exists() and (cd / "projects.csv").exists()), None)
 
-        if source in ("synthetic", "project") and data_synthetic_dir.exists():
+        if source in ("synthetic", "project") and data_synthetic_dir:
             seed_from_synthetic(db, user_map, data_synthetic_dir)
         else:
             seed_demo(db, user_map)
