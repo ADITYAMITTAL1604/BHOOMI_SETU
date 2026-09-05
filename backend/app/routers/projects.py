@@ -271,12 +271,17 @@ def create_project(
     response_model=list[str],
 )
 def get_project_districts(
+    state: Optional[str] = Query(None, description="Filter districts by state"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Return distinct sorted districts across accessible projects."""
+    """Return distinct sorted districts across accessible projects, optionally filtered by state."""
     stmt = select(Project)
     stmt = _apply_geographic_scope(stmt, current_user, Project)
+    
+    if state and state != "All States":
+        stmt = stmt.where(Project.states.any(state))
+        
     projects = db.execute(stmt).scalars().all()
     districts = set()
     for p in projects:

@@ -37,6 +37,9 @@ const IntelligencePage = lazy(() =>
 const ReportsPage = lazy(() =>
   import("@/pages/ReportsPage").then((m) => ({ default: m.ReportsPage || (m as any).default }))
 );
+const SettingsPage = lazy(() =>
+  import("@/pages/SettingsPage").then((m) => ({ default: m.SettingsPage || (m as any).default }))
+);
 
 function PageLoader() {
   return (
@@ -75,6 +78,7 @@ export default function App() {
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/intelligence" element={<IntelligencePage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
 
           {/* Error routes */}

@@ -73,7 +73,7 @@ export function IntelligencePage() {
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="text-xs bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-copper/30"
+              className="text-xs bg-white border border-gray-200 rounded-none px-3 py-2 text-gray-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-copper/30"
             >
               <option value="default">Default Active Project</option>
               {projectsList.map((p) => (
@@ -118,7 +118,7 @@ export function IntelligencePage() {
               <div className="space-y-4">
                 {/* Primary bottleneck alert */}
                 {primaryBn && (
-                  <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                  <div className="bg-red-50 border border-red-100 rounded-none p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Zap className="w-4 h-4 text-red-500" />
                       <span className="text-xs font-bold text-red-700 uppercase tracking-wider">
@@ -168,10 +168,10 @@ export function IntelligencePage() {
                             {stage.pending_count || stage.in_progress_count || 0} pending · {stage.avg_days_pending || 0}d avg
                           </span>
                         </div>
-                        <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="w-full h-1.5 bg-gray-100 rounded-none overflow-hidden">
                           <div
                             className={cn(
-                              "h-full rounded-full",
+                              "h-full rounded-none",
                               i === 0 ? "bg-red-500" : i === 1 ? "bg-orange-400" : "bg-brand-teal-blue"
                             )}
                             style={{ width: `${Math.min(100, Math.max(8, (stage.bottleneck_score || 0.1) * 100))}%` }}
@@ -228,23 +228,23 @@ export function IntelligencePage() {
                         fill="none"
                         strokeLinecap="round"
                         strokeDasharray={`${2 * Math.PI * 40}`}
-                        strokeDashoffset={`${2 * Math.PI * 40 * (1 - (delayRisk.risk_score || 0.25))}`}
+                        strokeDashoffset={`${2 * Math.PI * 40 * (1 - (delayRisk.risk_score ?? 0))}`}
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-bold">{Math.round((delayRisk.risk_score || 0) * 100)}%</span>
+                      <span className="text-xl font-bold">{Math.round((delayRisk.risk_score ?? 0) * 100)}%</span>
                       <span className="text-[9px] text-gray-400 font-semibold uppercase">Risk</span>
                     </div>
                   </div>
                   <div>
-                    <Badge variant="risk" level={delayRisk.risk_level || "LOW"}>
-                      {delayRisk.risk_level || "LOW"} RISK
+                    <Badge variant="risk" level={delayRisk.risk_level ?? "LOW"}>
+                      {delayRisk.risk_level ?? "LOW"} RISK
                     </Badge>
                     <p className="text-xs text-gray-500 mt-2">
-                      Confidence: {Math.round((delayRisk.confidence || 0.75) * 100)}%
+                      Confidence: {Math.round((delayRisk.confidence ?? 0) * 100)}%
                     </p>
                     <p className="text-[10px] text-gray-400">
-                      Based on {delayRisk.snapshots_used || 1} data snapshot(s)
+                      Based on {delayRisk.snapshots_used ?? 0} data snapshot(s)
                     </p>
                   </div>
                 </div>
@@ -264,14 +264,14 @@ export function IntelligencePage() {
                         <div key={feat.feature} className="flex items-center gap-2">
                           <span
                             className={cn(
-                              "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                              "w-1.5 h-1.5 rounded-none flex-shrink-0",
                               dir === "positive" ? "bg-red-400" : "bg-emerald-400"
                             )}
                           />
                           <span className="text-xs text-gray-700 flex-1">{label}</span>
-                          <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="w-20 h-1.5 bg-gray-100 rounded-none overflow-hidden">
                             <div
-                              className={cn("h-full rounded-full", dir === "positive" ? "bg-red-400" : "bg-emerald-400")}
+                              className={cn("h-full rounded-none", dir === "positive" ? "bg-red-400" : "bg-emerald-400")}
                               style={{ width: `${Math.min(100, Math.max(10, Math.abs(imp) * 100 * 3))}%` }}
                             />
                           </div>
@@ -327,13 +327,13 @@ export function IntelligencePage() {
               {priorityList.slice(0, 10).map((c: any, i: number) => (
                 <div
                   key={c.parcel_id || i}
-                  className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 hover:shadow-card-hover transition-shadow cursor-pointer group"
+                  className="flex items-start gap-4 p-4 rounded-none border border-gray-100 hover:shadow-card-hover transition-shadow cursor-pointer group"
                   onClick={() => navigate(`/parcels/${c.parcel_id}`)}
                 >
                   {/* Rank */}
                   <div
                     className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 text-xs font-bold",
+                      "w-8 h-8 rounded-none flex items-center justify-center flex-shrink-0 text-xs font-bold",
                       i === 0 ? "bg-red-100 text-red-700" :
                       i === 1 ? "bg-orange-100 text-orange-700" :
                       "bg-gray-100 text-gray-600"

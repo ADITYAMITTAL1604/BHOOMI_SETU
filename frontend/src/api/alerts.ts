@@ -2,10 +2,15 @@ import apiClient from "./client";
 import type { Alert } from "@/types/api";
 
 export async function getAlerts(unreadOnly = false): Promise<Alert[]> {
-  const response = await apiClient.get<Alert[]>("/alerts", {
-    params: { unread_only: unreadOnly },
+  const response = await apiClient.get<any>("/alerts", {
+    params: { is_read: unreadOnly ? false : undefined },
   });
-  return response.data;
+  
+  if (Array.isArray(response.data)) return response.data;
+  if (response.data && Array.isArray(response.data.items)) return response.data.items;
+  if (response.data && Array.isArray(response.data.data)) return response.data.data;
+  
+  return [];
 }
 
 export async function markAlertAsRead(alertId: string): Promise<Alert> {

@@ -14,6 +14,7 @@ import {
   Brain,
 } from "lucide-react";
 import { getParcelById } from "@/api/parcels";
+import { RiskTooltip } from "@/components/RiskTooltip";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -109,8 +110,9 @@ export function ParcelDetailPage() {
               </Badge>
               <Badge variant="risk" level={
                 parcel.risk_score >= 70 ? "HIGH" : parcel.risk_score >= 40 ? "MEDIUM" : "LOW"
-              }>
+              } className="flex items-center gap-1">
                 Risk: {parcel.risk_score}
+                <RiskTooltip score={parcel.risk_score} type="PARCEL" />
               </Badge>
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-1">
@@ -138,90 +140,84 @@ export function ParcelDetailPage() {
       </Card>
 
       {/* ── 11-Stage Pipeline (Vertical) ──────── */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Acquisition Pipeline — {parcel.current_stage.replace(/_/g, " ")}</CardTitle>
+      <Card className="rounded-none border border-gray-300 shadow-none">
+        <CardHeader className="border-b border-gray-200 bg-gray-50/80 pb-4">
+          <CardTitle className="text-lg font-bold text-gray-800 uppercase tracking-wide">
+            Statutory Acquisition Pipeline — {parcel.current_stage.replace(/_/g, " ")}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="relative">
+        <CardContent className="p-6">
+          <div className="relative border-l-2 border-gray-200 ml-4 space-y-6">
             {stages.map((stage, i) => {
               const stageInfo = STAGES[i];
               const isCompleted = stage.status === "COMPLETED";
               const isCurrent = stage.status === "IN_PROGRESS";
               const isPending = stage.status === "PENDING";
-              const isLast = i === stages.length - 1;
 
               return (
-                <div key={stage.stage_id} className="flex gap-4">
-                  {/* Timeline */}
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10",
-                        isCompleted && "bg-brand-teal-blue text-white",
-                        isCurrent && "bg-white border-2 border-brand-teal-blue text-brand-teal-blue",
-                        isPending && "bg-gray-100 text-gray-400"
-                      )}
-                    >
-                      {isCompleted ? <CheckCircle2 className="w-4 h-4" /> :
-                       isCurrent ? <Circle className="w-4 h-4" /> :
-                       <Lock className="w-3.5 h-3.5" />}
-                    </div>
-                    {!isLast && (
-                      <div className={cn(
-                        "w-0.5 flex-1 min-h-[32px]",
-                        i < currentStageIdx ? "bg-brand-teal-blue" : "bg-gray-200"
-                      )} />
-                    )}
+                <div key={stage.stage_id} className="relative pl-6">
+                  {/* Node Icon */}
+                  <div className={cn(
+                    "absolute -left-[17px] top-1 w-8 h-8 flex items-center justify-center border-2 bg-white rounded-none",
+                    isCompleted && "border-[#183a37] text-[#183a37]",
+                    isCurrent && "border-[#D47A22] bg-amber-50 text-[#D47A22] ring-4 ring-amber-100",
+                    isPending && "border-gray-300 text-gray-400"
+                  )}>
+                    {isCompleted ? <CheckCircle2 className="w-4 h-4" /> :
+                     isCurrent ? <Circle className="w-3 h-3 fill-current animate-pulse" /> :
+                     <Lock className="w-3.5 h-3.5" />}
                   </div>
 
-                  {/* Content */}
-                  <div className={cn("pb-6 flex-1", isLast && "pb-0")}>
-                    <div className={cn(
-                      "rounded-xl p-4 transition-all",
-                      isCurrent && "bg-brand-teal-blue/5 border border-brand-teal-blue/20",
-                      isCompleted && "bg-gray-50",
-                      isPending && "opacity-50"
-                    )}>
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className={cn(
-                          "text-sm font-semibold",
-                          isCurrent ? "text-brand-teal-blue" : "text-gray-800"
-                        )}>
-                          {stageInfo.label}
-                        </h4>
-                        <span className="text-[10px] text-gray-400">
-                          SLA: {stageInfo.sla_days} days
+                  {/* Content Box */}
+                  <div className={cn(
+                    "p-4 border rounded-none transition-all",
+                    isCurrent ? "bg-amber-50/40 border-[#D47A22] shadow-sm" : 
+                    isCompleted ? "bg-white border-gray-200 hover:border-[#183a37]/50" : 
+                    "bg-gray-50 border-gray-200 opacity-60"
+                  )}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <h4 className={cn(
+                        "text-sm font-bold uppercase tracking-wide",
+                        isCurrent ? "text-[#D47A22]" : 
+                        isCompleted ? "text-[#183a37]" : "text-gray-500"
+                      )}>
+                        Step {i + 1}: {stageInfo.label}
+                      </h4>
+                      <span className="text-[10px] font-bold font-mono px-2 py-0.5 bg-gray-100 text-gray-600 border border-gray-300">
+                        SLA Limit: {stageInfo.sla_days} Days
+                      </span>
+                    </div>
+
+                    {/* Stage metadata */}
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium mt-3">
+                      {stage.assigned_officer && (
+                        <span className="flex items-center gap-1.5 text-gray-700">
+                          <User className="w-3.5 h-3.5 text-gray-400" />
+                          <span className="text-gray-500 uppercase text-[10px] tracking-wider">Officer:</span> 
+                          {stage.assigned_officer}
                         </span>
-                      </div>
-
-                      {/* Stage metadata */}
-                      <div className="flex items-center gap-4 text-[11px] text-gray-500 mt-1">
-                        {stage.assigned_officer && (
-                          <span className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            {stage.assigned_officer}
-                          </span>
-                        )}
-                        {isCurrent && (parcel.days_pending ?? 0) > 0 && (
-                          <span className={cn(
-                            "flex items-center gap-1 font-semibold",
-                            (parcel.days_pending ?? 0) > stageInfo.sla_days ? "text-red-600" : "text-amber-600"
-                          )}>
-                            <Clock className="w-3 h-3" />
-                            {parcel.days_pending} days pending
-                          </span>
-                        )}
-                      </div>
-
-                      {/* SLA breach warning */}
-                      {stage.remarks && (
-                        <div className="mt-2 flex items-center gap-1.5 text-xs text-red-600 bg-red-50 px-2.5 py-1.5 rounded-lg">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          {stage.remarks}
-                        </div>
+                      )}
+                      
+                      {isCurrent && (parcel.days_pending ?? 0) > 0 && (
+                        <span className={cn(
+                          "flex items-center gap-1.5 font-bold border px-2 py-0.5",
+                          (parcel.days_pending ?? 0) > stageInfo.sla_days 
+                            ? "text-red-700 border-red-300 bg-red-50" 
+                            : "text-[#D47A22] border-amber-300 bg-amber-50"
+                        )}>
+                          <Clock className="w-3.5 h-3.5" />
+                          {parcel.days_pending} Days Active
+                        </span>
                       )}
                     </div>
+
+                    {/* SLA breach warning */}
+                    {stage.remarks && (
+                      <div className="mt-3 flex items-start gap-2 text-xs font-semibold text-red-700 bg-red-50 border-l-2 border-red-500 p-2.5">
+                        <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                        <span className="leading-relaxed">{stage.remarks}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -290,7 +286,7 @@ export function ParcelDetailPage() {
                     />
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-sm font-bold">{parcel.risk_score}</span>
+                    <span className="text-sm font-bold">{Math.round(parcel.risk_score)}</span>
                   </div>
                 </div>
                 <div>
@@ -304,21 +300,48 @@ export function ParcelDetailPage() {
               </div>
 
               <div className="space-y-2">
-                {[
-                  { factor: "Stage Duration", impact: (parcel.days_pending ?? 0) > 30 ? "high" : "low", desc: `${parcel.days_pending ?? 0} days in current stage` },
-                  { factor: "Legal Complexity", impact: parcel.status === "BLOCKED" ? "high" : "low", desc: parcel.status === "BLOCKED" ? "Active dispute flagged" : "No disputes" },
-                  { factor: "Compensation Status", impact: "medium", desc: "Valuation pending approval" },
-                ].map((f) => (
-                  <div key={f.factor} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="text-xs font-medium text-gray-700">{f.factor}</p>
-                      <p className="text-[10px] text-gray-400">{f.desc}</p>
+                {(() => {
+                  const currentStageData = parcel.stages?.find((s: any) => s.status === "IN_PROGRESS" || s.stage_name === parcel.current_stage);
+                  let daysPending = 0;
+                  if (currentStageData?.start_date) {
+                    const start = new Date(currentStageData.start_date).getTime();
+                    daysPending = Math.max(0, Math.floor((Date.now() - start) / (1000 * 60 * 60 * 24)));
+                  }
+
+                  const factors = [];
+                  // Dynamic factor 1: Historical / ML Risk
+                  factors.push({
+                    factor: "Historical Trend",
+                    impact: parcel.risk_score >= 70 ? "high" : parcel.risk_score >= 40 ? "medium" : "low",
+                    desc: parcel.risk_score >= 70 ? "High historical delay probability" : "Clearance velocity is nominal"
+                  });
+
+                  // Dynamic factor 2: Legal Complexity
+                  factors.push({
+                    factor: "Legal Complexity",
+                    impact: (parcel.status === "BLOCKED" || parcel.status === "DISPUTED") ? "high" : "low",
+                    desc: (parcel.status === "BLOCKED" || parcel.status === "DISPUTED") ? "Active dispute or block flagged" : "No active disputes"
+                  });
+
+                  // Dynamic factor 3: Stage Duration
+                  factors.push({
+                    factor: "Stage Duration",
+                    impact: daysPending > 30 ? "high" : daysPending > 15 ? "medium" : "low",
+                    desc: `${daysPending} days in current stage`
+                  });
+
+                  return factors.map((f) => (
+                    <div key={f.factor} className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg">
+                      <div>
+                        <p className="text-xs font-medium text-gray-700">{f.factor}</p>
+                        <p className="text-[10px] text-gray-400">{f.desc}</p>
+                      </div>
+                      <Badge level={f.impact === "high" ? "HIGH" : f.impact === "medium" ? "MEDIUM" : "LOW"}>
+                        {f.impact}
+                      </Badge>
                     </div>
-                    <Badge level={f.impact === "high" ? "HIGH" : f.impact === "medium" ? "MEDIUM" : "LOW"}>
-                      {f.impact}
-                    </Badge>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             </div>
           </CardContent>

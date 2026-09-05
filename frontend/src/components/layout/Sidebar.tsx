@@ -44,8 +44,12 @@ const BOTTOM_NAV: NavItem[] = [
   },
 ];
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+interface SidebarProps {
+  collapsed: boolean;
+  onToggle: () => void;
+}
+
+export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const { user } = useAuthStore();
   const location = useLocation();
 
@@ -143,7 +147,7 @@ export function Sidebar() {
 
         {/* Collapse Toggle */}
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={onToggle}
           className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full
                      text-orange-100 hover:text-white hover:bg-[#BD6815] transition-all duration-150 mt-1"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}

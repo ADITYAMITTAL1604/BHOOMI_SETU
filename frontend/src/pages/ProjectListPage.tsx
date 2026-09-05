@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { listProjects, getProjectDistricts, downloadProjectsCsv } from "@/api/projects";
 import { getExecutiveSummaryHtmlUrl } from "@/api/reports";
+import { RiskTooltip } from "@/components/RiskTooltip";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { cn, formatDate } from "@/lib/utils";
@@ -49,8 +50,8 @@ export function ProjectListPage() {
 
   // Dynamically fetch districts across active projects
   const { data: availableDistricts = [] } = useQuery({
-    queryKey: ["project-districts"],
-    queryFn: () => getProjectDistricts(),
+    queryKey: ["project-districts", selectedState],
+    queryFn: () => getProjectDistricts(selectedState),
   });
 
   const { data, isLoading } = useQuery({
@@ -461,9 +462,12 @@ export function ProjectListPage() {
                           >
                             {riskLevel}
                           </Badge>
-                          <span className="text-[11px] font-mono text-gray-500">
-                            Score: {riskScore.toFixed(1)}/100
-                          </span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-[11px] font-mono text-gray-500">
+                              Score: {riskScore.toFixed(1)}/100
+                            </span>
+                            <RiskTooltip score={riskScore} type="PROJECT" />
+                          </div>
                         </div>
                       </td>
 

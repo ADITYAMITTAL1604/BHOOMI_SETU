@@ -12,6 +12,7 @@ import {
   Clock,
   ExternalLink,
 } from "lucide-react";
+import { RiskTooltip } from "@/components/RiskTooltip";
 import { getParcels } from "@/api/parcels";
 import { getProjects } from "@/api/projects";
 import { cn } from "@/lib/utils";
@@ -305,6 +306,7 @@ export function ParcelListPage() {
                           >
                             {isHighRisk ? "HIGH" : isMedRisk ? "MED" : "LOW"}
                           </span>
+                          <RiskTooltip score={risk} type="PARCEL" />
                         </div>
                       </td>
 
