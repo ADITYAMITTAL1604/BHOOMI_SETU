@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 
 interface NavItem {
@@ -46,9 +47,16 @@ const BOTTOM_NAV: NavItem[] = [
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export function Sidebar({
+  collapsed,
+  onToggle,
+  mobileOpen = false,
+  onMobileClose,
+}: SidebarProps) {
   const { user } = useAuthStore();
   const location = useLocation();
 
@@ -61,14 +69,18 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen flex flex-col transition-all duration-300 ease-in-out shadow-2xl",
+        "fixed left-0 top-0 z-50 h-screen flex flex-col transition-all duration-300 ease-in-out shadow-2xl",
         "bg-[#D47A22] text-white",
-        collapsed ? "w-[72px]" : "w-[270px]"
+        // Mobile drawer: full width slide-over (280px), off-screen by default, slide in when mobileOpen
+        "w-[280px] -translate-x-full lg:translate-x-0",
+        mobileOpen && "translate-x-0",
+        // Desktop widths
+        collapsed ? "lg:w-[72px]" : "lg:w-[270px]"
       )}
       style={{ backgroundColor: "#D47A22" }}
     >
-      {/* ── Logo ─────────────────────────────── */}
-      <div className="w-full bg-white border-b-2 border-[#A3540C] flex items-center justify-center p-2.5 shadow-sm">
+      {/* ── Logo + Mobile Close Button ─────────────────────── */}
+      <div className="relative w-full bg-white border-b-2 border-[#A3540C] flex items-center justify-center p-2.5 shadow-sm">
         {collapsed ? (
           <img
             src="/logo-bhoomisetu.jpeg"
@@ -79,9 +91,18 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <img
             src="/logo-bhoomisetu.jpeg"
             alt="BhoomiSetu"
-            className="w-full h-24 object-contain"
+            className="w-full h-20 lg:h-24 object-contain"
           />
         )}
+
+        {/* Mobile Close Button */}
+        <button
+          onClick={onMobileClose}
+          className="lg:hidden absolute top-2.5 right-2.5 p-1.5 rounded-none bg-orange-50 border border-orange-200 text-gray-700 hover:bg-orange-100 transition-colors"
+          aria-label="Close navigation menu"
+        >
+          <X className="w-4 h-4 text-[#D47A22]" />
+        </button>
       </div>
 
       {/* ── Main Navigation ──────────────────── */}
@@ -96,6 +117,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={() => onMobileClose?.()}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 isActive
@@ -110,9 +132,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
                   isActive ? "text-amber-200" : "text-orange-200/90"
                 )}
               />
-              {!collapsed && (
-                <span className="animate-fade-in truncate">{item.label}</span>
-              )}
+              {/* Show text on mobile always, or on desktop when not collapsed */}
+              <span className={cn("truncate", collapsed ? "lg:hidden" : "animate-fade-in")}>
+                {item.label}
+              </span>
             </NavLink>
           );
         })}
@@ -128,6 +151,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={() => onMobileClose?.()}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-150",
                 isActive
@@ -137,17 +161,17 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
               title={collapsed ? item.label : undefined}
             >
               <Icon className="w-[18px] h-[18px] flex-shrink-0 text-orange-200/90" />
-              {!collapsed && (
-                <span className="animate-fade-in truncate">{item.label}</span>
-              )}
+              <span className={cn("truncate", collapsed ? "lg:hidden" : "animate-fade-in")}>
+                {item.label}
+              </span>
             </NavLink>
           );
         })}
 
-        {/* Collapse Toggle */}
+        {/* Collapse Toggle — Desktop only */}
         <button
           onClick={onToggle}
-          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full
+          className="hidden lg:flex items-center gap-3 px-3 py-2.5 text-sm font-medium w-full
                      text-orange-100 hover:text-white hover:bg-[#BD6815] transition-all duration-150 mt-1"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >

@@ -5,7 +5,6 @@ import {
   Download,
   Printer,
   Building2,
-  Clock,
   Coins,
   Users,
   ShieldCheck,
@@ -47,13 +46,13 @@ export function ReportsPage() {
       {/* ── Header ───────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2.5">
               <BarChart3 className="w-6 h-6 text-brand-teal-blue" />
-              Executive Analytics & Statutory Reports
+              Executive Analytics & Reports
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              RFCTLARR 2013 Compliant
+              RFCTLARR Compliant
             </span>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -62,10 +61,10 @@ export function ReportsPage() {
         </div>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
           >
             <Printer className="w-4 h-4 text-gray-500" />
             Print Report
@@ -74,7 +73,7 @@ export function ReportsPage() {
             href={htmlDownloadUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#D47A22] text-white text-sm font-medium rounded-xl hover:bg-[#B56315] shadow-sm transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#D47A22] text-white text-sm font-medium rounded-xl hover:bg-[#B56315] shadow-sm transition-colors"
           >
             <Download className="w-4 h-4" />
             Download HTML
@@ -82,29 +81,26 @@ export function ReportsPage() {
         </div>
       </div>
 
-      {/* ── Selector Bar ─────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Building2 className="w-5 h-5 text-gray-400 flex-shrink-0" />
-          <div className="w-full sm:w-80">
-            <select
-              value={selectedProject}
-              onChange={(e) => setSelectedProject(e.target.value)}
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#D47A22]/30 focus:border-[#D47A22] transition-all"
-            >
-              <option value="">National Portfolio (All Projects)</option>
-              {(projectsData as any)?.items?.map((p: any) => (
-                <option key={p.project_id} value={p.project_id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Project Selector Ribbon */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Project:</span>
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="w-full sm:w-auto px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D47A22]/30"
+          >
+            <option value="">All Projects (National Portfolio Overview)</option>
+            {(projectsData as any)?.items?.map((p: any) => (
+              <option key={p.project_id} value={p.project_id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground w-full sm:w-auto justify-end">
-          <Clock className="w-3.5 h-3.5" />
-          <span>Generated: {report?.generated_at || "Just now"}</span>
+        <div className="text-xs text-gray-500">
+          Generated on <span className="font-mono font-medium text-gray-700">{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : "Live"}</span>
           <button
             onClick={() => refetch()}
             disabled={isFetching}
@@ -119,7 +115,7 @@ export function ReportsPage() {
       {isLoading || !report ? (
         <div className="space-y-4">
           <div className="h-32 animate-shimmer rounded-xl" />
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-24 animate-shimmer rounded-xl" />
             ))}
@@ -129,17 +125,17 @@ export function ReportsPage() {
       ) : (
         <div className="space-y-6">
           {/* Executive Overview Banner */}
-          <div className="bg-gradient-to-r from-[#D47A22] to-[#A2550D] text-white rounded-2xl p-6 sm:p-8 shadow-md">
+          <div className="bg-gradient-to-r from-[#D47A22] to-[#A2550D] text-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-md">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm mb-3">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Official Executive Briefing
                 </div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
                   {report.project?.name || "National Portfolio Summary"}
                 </h2>
-                <div className="flex items-center gap-4 text-xs text-white/80 mt-2">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-white/80 mt-2">
                   <span className="flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5" />
                     Status: <span className="font-semibold text-white uppercase">{report.project?.status || "ACTIVE"}</span>
@@ -153,9 +149,9 @@ export function ReportsPage() {
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 text-right border border-white/15">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-3.5 sm:p-4 text-left sm:text-right border border-white/15">
                 <span className="text-xs text-white/70 block uppercase tracking-wider">Overall Acquisition</span>
-                <span className="text-3xl font-black text-white">{report.metrics.progress_pct}%</span>
+                <span className="text-2xl sm:text-3xl font-black text-white">{report.metrics.progress_pct}%</span>
                 <span className="text-[11px] text-white/80 block mt-0.5">
                   {report.metrics.land_acquired_ha} ha of {report.metrics.land_required_ha} ha
                 </span>
@@ -164,7 +160,7 @@ export function ReportsPage() {
           </div>
 
           {/* KPI Metrics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Card className="p-5">
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Parcels</span>
               <p className="text-2xl font-bold text-gray-900 mt-1">{formatNumber(report.metrics.total_parcels)}</p>

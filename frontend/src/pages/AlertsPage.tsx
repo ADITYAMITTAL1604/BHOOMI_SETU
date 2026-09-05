@@ -58,9 +58,9 @@ export function AlertsPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2.5">
             <Bell className="w-6 h-6 text-[#D47A22]" />
             Alerts & Interventions
           </h1>
@@ -71,7 +71,7 @@ export function AlertsPage() {
         <button
           onClick={() => markAllReadMutation.mutate()}
           disabled={markAllReadMutation.isPending || unreadCount === 0}
-          className="inline-flex items-center gap-2 px-4 py-2.5 border border-gray-300 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors rounded-none disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition-colors rounded-none disabled:opacity-50"
         >
           {markAllReadMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Mark All Read
@@ -79,7 +79,7 @@ export function AlertsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Filter className="w-4 h-4 text-gray-400" />
         {["ALL", "CRITICAL", "WARNING", "INFO"].map((f) => (
           <button

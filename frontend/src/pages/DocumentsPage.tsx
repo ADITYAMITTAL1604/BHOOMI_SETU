@@ -41,9 +41,9 @@ export function DocumentsPage() {
 
   return (
     <div className="animate-fade-in space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2.5">
             <FileText className="w-6 h-6 text-brand-teal-blue" />
             Document Management
           </h1>
@@ -51,15 +51,15 @@ export function DocumentsPage() {
             Tamper-proof document storage with SHA-256 verification.
           </p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-teal-blue text-white text-sm font-medium rounded-xl hover:bg-[#245d82] transition-colors">
+        <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-brand-teal-blue text-white text-sm font-medium rounded-xl hover:bg-[#245d82] transition-colors">
           <Upload className="w-4 h-4" />
           Upload Document
         </button>
       </div>
 
       {/* Filters */}
-      <Card className="p-4">
-        <div className="flex items-center gap-3">
+      <Card className="p-3.5 sm:p-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
@@ -75,7 +75,7 @@ export function DocumentsPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-teal-blue/30"
+              className="w-full sm:w-auto px-3 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-teal-blue/30"
             >
               <option value="ALL">All Types</option>
               <option value="SURVEY_REPORT">Survey Report</option>
@@ -90,7 +90,7 @@ export function DocumentsPage() {
       </Card>
 
       {/* Document Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
         {filtered.map((doc) => (
           <Card key={doc.id} hoverable className="p-5">
             <div className="flex items-start gap-3">

@@ -140,7 +140,7 @@ export function ProjectListPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {exportSuccess && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-semibold rounded-none">
               <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -248,6 +248,7 @@ export function ProjectListPage() {
               <option value="Uttar Pradesh">Uttar Pradesh</option>
               <option value="Maharashtra">Maharashtra</option>
               <option value="Gujarat">Gujarat</option>
+              <option value="Haryana">Haryana</option>
               <option value="Karnataka">Karnataka</option>
               <option value="Kerala">Kerala</option>
             </select>
@@ -315,7 +316,7 @@ export function ProjectListPage() {
       {/* Table */}
       <Card className="rounded-none border border-gray-300 bg-white shadow-none overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[700px] text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-300 bg-gray-100/80">
                 {[

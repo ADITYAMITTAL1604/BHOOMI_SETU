@@ -27,7 +27,7 @@ export function AlertsTable({ alerts, onViewAll }: AlertsTableProps) {
   return (
     <div className="border border-gray-200">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full min-w-[500px] text-left border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
               <th className="text-[11px] font-bold text-gray-700 uppercase tracking-wider px-3.5 py-2.5 border-r border-gray-200">
@@ -72,7 +72,7 @@ export function AlertsTable({ alerts, onViewAll }: AlertsTableProps) {
       </div>
 
       {/* Action Footer: Show More Toggle & View All */}
-      <div className="flex items-center justify-between px-3.5 py-2.5 bg-gray-50/80 border-t border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3.5 py-2.5 bg-gray-50/80 border-t border-gray-200">
         {alerts.length > initialCount ? (
           <button
             type="button"

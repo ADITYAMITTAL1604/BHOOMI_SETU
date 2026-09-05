@@ -128,7 +128,7 @@ export function ProjectDetailPage() {
     return (
       <div className="animate-fade-in space-y-6">
         <div className="h-8 w-64 bg-gray-200 animate-pulse rounded-none" />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <StatCardSkeleton />
           <StatCardSkeleton />
           <StatCardSkeleton />
@@ -227,11 +227,11 @@ export function ProjectDetailPage() {
       </div>
 
       {/* ── Project Master Header ────────────────────── */}
-      <Card className="p-6 rounded-none border border-gray-300 bg-white shadow-none">
+      <Card className="p-4 sm:p-6 rounded-none border border-gray-300 bg-white shadow-none">
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
           <div className="flex-1">
-            <div className="flex items-center gap-2.5 mb-2">
-              <Badge variant="status" level={project.status} className="rounded-none border px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider">
+            <div className="flex items-center gap-2 sm:gap-2.5 mb-2 flex-wrap">
+              <Badge variant="status" level={project.status} className="rounded-none border px-2 sm:px-2.5 py-0.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
                 {project.status}
               </Badge>
               <span className="text-xs font-mono text-gray-500 bg-gray-100 border border-gray-300 px-2 py-0.5">
@@ -241,10 +241,10 @@ export function ProjectDetailPage() {
                 {project.type}
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 tracking-tight">
               {project.name}
             </h1>
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-gray-700 font-medium">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 sm:gap-x-6 text-xs text-gray-700 font-medium">
               <span className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-[#D47A22]" />
                 <span className="font-bold text-gray-900">{statesStr}</span> {districtsStr ? `(${districtsStr})` : ""}
@@ -261,7 +261,7 @@ export function ProjectDetailPage() {
           </div>
 
           {/* Donut Progress Meter */}
-          <div className="flex-shrink-0 flex items-center justify-center bg-amber-50/40 border border-amber-200/80 p-3">
+          <div className="flex-shrink-0 flex items-center justify-center bg-amber-50/40 border border-amber-200/80 p-3 mx-auto md:mx-0">
             <ProgressDonut pct={progressPct} acquiredHa={landAcquired} requiredHa={landRequired} size={110} />
           </div>
         </div>
@@ -269,15 +269,15 @@ export function ProjectDetailPage() {
 
       {/* ── Key Statutory Metrics (3 Stat Cards) ────────────────────────── */}
       {summaryLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           <StatCardSkeleton />
           <StatCardSkeleton />
           <StatCardSkeleton />
         </div>
       ) : summary ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
           {/* Compensation Paid */}
-          <Card className="p-5 rounded-none border border-gray-300 bg-white shadow-none">
+          <Card className="p-4 sm:p-5 rounded-none border border-gray-300 bg-white shadow-none">
             <div className="flex items-center justify-between mb-1.5">
               <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
                 Compensation Disbursed
@@ -436,13 +436,14 @@ export function ProjectDetailPage() {
 
       {/* ── Statutory Acquisition Lifecycle Stepper ─────────────── */}
       <Card className="rounded-none border border-gray-300 bg-white shadow-none">
-        <CardHeader className="py-3 px-5 border-b border-gray-200 bg-gray-50/60">
-          <CardTitle className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+        <CardHeader className="py-2.5 sm:py-3 px-4 sm:px-5 border-b border-gray-200 bg-gray-50/60 flex flex-row items-center justify-between">
+          <CardTitle className="text-xs sm:text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
             <Layers className="w-4 h-4 text-[#D47A22]" />
             Statutory RFCTLARR Acquisition Lifecycle
           </CardTitle>
+          <span className="text-[10px] text-gray-400 font-mono sm:hidden">Swipe →</span>
         </CardHeader>
-        <CardContent className="p-5 overflow-x-auto">
+        <CardContent className="p-3.5 sm:p-5 overflow-x-auto">
           <div className="flex items-center justify-between min-w-[750px] pb-2">
             {LIFECYCLE_STAGES.map((stage, index) => {
               const isCompleted = index < currentStageIndex;

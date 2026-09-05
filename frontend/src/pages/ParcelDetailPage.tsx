@@ -115,10 +115,10 @@ export function ParcelDetailPage() {
       </div>
 
       {/* ── Header ────────────────────────────── */}
-      <Card className="p-6">
-        <div className="flex items-start justify-between">
+      <Card className="p-4 sm:p-6">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <Badge variant="status" level={parcel.status}>
                 {parcel.status.replace(/_/g, " ")}
               </Badge>
@@ -129,24 +129,24 @@ export function ParcelDetailPage() {
                 <RiskTooltip score={parcel.risk_score} type="PARCEL" />
               </Badge>
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">
               {parcel.survey_number}
             </h1>
             <p className="text-xs font-mono text-gray-400">ID: {parcel.parcel_id}</p>
           </div>
 
           {/* Quick Info */}
-          <div className="flex gap-6 text-sm text-gray-500">
+          <div className="flex flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
             <div className="flex items-center gap-1.5">
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-4 h-4 text-[#D47A22]" />
               {parcel.village}, {parcel.district}
             </div>
             <div className="flex items-center gap-1.5">
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 text-[#D47A22]" />
               {parcel.owner_name}
             </div>
             <div className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4 text-[#D47A22]" />
               {parcel.area_ha} HA
             </div>
           </div>
@@ -185,8 +185,8 @@ export function ParcelDetailPage() {
             Statutory Acquisition Pipeline — {parcel.current_stage.replace(/_/g, " ")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="relative border-l-2 border-gray-200 ml-4 space-y-6">
+        <CardContent className="p-3.5 sm:p-6">
+          <div className="relative border-l-2 border-gray-200 ml-2 sm:ml-4 space-y-6">
             {stages.map((stage, i) => {
               const stageInfo = STAGES[i];
               const isCompleted = stage.status === "COMPLETED";

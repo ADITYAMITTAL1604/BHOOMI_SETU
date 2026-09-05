@@ -93,8 +93,8 @@ export function ParcelListPage() {
       </div>
 
       {/* ── Filter Bar ────────────────────────────── */}
-      <div className="bg-white rounded-none border border-gray-300 shadow-sm p-4 space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="bg-white rounded-none border border-gray-300 shadow-sm p-3.5 sm:p-4 space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           {/* Search */}
           <div className="relative md:col-span-1">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -189,7 +189,7 @@ export function ParcelListPage() {
       {/* ── Table ─────────────────────────────────── */}
       <div className="bg-white rounded-none border border-gray-300 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[750px] text-left text-sm">
             <thead className="bg-gray-50/80 text-gray-500 font-semibold border-b border-gray-200 text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-5 py-3.5">Survey # & Location</th>

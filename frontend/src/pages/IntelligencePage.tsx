@@ -58,7 +58,7 @@ export function IntelligencePage() {
       {/* Header with Project Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2.5">
             <Brain className="w-6 h-6 text-brand-copper" />
             Intelligence & Analytics
           </h1>
@@ -68,12 +68,12 @@ export function IntelligencePage() {
         </div>
 
         {projectsList.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-gray-500">Project:</span>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs font-medium text-gray-500 whitespace-nowrap">Project:</span>
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="text-xs bg-white border border-gray-200 rounded-none px-3 py-2 text-gray-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-copper/30"
+              className="text-xs bg-white border border-gray-200 rounded-none px-3 py-2 text-gray-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-copper/30 flex-1 sm:flex-none sm:max-w-xs truncate"
             >
               <option value="default">Default Active Project</option>
               {projectsList.map((p) => (
@@ -87,7 +87,7 @@ export function IntelligencePage() {
       </div>
 
       {/* ── AI Executive Summary ─────────────── */}
-      <Card className="bg-[#183a37]/5 border-[#183a37]/20 p-5 rounded-none border-l-4 border-l-[#183a37]">
+      <Card className="bg-[#183a37]/5 border-[#183a37]/20 p-3.5 sm:p-5 rounded-none border-l-4 border-l-[#183a37]">
         <div className="flex gap-4">
           <div className="flex-shrink-0 mt-0.5">
             <Brain className="w-6 h-6 text-[#183a37]" />

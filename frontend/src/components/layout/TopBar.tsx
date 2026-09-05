@@ -1,10 +1,14 @@
-import { Bell, Search, Grid3X3, LogOut, User as UserIcon } from "lucide-react";
+import { Bell, Search, Grid3X3, LogOut, User as UserIcon, Menu } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-export function TopBar() {
+interface TopBarProps {
+  onMobileMenuToggle?: () => void;
+}
+
+export function TopBar({ onMobileMenuToggle }: TopBarProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
@@ -41,13 +45,22 @@ export function TopBar() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200/80">
-      {/* ── Left: Search ─────────────────────── */}
-      <div className="flex items-center flex-1 max-w-lg">
+    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-3 sm:px-6 bg-white border-b border-gray-200/80">
+      {/* ── Left: Hamburger (Mobile) + Search ─────────────────────── */}
+      <div className="flex items-center flex-1 max-w-[200px] sm:max-w-xs md:max-w-lg">
+        <button
+          onClick={onMobileMenuToggle}
+          className="lg:hidden p-2 -ml-1 mr-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-none transition-colors flex items-center justify-center flex-shrink-0"
+          aria-label="Open navigation sidebar"
+          title="Open navigation menu"
+        >
+          <Menu className="w-5 h-5 text-gray-800" />
+        </button>
+
         <div
           className={cn(
             "flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50/80 transition-all duration-200",
-            showSearch ? "w-full px-3 py-2" : "w-auto px-3 py-2 cursor-pointer hover:bg-gray-100"
+            showSearch ? "w-full px-3 py-2" : "w-auto px-2.5 sm:px-3 py-2 cursor-pointer hover:bg-gray-100"
           )}
           onClick={() => !showSearch && setShowSearch(true)}
         >
@@ -55,8 +68,8 @@ export function TopBar() {
           {showSearch ? (
             <input
               type="text"
-              placeholder="Search parcels, projects, documents..."
-              className="flex-1 bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400"
+              placeholder="Search parcels, projects..."
+              className="flex-1 bg-transparent text-xs sm:text-sm outline-none text-gray-700 placeholder:text-gray-400 w-24 sm:w-auto"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onBlur={() => {
@@ -65,13 +78,13 @@ export function TopBar() {
               autoFocus
             />
           ) : (
-            <span className="text-sm text-gray-400">Search...</span>
+            <span className="text-xs sm:text-sm text-gray-400">Search...</span>
           )}
         </div>
       </div>
 
       {/* ── Right: Actions ───────────────────── */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2">
         {/* Notifications */}
         <button
           className="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
@@ -82,9 +95,9 @@ export function TopBar() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
         </button>
 
-        {/* Grid Menu */}
+        {/* Grid Menu (hidden on small mobile) */}
         <button
-          className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          className="hidden sm:flex p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
           title="Quick Menu"
         >
           <Grid3X3 className="w-5 h-5" />

@@ -146,22 +146,22 @@ export function LoginPage() {
       </div>
 
       {/* ── Right Panel — Login Form ─────────────── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-brand-linen">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 md:p-12 bg-brand-linen min-h-screen">
         <div className="w-full max-w-md">
           {/* Header without duplicate logo above credentials */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8 text-center sm:text-left">
             {/* Mobile-only compact logo fallback when left panel is hidden */}
-            <div className="lg:hidden mb-4 p-3 bg-white rounded-2xl shadow-md border border-gray-200 inline-block">
+            <div className="lg:hidden mb-4 p-2.5 sm:p-3 bg-white rounded-2xl shadow-md border border-gray-200 inline-block mx-auto">
               <img
                 src="/logo-bhoomisetu.jpeg"
                 alt="BhoomiSetu"
-                className="h-16 w-auto object-contain"
+                className="h-14 sm:h-16 w-auto object-contain"
               />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
               Sign In to Dashboard
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Enter your official credentials to access the command center.
             </p>
           </div>
@@ -302,12 +302,12 @@ export function LoginPage() {
           {/* Demo Credentials (visible by default for rapid testing; disable with VITE_USE_MOCKS=false) */}
           {import.meta.env.VITE_USE_MOCKS !== "false" && (
             <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl shadow-sm">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-3">
                 <p className="text-[11px] text-[#D47A22] font-bold uppercase tracking-wider flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Quick Demo Logins (Select Persona)
                 </p>
-                <span className="text-[10px] font-medium text-gray-500 bg-amber-100/60 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-medium text-gray-500 bg-amber-100/60 px-2 py-0.5 rounded-md self-start sm:self-auto">
                   Password: password123
                 </span>
               </div>

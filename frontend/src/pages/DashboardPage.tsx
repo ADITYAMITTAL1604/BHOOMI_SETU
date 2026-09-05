@@ -78,38 +78,38 @@ export function DashboardPage() {
   return (
     <div className="animate-fade-in space-y-6">
       {/* ── Dashboard Header Banner ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 border border-gray-300 shadow-sm border-l-4 border-l-[#D47A22]">
-        <div className="flex items-center gap-4">
-          <div className="border border-gray-300 bg-white p-1.5 flex items-center justify-center flex-shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-3.5 sm:p-5 border border-gray-300 shadow-sm border-l-4 border-l-[#D47A22]">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="border border-gray-300 bg-white p-1 sm:p-1.5 flex items-center justify-center flex-shrink-0">
             <img
               src="/logo-bhoomisetu.jpeg"
               alt="BhoomiSetu"
-              className="h-16 w-auto object-contain"
+              className="h-12 sm:h-16 w-auto object-contain"
             />
           </div>
           <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 tracking-tight">
                 {title}
               </h1>
               {user?.role === "FIELD_OFFICER" ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+                <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Field Officer · Ghaziabad Unit (UP)
                 </span>
               ) : user?.role === "STATE" || dashboard?.user_scope?.state ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-amber-50 text-[#A3540C] border border-amber-300">
+                <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold bg-amber-50 text-[#A3540C] border border-amber-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   State Officer · Uttar Pradesh
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-gray-100 text-gray-800 border border-gray-300">
+                <span className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 text-[11px] sm:text-xs font-bold bg-gray-100 text-gray-800 border border-gray-300">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Administrator · National & State Oversight
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1.5 font-medium">
+            <p className="text-[11px] sm:text-xs text-gray-500 mt-1 flex items-center gap-1.5 font-medium flex-wrap">
               <Clock className="w-3.5 h-3.5" />
               Active Persona: <span className="font-bold text-gray-800">{user?.role === "FIELD_OFFICER" ? "Field Officer (Ghaziabad)" : user?.role === "STATE" ? "State Officer (UP)" : "Administrator"}</span> · Real-time synchronized
             </p>
@@ -118,7 +118,7 @@ export function DashboardPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate("/reports")}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#D47A22] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#B56315] transition-colors shadow-sm"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-[#D47A22] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#B56315] transition-colors shadow-sm"
           >
             <Download className="w-4 h-4" />
             Executive Reports
@@ -128,7 +128,7 @@ export function DashboardPage() {
 
       {/* ── Field Officer Operations Quick Action Hub ── */}
       {user?.role === "FIELD_OFFICER" && (
-        <div className="bg-amber-50/60 border border-amber-300 border-l-4 border-l-[#D47A22] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in shadow-sm">
+        <div className="bg-amber-50/60 border border-amber-300 border-l-4 border-l-[#D47A22] p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in shadow-sm">
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-block h-2.5 w-2.5 bg-emerald-600" />
@@ -165,13 +165,13 @@ export function DashboardPage() {
 
       {/* ── Stat Cards ───────────────────────────── */}
       {dashLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <StatCardSkeleton key={i} />
           ))}
         </div>
       ) : dashboard ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
           <StatCard
             label={user?.role === "FIELD_OFFICER" ? "Assigned Projects" : "Total Projects"}
             value={formatNumber(dashboard.active_projects ?? 0)}
