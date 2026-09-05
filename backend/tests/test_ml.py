@@ -15,7 +15,7 @@ from app.models.project import Project
 
 
 def test_ml_feature_vector_structure():
-    """Verify build_features produces all 10 required features for RandomForest model."""
+    """Verify build_features produces all 32 required features for Phase 2c XGBoost model."""
     sample_snapshots = [
         {
             "snapshot_date": "2025-01-01",
@@ -52,8 +52,8 @@ def test_ml_feature_vector_structure():
             "processing_rate": 0.18,
         },
     ]
-    feature_dict = build_features(sample_snapshots)
-    assert len(PRIMARY_MODEL_FEATURES) == 10
+    feature_dict = build_features(sample_snapshots, {"land_required_ha": 50.0, "target_days": 365.0})
+    assert len(PRIMARY_MODEL_FEATURES) == 32
     for name in PRIMARY_MODEL_FEATURES:
         assert name in feature_dict, f"Missing feature: {name}"
         assert isinstance(feature_dict[name], (int, float))
@@ -64,36 +64,58 @@ def test_ml_service_inference():
     service = get_delay_risk_service()
     assert service.is_ready, "DelayRiskService failed to load model or imputer"
 
-    low_risk_features = {
-        "pending_parcels": 5.0,
-        "completed_parcels": 80.0,
-        "average_stage_days": 20.0,
-        "sla_breaches": 0.0,
-        "compensation_pending": 2.0,
-        "rr_pending": 1.0,
-        "possession_pending": 0.0,
-        "processing_rate": 0.94,
-        "pending_trend": -0.5,
-        "rate_trend": 0.1,
-    }
+    low_risk_snapshots = [
+        {
+            "snapshot_date": "2025-01-01",
+            "parcels_total": 100,
+            "parcels_completed": 50,
+            "parcels_in_progress": 48,
+            "parcels_blocked": 2,
+            "compensation_paid_total": 8000000.0,
+            "compensation_pending_total": 1000000.0,
+            "sla_breaches": 0,
+        },
+        {
+            "snapshot_date": "2025-02-01",
+            "parcels_total": 100,
+            "parcels_completed": 85,
+            "parcels_in_progress": 14,
+            "parcels_blocked": 1,
+            "compensation_paid_total": 9500000.0,
+            "compensation_pending_total": 200000.0,
+            "sla_breaches": 0,
+        },
+    ]
+    low_risk_features = build_features(low_risk_snapshots, {"land_required_ha": 25.0, "target_days": 365.0})
     low_res = service.predict_delay_risk(low_risk_features, project_id="test-low")
     assert 0.0 <= low_res["risk_score"] <= 1.0
     assert low_res["risk_level"].lower() in ("low", "medium", "high")
     assert "top_factors" in low_res
     assert len(low_res["top_factors"]) > 0
 
-    high_risk_features = {
-        "pending_parcels": 150.0,
-        "completed_parcels": 5.0,
-        "average_stage_days": 110.0,
-        "sla_breaches": 45.0,
-        "compensation_pending": 80.0,
-        "rr_pending": 60.0,
-        "possession_pending": 90.0,
-        "processing_rate": 0.03,
-        "pending_trend": 2.5,
-        "rate_trend": -0.2,
-    }
+    high_risk_snapshots = [
+        {
+            "snapshot_date": "2025-01-01",
+            "parcels_total": 200,
+            "parcels_completed": 5,
+            "parcels_in_progress": 170,
+            "parcels_blocked": 25,
+            "compensation_paid_total": 500000.0,
+            "compensation_pending_total": 15000000.0,
+            "sla_breaches": 6,
+        },
+        {
+            "snapshot_date": "2025-02-01",
+            "parcels_total": 200,
+            "parcels_completed": 8,
+            "parcels_in_progress": 160,
+            "parcels_blocked": 32,
+            "compensation_paid_total": 600000.0,
+            "compensation_pending_total": 14500000.0,
+            "sla_breaches": 9,
+        },
+    ]
+    high_risk_features = build_features(high_risk_snapshots, {"land_required_ha": 180.0, "target_days": 365.0})
     high_res = service.predict_delay_risk(high_risk_features, project_id="test-high")
     assert high_res["risk_score"] > low_res["risk_score"]
 

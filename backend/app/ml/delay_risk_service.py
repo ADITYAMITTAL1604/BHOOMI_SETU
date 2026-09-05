@@ -43,7 +43,77 @@ def _generate_factor_description(feature: str, value: float, shap_val: float) ->
     meta = FEATURE_LABELS.get(feature, {})
     title = meta.get("title", feature.replace("_", " ").title())
 
-    if feature == "pending_parcels":
+    # 32 Phase 2c Normalized Rates
+    if feature == "completed_parcels_rate":
+        pct = value * 100.0
+        if pct > 60:
+            return f"{title}: Substantial progress ({pct:.1f}% parcels completed) actively mitigating project delay."
+        return f"{title}: Early phase of project execution ({pct:.1f}% parcels completed so far)."
+
+    elif feature == "pending_parcels_rate":
+        pct = value * 100.0
+        if pct > 60:
+            return f"{title}: Elevated pending fraction ({pct:.1f}%) creating procedural backlog."
+        return f"{title}: Manageable pending parcel ratio ({pct:.1f}%)."
+
+    elif feature == "sla_breach_rate":
+        pct = value * 100.0
+        if pct > 20:
+            return f"{title}: Critical statutory overruns ({pct:.1f}% of stages breached SLA deadlines)."
+        elif pct > 0:
+            return f"{title}: Minor SLA incidence ({pct:.1f}% of stages over target timeline)."
+        return f"{title}: Zero statutory SLA breaches recorded across workflow stages."
+
+    elif feature == "possession_pending_rate":
+        pct = value * 100.0
+        if pct > 15:
+            return f"{title}: Physical land handover pending for {pct:.1f}% of project parcels."
+        return f"{title}: Physical land possession handover proceeding on schedule."
+
+    elif feature == "compensation_pct_paid":
+        if value > 75:
+            return f"{title}: Robust compensation payout velocity ({value:.1f}% disbursed)."
+        return f"{title}: Substantial compensation funds ({100.0 - value:.1f}%) pending disbursement."
+
+    elif feature == "compensation_pending_rate":
+        pct = value * 100.0
+        if pct > 25:
+            return f"{title}: Significant compensation backlog awaiting award disbursement ({pct:.1f}%)."
+        return f"{title}: Compensation disbursement on schedule across project parcels."
+
+    elif feature == "rr_completed_pct":
+        if value > 70:
+            return f"{title}: Rehabilitation & Resettlement clearance on track ({value:.1f}% completed)."
+        return f"{title}: R&R resettlement schemes in active execution ({value:.1f}% cleared)."
+
+    elif feature == "rr_pending_rate":
+        pct = value * 100.0
+        if pct > 15:
+            return f"{title}: Elevated R&R verification caseload ({pct:.1f}% parcels affected)."
+        return f"{title}: R&R entitlements largely cleared."
+
+    elif feature == "dispute_rate":
+        pct = value * 100.0
+        if pct > 5:
+            return f"{title}: Elevated litigation & ownership disputes ({pct:.1f}% parcels contested)."
+        return f"{title}: Minimal legal contestation or title disputes."
+
+    elif feature == "processing_rate":
+        if value < 0.02:
+            return f"{title}: Sluggish clearance velocity at {value:.3f} parcels/day."
+        return f"{title}: Steady clearance velocity at {value:.3f} parcels/day."
+
+    elif feature == "district_workload_ratio":
+        if value > 1.5:
+            return f"{title}: Administrative staff overloaded relative to parcel volume ({value:.2f}x benchmark)."
+        return f"{title}: Balanced administrative staffing capacity ({value:.2f}x benchmark)."
+
+    elif feature.startswith("pending_stage_"):
+        pct = value * 100.0
+        return f"{title}: {pct:.1f}% of project parcels currently queued in this stage."
+
+    # Legacy Feature Fallbacks
+    elif feature == "pending_parcels":
         if value > 50:
             return f"{title}: High volume of pending parcels ({int(value)}) causing acquisition bottlenecks."
         return f"{title}: Manageable pending parcel volume ({int(value)} parcels)."
@@ -79,37 +149,6 @@ def _generate_factor_description(feature: str, value: float, shap_val: float) ->
         if value > 10:
             return f"{title}: Physical land possession handover is pending for {int(value)} parcels."
         return f"{title}: Possession transfers proceeding on schedule."
-
-    elif feature == "processing_rate":
-        if value < 0.2:
-            return f"{title}: Sluggish clearance velocity at only {value:.2f} parcels/day."
-        return f"{title}: Steady clearance velocity at {value:.2f} parcels/day."
-
-    elif feature == "pending_trend":
-        if value > 1.0:
-            return f"{title}: Pending parcel queue expanded by {value:+.1f} parcels recently."
-        elif value < -1.0:
-            return f"{title}: Pending parcel queue contracted by {abs(value):.1f} parcels."
-        return f"{title}: Backlog volume remains flat."
-
-    elif feature == "rate_trend":
-        if value < -0.05:
-            return f"{title}: Clearance rate slowed down by {abs(value):.2f} parcels/day."
-        elif value > 0.05:
-            return f"{title}: Clearance rate accelerated by {value:.2f} parcels/day."
-        return f"{title}: Velocity is stable."
-
-    elif feature == "backlog_trend":
-        if value > 0.05:
-            return f"{title}: Backlog expanding by {value:.2f} parcels/day."
-        elif value < -0.05:
-            return f"{title}: Backlog clearing by {abs(value):.2f} parcels/day."
-        return f"{title}: Backlog volume flat."
-
-    elif feature == "district_capacity":
-        if value < 0.5:
-            return f"{title}: Staffing constraint ({value:.2f} capacity index vs workload)."
-        return f"{title}: Adequate administrative staffing ({value:.2f} capacity index)."
 
     impact_direction = "elevating" if shap_val > 0 else "reducing"
     return f"{title} (value: {value:.2f}) is {impact_direction} delay risk."
@@ -209,10 +248,12 @@ class DelayRiskService:
                 with open(meta_file, "r", encoding="utf-8") as f:
                     self.metadata = json.load(f)
 
-                if "features" in self.metadata:
-                    self.feature_names = self.metadata["features"]
-                elif "feature_names" in self.metadata:
-                    self.feature_names = self.metadata["feature_names"]
+            if hasattr(self.model, "feature_names_in_") and self.model.feature_names_in_ is not None:
+                self.feature_names = list(self.model.feature_names_in_)
+            elif "features" in self.metadata:
+                self.feature_names = self.metadata["features"]
+            elif "feature_names" in self.metadata:
+                self.feature_names = self.metadata["feature_names"]
 
                 thresholds = self.metadata.get("risk_thresholds", {})
                 self.low_max = thresholds.get("low_max", 0.33)
@@ -423,11 +464,13 @@ class DelayRiskService:
 
         df_row = pd.DataFrame([ordered_dict])[active_features]
 
-        # Impute if imputer available
-        X_eval = df_row.values
+        # Impute if imputer available and feature dimension matches
+        X_eval = df_row
         if self.imputer is not None:
             try:
-                X_eval = self.imputer.transform(df_row)
+                imp_n = getattr(self.imputer, "n_features_in_", None)
+                if imp_n is None or imp_n == len(active_features):
+                    X_eval = self.imputer.transform(df_row)
             except Exception as imp_err:
                 logger.warning("Imputer transform error: %s", imp_err)
 
@@ -504,9 +547,17 @@ class DelayRiskService:
                 factors = []
                 for feat_name, imp in zip(active_features, importances):
                     val = ordered_dict[feat_name]
-                    # Direction heuristic: high backlog/breaches elevate risk; high completion/velocity mitigates
-                    is_driver = feat_name in ("pending_parcels", "sla_breaches", "compensation_pending", "rr_pending", "possession_pending", "backlog_trend", "average_stage_days") and val > 0
-                    direction_sign = 1.0 if is_driver else -1.0
+                    # Mitigators reduce delay risk; drivers elevate delay risk
+                    mitigators = {
+                        "completed_parcels_rate",
+                        "processing_rate",
+                        "processing_rate_change_1step",
+                        "compensation_pct_paid",
+                        "rr_completed_pct",
+                        "completed_parcels",
+                    }
+                    is_mitigator = feat_name in mitigators and val > 0
+                    direction_sign = -1.0 if is_mitigator else 1.0
                     scaled_imp = round(float(imp) * direction_sign, 4)
                     meta = FEATURE_LABELS.get(feat_name, {})
                     title = meta.get("title", feat_name.replace("_", " ").title())
@@ -516,7 +567,7 @@ class DelayRiskService:
                         "title": title,
                         "value": val,
                         "shap_value": scaled_imp,
-                        "impact": "risk_driver" if scaled_imp > 0 else "risk_mitigator",
+                        "impact": "risk_mitigator" if is_mitigator else "risk_driver",
                         "description": desc,
                     })
                 factors.sort(key=lambda x: abs(x["shap_value"]), reverse=True)

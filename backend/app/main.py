@@ -212,6 +212,7 @@ app.include_router(audit_log.router,     prefix="/api/v1/audit-log",    tags=["A
 app.include_router(search.router,        prefix="/api/v1/search",       tags=["Search"])
 app.include_router(admin.router,         prefix="/api/v1/admin",        tags=["Admin"])
 app.include_router(reports.router,       prefix="/api/v1/reports",      tags=["Reports"])
+app.include_router(analytics.router,     prefix="/analytics",           include_in_schema=False)
 
 
 # ── System endpoints ──────────────────────────────────────────────────────────
