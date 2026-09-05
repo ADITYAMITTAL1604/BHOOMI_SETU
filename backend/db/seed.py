@@ -338,16 +338,19 @@ def seed_boundaries(db) -> None:
 # ── Synthetic CSV Ingestion Seeder ───────────────────────────────────────────
 
 SYNTHETIC_STAGE_MAPPING = {
+    "Land Identification": StageName.IDENTIFICATION.value,
     "Survey/Parcel Mapping": StageName.SURVEY.value,
     "Ownership Verification": StageName.VERIFICATION.value,
     "Notification": StageName.NOTIFICATION.value,
     "Objections/Hearings": StageName.OBJECTION.value,
     "Declaration": StageName.NOTIFICATION.value,
+    "Compensation Assessment": StageName.AWARD.value,
     "Award Enquiry": StageName.AWARD.value,
     "Compensation Disbursement": StageName.COMPENSATION.value,
     "Rehabilitation & Resettlement": StageName.REHABILITATION_RESETTLEMENT.value,
     "Possession": StageName.POSSESSION.value,
     "Land Transfer/Mutation": StageName.POSSESSION.value,
+    "Closure/Handover": StageName.CLOSURE.value,
     "Closure": StageName.CLOSURE.value,
 }
 
@@ -429,7 +432,15 @@ def seed_from_synthetic(db, user_map: dict[str, User], data_dir: Path) -> None:
             for row in csv.DictReader(f):
                 parcel_to_project[row["parcel_id"]] = row["project_id"]
 
-    # 4. Parcels & Stages
+    # 4. Disputes
+    disputes_csv = data_dir / "disputes.csv"
+    disputed_parcels = set()
+    if disputes_csv.exists():
+        with open(disputes_csv, mode="r", encoding="utf-8") as f:
+            for d_row in csv.DictReader(f):
+                disputed_parcels.add(d_row["parcel_id"])
+
+    # 5. Parcels & Stages
     status_csv = data_dir / "parcel_current_status.csv"
     print("3. Ingesting parcels and acquisition stages...")
     now_utc = datetime.now(timezone.utc)
@@ -458,17 +469,22 @@ def seed_from_synthetic(db, user_map: dict[str, User], data_dir: Path) -> None:
         # Workflow status & stage
         raw_stage = row.get("stage", "Survey/Parcel Mapping")
         stage_mapped = SYNTHETIC_STAGE_MAPPING.get(raw_stage, StageName.SURVEY.value)
-        sla_breach = int(row.get("sla_breach", 0)) == 1
+        is_disputed = raw_pid in disputed_parcels
+        is_possession_or_closure = stage_mapped in (StageName.CLOSURE.value, StageName.POSSESSION.value)
 
-        if stage_mapped == StageName.CLOSURE.value:
+        if is_disputed:
+            p_status = ParcelStatus.BLOCKED.value
+            risk = round(random.uniform(76.0, 94.5), 1)
+        elif is_possession_or_closure:
             p_status = ParcelStatus.COMPLETED.value
-            risk = round(random.uniform(2.0, 12.0), 1)
-        elif sla_breach:
-            p_status = ParcelStatus.BLOCKED.value if random.random() < 0.4 else ParcelStatus.IN_PROGRESS.value
-            risk = round(random.uniform(70.0, 95.0), 1)
+            risk = round(random.uniform(5.0, 14.5), 1)
         else:
             p_status = ParcelStatus.IN_PROGRESS.value
-            risk = round(random.uniform(15.0, 50.0), 1)
+            high_risk_prob = 0.45 if raw_prjid in ("PRJ-003", "PRJ-007", "PRJ-009", "PRJ-023") else 0.28
+            if random.random() < high_risk_prob:
+                risk = round(random.uniform(70.0, 88.5), 1)
+            else:
+                risk = round(random.uniform(18.0, 64.0), 1)
 
         owner = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
         parcel = Parcel(
