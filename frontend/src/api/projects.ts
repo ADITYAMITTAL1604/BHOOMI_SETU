@@ -43,6 +43,11 @@ export async function getProjects(params: GetProjectsParams = {}): Promise<Pagin
 export const listProjects = getProjects;
 export const getProject = getProjectById;
 
+export async function getProjectDistricts(): Promise<string[]> {
+  const response = await apiClient.get<string[]>("/projects/districts/list");
+  return response.data || [];
+}
+
 export async function getProjectById(projectId: string): Promise<Project> {
   const response = await apiClient.get<Project>(`/projects/${projectId}`);
   return response.data;

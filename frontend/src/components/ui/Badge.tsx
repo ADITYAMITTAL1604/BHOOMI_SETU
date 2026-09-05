@@ -9,31 +9,31 @@ interface BadgeProps {
 }
 
 const RISK_COLORS: Record<string, string> = {
-  LOW: "bg-emerald-100 text-emerald-800",
-  MEDIUM: "bg-amber-100 text-amber-800",
-  Med: "bg-amber-100 text-amber-800",
-  HIGH: "bg-orange-100 text-orange-800",
-  CRITICAL: "bg-red-100 text-red-800",
+  LOW: "bg-emerald-50 text-emerald-800 border border-emerald-300",
+  MEDIUM: "bg-amber-50 text-amber-800 border border-amber-300",
+  Med: "bg-amber-50 text-amber-800 border border-amber-300",
+  HIGH: "bg-red-50 text-red-800 border border-red-300",
+  CRITICAL: "bg-red-100 text-red-900 border border-red-500 font-extrabold",
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  PLANNING: "bg-blue-100 text-blue-800",
-  ACTIVE: "bg-emerald-100 text-emerald-800",
-  ON_HOLD: "bg-gray-100 text-gray-600",
-  COMPLETED: "bg-teal-100 text-teal-800",
-  CANCELLED: "bg-gray-100 text-gray-500",
+  PLANNING: "bg-blue-50 text-blue-800 border border-blue-200",
+  ACTIVE: "bg-emerald-50 text-emerald-800 border border-emerald-300",
+  ON_HOLD: "bg-gray-100 text-gray-700 border border-gray-300",
+  COMPLETED: "bg-teal-50 text-teal-800 border border-teal-300",
+  CANCELLED: "bg-gray-100 text-gray-500 border border-gray-300",
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
-  INFO: "bg-blue-100 text-blue-800",
-  WARNING: "bg-amber-100 text-amber-800",
-  MEDIUM: "bg-amber-100 text-amber-800",
-  CRITICAL: "bg-red-100 text-red-800",
-  HIGH: "bg-orange-100 text-orange-800",
+  INFO: "bg-blue-50 text-blue-800 border border-blue-200",
+  WARNING: "bg-amber-50 text-amber-800 border border-amber-300",
+  MEDIUM: "bg-amber-50 text-amber-800 border border-amber-300",
+  CRITICAL: "bg-red-50 text-red-800 border border-red-400 font-extrabold",
+  HIGH: "bg-red-50 text-red-800 border border-red-300 font-bold",
 };
 
 export function Badge({ children, variant = "default", level, className }: BadgeProps) {
-  let colorClass = "bg-gray-100 text-gray-700";
+  let colorClass = "bg-gray-50 text-gray-700 border border-gray-300";
 
   if (level) {
     const upperLevel = String(level).toUpperCase();
@@ -56,7 +56,7 @@ export function Badge({ children, variant = "default", level, className }: Badge
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider",
+        "inline-flex items-center px-2 py-0.5 rounded-none text-[10px] font-bold uppercase tracking-wider",
         colorClass,
         className
       )}

@@ -78,6 +78,7 @@ export interface Project {
   status: ProjectStatus;
   progress_pct: number;
   risk_score: number;
+  risk_level?: string;
   total_parcels: number;
   acquired_parcels: number;
   pending_parcels: number;

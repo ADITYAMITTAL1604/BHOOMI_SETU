@@ -135,6 +135,9 @@ class ProjectListResponse(BaseModel):
     created_at: datetime
     parcels_count: int = 0
     parcels_completed: int = 0
+    progress_pct: float = 0.0
+    risk_score: float = 0.0
+    risk_level: str = "LOW"
 
     class Config:
         from_attributes = True
@@ -261,6 +264,27 @@ def create_project(
 
 
 @router.get(
+    "/districts/list",
+    summary="Get all available districts with projects",
+    response_model=list[str],
+)
+def get_project_districts(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Return distinct sorted districts across accessible projects."""
+    stmt = select(Project)
+    stmt = _apply_geographic_scope(stmt, current_user, Project)
+    projects = db.execute(stmt).scalars().all()
+    districts = set()
+    for p in projects:
+        for d in (p.districts or []):
+            if d and d.strip():
+                districts.add(d.strip())
+    return sorted(list(districts))
+
+
+@router.get(
     "",
     response_model=PageResponse[ProjectListResponse],
     summary="List projects with pagination and filters",
@@ -272,6 +296,8 @@ def list_projects(
     type_filter: Optional[str] = Query(None, alias="type"),
     state: Optional[str] = Query(None),
     district: Optional[str] = Query(None),
+    sort_by: Optional[str] = Query(None),
+    sort_order: Optional[str] = Query("asc"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -297,32 +323,59 @@ def list_projects(
     if type_filter:
         stmt = stmt.where(Project.type.ilike(f"%{type_filter}%"))
 
-    if state:
+    if state and state not in ("All States", "All"):
         stmt = stmt.where(Project.states.any(state))
 
-    if district:
+    if district and district not in ("All Districts", "All"):
         stmt = stmt.where(Project.districts.any(district))
 
-    stmt = stmt.order_by(Project.created_at.desc())
+    # Database-level ordering if column exists
+    order_col = getattr(Project, sort_by, None) if sort_by and hasattr(Project, sort_by) else None
+    if order_col is not None:
+        stmt = stmt.order_by(order_col.desc() if sort_order == "desc" else order_col.asc())
+    else:
+        stmt = stmt.order_by(Project.created_at.desc())
 
     items, total = paginate(stmt, page_params.page, page_params.page_size, db=db)
 
-    # Build response with parcel counts
+    # Build response with parcel counts and risk scores
     project_ids = [p.project_id for p in items]
-    parcel_counts = {}
+    parcel_stats = {}
     if project_ids:
         parcel_stmt = select(
             Parcel.project_id,
             func.count(Parcel.parcel_id).label("total"),
-            func.count(Parcel.parcel_id).filter(Parcel.status == "COMPLETED").label("completed"),
+            func.count(Parcel.parcel_id).filter(
+                or_(Parcel.status == "COMPLETED", Parcel.current_stage == "POSSESSION")
+            ).label("completed"),
+            func.avg(Parcel.risk_score).label("avg_risk"),
         ).where(Parcel.project_id.in_(project_ids)).group_by(Parcel.project_id)
 
         for row in db.execute(parcel_stmt):
-            parcel_counts[row.project_id] = {"total": row.total, "completed": row.completed}
+            parcel_stats[row.project_id] = {
+                "total": row.total,
+                "completed": row.completed,
+                "avg_risk": float(row.avg_risk or 50.0),
+            }
 
     response_items = []
     for project in items:
-        counts = parcel_counts.get(project.project_id, {"total": 0, "completed": 0})
+        stats = parcel_stats.get(project.project_id, {"total": 0, "completed": 0, "avg_risk": 50.0})
+
+        # Real acquisition percentage based on land_acquired_ha / land_required_ha
+        if project.land_required_ha and project.land_required_ha > 0:
+            prog_pct = round((project.land_acquired_ha / project.land_required_ha) * 100, 1)
+        else:
+            prog_pct = 0.0
+
+        risk_val = round(stats["avg_risk"], 1)
+        if risk_val >= 70.0:
+            risk_lvl = "HIGH"
+        elif risk_val >= 40.0:
+            risk_lvl = "MEDIUM"
+        else:
+            risk_lvl = "LOW"
+
         response_items.append(ProjectListResponse(
             project_id=project.project_id,
             name=project.name,
@@ -334,9 +387,16 @@ def list_projects(
             target_date=project.target_date,
             status=project.status,
             created_at=project.created_at,
-            parcels_count=counts["total"],
-            parcels_completed=counts["completed"],
+            parcels_count=stats["total"],
+            parcels_completed=stats["completed"],
+            progress_pct=prog_pct,
+            risk_score=risk_val,
+            risk_level=risk_lvl,
         ))
+
+    # In-memory sort for calculated fields
+    if sort_by in ("progress_pct", "risk_score"):
+        response_items.sort(key=lambda x: getattr(x, sort_by, 0.0), reverse=(sort_order == "desc"))
 
     return create_page_response(response_items, total, page_params.page, page_params.page_size)
 
