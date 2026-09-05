@@ -12,6 +12,38 @@ settings = get_settings()
 # development JWT secret — otherwise anyone can forge valid access tokens.
 settings.validate_secrets()
 
+import logging
+from contextlib import asynccontextmanager
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Ensure database tables and default demo users exist on application startup."""
+    try:
+        from app.database import Base, engine, SessionLocal
+        import app.models  # register all models
+        from sqlalchemy import select, func
+        Base.metadata.create_all(bind=engine)
+
+        db = SessionLocal()
+        try:
+            from app.models.user import User
+            user_count = db.execute(select(func.count(User.id))).scalar() or 0
+            if user_count == 0:
+                logger.info("Fresh database detected: auto-seeding canonical demo users...")
+                from db.seed import seed_users
+                seed_users(db)
+                logger.info("Demo users auto-seeded successfully.")
+        finally:
+            db.close()
+    except Exception as e:
+        logger.warning("Startup database initialization note: %s", e)
+    yield
+
 # ── Application ───────────────────────────────────────────────────────────────
 app = FastAPI(
     title="BhoomiSetu API",
@@ -22,14 +54,8 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
-
-import logging
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
-logger = logging.getLogger(__name__)
 
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc: StarletteHTTPException):
