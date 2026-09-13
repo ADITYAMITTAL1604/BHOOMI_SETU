@@ -39,15 +39,12 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-cov email-validator
 
-      - name: Seed test database from synthetic CSVs
-        run: |
-          python db/seed.py --reset --source synthetic
-        env:
-          DATA_SOURCE: synthetic
-
       - name: Run Pytest test suite
         run: |
           pytest tests/test_auth.py tests/test_security.py tests/test_workflow.py tests/test_ml.py -v --tb=short
+        env:
+          DATABASE_URL: ${{ secrets.TEST_DATABASE_URL || 'postgresql+psycopg2://postgres.kjufocztmwwollliqgpr:H_VavRuGsmr%2B3Bh@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require' }}
+
 
   frontend-build:
     name: Frontend Typecheck & Production Build

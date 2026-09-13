@@ -376,6 +376,11 @@ def deterministic_uuid(prefix: str, key: str) -> uuid.UUID:
 
 def reset_database(db) -> None:
     """Safely wipe existing records in child-to-parent order."""
+    db_url = str(engine.url)
+    if "supabase" in db_url.lower() and os.getenv("ALLOW_PROD_RESET", "false").lower() not in ("true", "1", "yes"):
+        print("   [RESET BLOCKED] Refusing to wipe production/cloud Supabase database without ALLOW_PROD_RESET=true!")
+        return
+
     print("   [RESET] Truncating existing tables...")
     tables = [
         "document_approvals",
