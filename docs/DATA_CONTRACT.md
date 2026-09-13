@@ -10,7 +10,7 @@
 
 This Data Contract establishes strict interface rules and typing specifications across:
 1. Ingested data assets (`data/synthetic/` CSV & GeoJSON).
-2. Backend Database Schema (`PostgreSQL` / `SQLite` via SQLAlchemy 2.0).
+2. Backend Database Schema (`PostgreSQL` + `PostGIS` via SQLAlchemy 2.0).
 3. Machine Learning Inference Engine (10-feature vector contract).
 4. REST API Payloads (FastAPI & Pydantic v2).
 5. Frontend TypeScript Consumers (`bhoomisetu-frontend`).

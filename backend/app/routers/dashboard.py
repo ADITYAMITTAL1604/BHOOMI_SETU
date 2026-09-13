@@ -1,5 +1,5 @@
-"""FastAPI router for /dashboard summary and analytics endpoints."""
-
+import threading
+import time
 from datetime import date, datetime, timezone
 from typing import Any, Dict, List, Optional
 from uuid import UUID
@@ -16,6 +16,10 @@ from app.models.enums import ParcelStatus, ProjectStatus, StageStatus, StageName
 
 router = APIRouter()
 
+_DASHBOARD_CACHE: Dict[str, tuple[dict, float]] = {}
+_DASHBOARD_CACHE_LOCK = threading.Lock()
+_DASHBOARD_CACHE_TTL = 30.0  # seconds
+
 
 # ── National Dashboard ────────────────────────────────────────────────────────
 
@@ -31,6 +35,15 @@ def get_national_dashboard(
     """Return high-level national dashboard aggregate metrics."""
     from app.core.deps import get_user_geographic_scope
     scope = get_user_geographic_scope(current_user)
+
+    user_role_str = current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)
+    cache_key = f"{user_role_str}:{scope.get('state')}:{scope.get('district')}"
+
+    with _DASHBOARD_CACHE_LOCK:
+        if cache_key in _DASHBOARD_CACHE:
+            cached_res, ts = _DASHBOARD_CACHE[cache_key]
+            if time.monotonic() - ts < _DASHBOARD_CACHE_TTL:
+                return cached_res
 
     proj_stmt = select(
         func.count(Project.project_id).label("total_projects"),
@@ -181,12 +194,11 @@ def get_national_dashboard(
                 "state": row[0],
                 "projects": max(1, row[1] // 25),
                 "land_ha": round(float(row[2]), 1),
-                "acquired_pct": round(min(95.0, max(20.0, 100.0 - avg_risk * 0.6)), 1),
                 "risk_level": "HIGH" if avg_risk >= 70 else ("MEDIUM" if avg_risk >= 40 else "LOW"),
                 "sla_breaches": max(0, int(avg_risk / 20)),
             })
     else:
-        # National -> show states
+        # National -> dynamically compute true per-state metrics using batch grouped queries (avoids N+1 full-table joins)
         state_agg_stmt = (
             select(
                 Parcel.state,
@@ -196,16 +208,63 @@ def get_national_dashboard(
             )
             .where(Parcel.state != "")
             .group_by(Parcel.state)
+            .order_by(desc("area_ha"))
         )
-        for row in db.execute(state_agg_stmt).all():
+        state_rows = db.execute(state_agg_stmt).all()
+
+        # Batch query 1: SLA breaches grouped by state in a single query
+        sla_by_state_stmt = (
+            select(Parcel.state, func.count(AcquisitionStage.stage_id))
+            .join(Parcel, AcquisitionStage.parcel_id == Parcel.parcel_id)
+            .where(
+                AcquisitionStage.status.in_([StageStatus.IN_PROGRESS.value, "BLOCKED"]),
+                AcquisitionStage.target_date.isnot(None),
+                AcquisitionStage.target_date < today,
+            )
+            .group_by(Parcel.state)
+        )
+        sla_by_state = dict(db.execute(sla_by_state_stmt).all())
+
+        # Batch query 2: High-risk parcels grouped by state in a single query
+        high_risk_by_state_stmt = (
+            select(Parcel.state, func.count(Parcel.parcel_id))
+            .where(Parcel.risk_score >= 70.0)
+            .group_by(Parcel.state)
+        )
+        high_risk_by_state = dict(db.execute(high_risk_by_state_stmt).all())
+
+        # Load all projects once into memory (12 items) for instantaneous per-state summation
+        all_proj_list = db.execute(select(Project)).scalars().all()
+
+        for row in state_rows:
+            s_name = row[0]
             avg_risk = float(row[3])
+
+            # In-memory evaluation of project counts and land requirements touching this state
+            matching_projs = [p for p in all_proj_list if p.states and s_name in p.states]
+            s_proj_cnt = len(matching_projs)
+            req_ha = sum(float(p.land_required_ha or 0.0) for p in matching_projs)
+            acq_ha = sum(float(p.land_acquired_ha or 0.0) for p in matching_projs)
+            s_pct = round((acq_ha / req_ha * 100), 1) if req_ha > 0 else 0.0
+
+            s_sla_breaches = sla_by_state.get(s_name, 0)
+            s_high_risk_cnt = high_risk_by_state.get(s_name, 0)
+
+            # State-level risk classification
+            if s_high_risk_cnt >= 20 or s_pct < 45.0 or s_sla_breaches >= 50:
+                s_risk_level = "HIGH"
+            elif s_high_risk_cnt >= 10 or s_pct < 65.0 or s_sla_breaches >= 25:
+                s_risk_level = "MEDIUM"
+            else:
+                s_risk_level = "LOW"
+
             summary_items.append({
-                "state": row[0],
-                "projects": proj_totals.total_projects,
+                "state": s_name,
+                "projects": s_proj_cnt,
                 "land_ha": round(float(row[2]), 1),
-                "acquired_pct": progress_pct,
-                "risk_level": "HIGH" if avg_risk >= 70 else ("MEDIUM" if avg_risk >= 40 else "LOW"),
-                "sla_breaches": sla_breaches_count,
+                "acquired_pct": s_pct,
+                "risk_level": s_risk_level,
+                "sla_breaches": s_sla_breaches,
             })
 
     # Dynamically calculate quarterly progress from actual target & acquired
@@ -241,7 +300,7 @@ def get_national_dashboard(
         "title": title_str,
     }
 
-    return {
+    result_data = {
         "summary": {
             "total_projects": proj_totals.total_projects,
             "total_parcels": parcel_totals.total_parcels,
@@ -263,6 +322,11 @@ def get_national_dashboard(
         "user_scope": user_scope,
         "recent_activity": recent_activity,
     }
+
+    with _DASHBOARD_CACHE_LOCK:
+        _DASHBOARD_CACHE[cache_key] = (result_data, time.monotonic())
+
+    return result_data
 
 
 # ── State Dashboard ───────────────────────────────────────────────────────────

@@ -1,0 +1,251 @@
+{
+  "version": "1.0.0",
+  "description": "Realistic seed data for state expansion — Delhi, Punjab, Rajasthan, Maharashtra",
+  "states": [
+    {
+      "state": "Delhi",
+      "districts": [
+        {
+          "district": "New Delhi",
+          "tehsils": ["Connaught Place", "Mehrauli", "Vasant Vihar"],
+          "villages": ["Lado Sarai", "Kishangarh", "Munirka", "Saket", "Hauz Khas"],
+          "center_lat": 28.6139,
+          "center_lon": 77.2090
+        },
+        {
+          "district": "South Delhi",
+          "tehsils": ["Kalkaji", "Badarpur", "Tughlakabad"],
+          "villages": ["Okhla", "Jaitpur", "Sangam Vihar", "Madanpur Khadar", "Mithapur"],
+          "center_lat": 28.5244,
+          "center_lon": 77.2575
+        },
+        {
+          "district": "North Delhi",
+          "tehsils": ["Sadar Bazaar", "Kotwali", "Civil Lines"],
+          "villages": ["Alipur", "Narela", "Burari", "Timarpur", "Mukherjee Nagar"],
+          "center_lat": 28.7041,
+          "center_lon": 77.1025
+        },
+        {
+          "district": "East Delhi",
+          "tehsils": ["Preet Vihar", "Vivek Vihar", "Shahdara"],
+          "villages": ["Patparganj", "Mandawali", "Kondli", "Khichripur", "Trilokpuri"],
+          "center_lat": 28.6280,
+          "center_lon": 77.2951
+        }
+      ],
+      "projects": [
+        {
+          "name": "Delhi Metro Phase-IV Extension",
+          "type": "Metro",
+          "agency": "Delhi Metro Rail Corporation",
+          "land_required_ha": 85.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Delhi-Meerut RRTS Corridor",
+          "type": "Railway",
+          "agency": "National Capital Region Transport Corporation",
+          "land_required_ha": 120.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Urban Expressway — Dwarka-Airport",
+          "type": "Highway",
+          "agency": "National Highways Authority of India",
+          "land_required_ha": 45.0,
+          "status": "PLANNING"
+        }
+      ]
+    },
+    {
+      "state": "Punjab",
+      "districts": [
+        {
+          "district": "Amritsar",
+          "tehsils": ["Amritsar-I", "Amritsar-II", "Ajnala", "Baba Bakala"],
+          "villages": ["Chheharta", "Majitha", "Verka", "Ramdass", "Lopoke", "Attari", "Jandiala Guru", "Chogawan"],
+          "center_lat": 31.6340,
+          "center_lon": 74.8723
+        },
+        {
+          "district": "Ludhiana",
+          "tehsils": ["Ludhiana East", "Ludhiana West", "Jagraon", "Samrala"],
+          "villages": ["Sahnewal", "Doraha", "Khanna", "Machhiwara", "Raikot", "Mullanpur", "Pakhowal", "Dehlon"],
+          "center_lat": 30.9010,
+          "center_lon": 75.8573
+        },
+        {
+          "district": "Jalandhar",
+          "tehsils": ["Jalandhar-I", "Jalandhar-II", "Nakodar", "Phillaur"],
+          "villages": ["Kartarpur", "Nurmahal", "Adampur", "Bhogpur", "Goraya", "Lohian", "Shahkot"],
+          "center_lat": 31.3260,
+          "center_lon": 75.5762
+        },
+        {
+          "district": "Patiala",
+          "tehsils": ["Patiala", "Samana", "Nabha", "Rajpura"],
+          "villages": ["Ghanaur", "Patran", "Sanaur", "Banur", "Shutrana", "Dudhan Sadhan", "Bhadson"],
+          "center_lat": 30.3398,
+          "center_lon": 76.3869
+        }
+      ],
+      "projects": [
+        {
+          "name": "Amritsar-Jamnagar Expressway (Punjab Segment)",
+          "type": "Highway",
+          "agency": "National Highways Authority of India",
+          "land_required_ha": 250.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Ludhiana Metro Rail Project",
+          "type": "Metro",
+          "agency": "Punjab Metro Rail Corporation",
+          "land_required_ha": 60.0,
+          "status": "PLANNING"
+        },
+        {
+          "name": "Punjab Dedicated Freight Corridor",
+          "type": "Railway",
+          "agency": "Dedicated Freight Corridor Corporation",
+          "land_required_ha": 180.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Rajpura Industrial Township",
+          "type": "Industrial",
+          "agency": "Punjab Infrastructure Development Board",
+          "land_required_ha": 350.0,
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "state": "Rajasthan",
+      "districts": [
+        {
+          "district": "Jaipur",
+          "tehsils": ["Sanganer", "Amber", "Bassi", "Chaksu", "Phulera"],
+          "villages": ["Bagru", "Jamwa Ramgarh", "Kotputli", "Shahpura", "Chomu", "Viratnagar", "Dudu", "Paota"],
+          "center_lat": 26.9124,
+          "center_lon": 75.7873
+        },
+        {
+          "district": "Jodhpur",
+          "tehsils": ["Jodhpur City", "Mandore", "Osian", "Bilara"],
+          "villages": ["Luni", "Bhopalgarh", "Shergarh", "Balesar", "Phalodi", "Piparcity", "Pipar", "Baori"],
+          "center_lat": 26.2389,
+          "center_lon": 73.0243
+        },
+        {
+          "district": "Udaipur",
+          "tehsils": ["Udaipur", "Gogunda", "Mavli", "Salumber"],
+          "villages": ["Girwa", "Kherwara", "Rishabhdeo", "Sarada", "Bhinder", "Vallabhnagar", "Badgaon"],
+          "center_lat": 24.5854,
+          "center_lon": 73.7125
+        },
+        {
+          "district": "Kota",
+          "tehsils": ["Kota North", "Kota South", "Ladpura", "Digod"],
+          "villages": ["Sangod", "Ramganjmandi", "Sultanpur", "Pipalda", "Itawa", "Kaithoon"],
+          "center_lat": 25.2138,
+          "center_lon": 75.8648
+        }
+      ],
+      "projects": [
+        {
+          "name": "Delhi-Mumbai Expressway (Rajasthan Segment)",
+          "type": "Highway",
+          "agency": "National Highways Authority of India",
+          "land_required_ha": 420.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Jaipur Metro Phase-II",
+          "type": "Metro",
+          "agency": "Jaipur Metro Rail Corporation",
+          "land_required_ha": 55.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Barmer Refinery Township",
+          "type": "Industrial",
+          "agency": "Rajasthan State Industrial Development Corporation",
+          "land_required_ha": 280.0,
+          "status": "PLANNING"
+        },
+        {
+          "name": "Jodhpur Ring Road Project",
+          "type": "Highway",
+          "agency": "Rajasthan State Highway Authority",
+          "land_required_ha": 95.0,
+          "status": "ACTIVE"
+        }
+      ]
+    },
+    {
+      "state": "Maharashtra",
+      "districts": [
+        {
+          "district": "Pune",
+          "tehsils": ["Haveli", "Mulshi", "Maval", "Shirur", "Khed"],
+          "villages": ["Wagholi", "Maan", "Hinjawadi", "Hadapsar", "Chakan", "Bavdhan", "Kharadi", "Loni Kalbhor", "Pirangut"],
+          "center_lat": 18.5204,
+          "center_lon": 73.8567
+        },
+        {
+          "district": "Thane",
+          "tehsils": ["Thane", "Kalyan", "Bhiwandi", "Shahapur"],
+          "villages": ["Dombivli", "Mumbra", "Badlapur", "Ambarnath", "Murbad", "Ulhasnagar", "Titwala"],
+          "center_lat": 19.2183,
+          "center_lon": 72.9781
+        },
+        {
+          "district": "Raigad",
+          "tehsils": ["Panvel", "Pen", "Uran", "Karjat", "Alibag"],
+          "villages": ["Khalapur", "Roha", "Mangaon", "Murud", "Shrivardhan", "Sudhagad", "Tala"],
+          "center_lat": 18.5158,
+          "center_lon": 73.1822
+        },
+        {
+          "district": "Nagpur",
+          "tehsils": ["Nagpur Urban", "Nagpur Rural", "Hingna", "Kamptee"],
+          "villages": ["Butibori", "Wadi", "Koradi", "Saoner", "Parseoni", "Narkhed", "Katol"],
+          "center_lat": 21.1458,
+          "center_lon": 79.0882
+        }
+      ],
+      "projects": [
+        {
+          "name": "Mumbai-Pune Hyperloop Corridor",
+          "type": "Railway",
+          "agency": "Maharashtra State Road Development Corporation",
+          "land_required_ha": 150.0,
+          "status": "PLANNING"
+        },
+        {
+          "name": "Navi Mumbai International Airport",
+          "type": "Airport",
+          "agency": "City and Industrial Development Corporation",
+          "land_required_ha": 1160.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Nagpur-Mumbai Expressway (Samruddhi Mahamarg)",
+          "type": "Highway",
+          "agency": "Maharashtra State Road Development Corporation",
+          "land_required_ha": 380.0,
+          "status": "ACTIVE"
+        },
+        {
+          "name": "Pune Metro Phase-II",
+          "type": "Metro",
+          "agency": "Pune Metro Rail Corporation",
+          "land_required_ha": 48.0,
+          "status": "ACTIVE"
+        }
+      ]
+    }
+  ]
+}

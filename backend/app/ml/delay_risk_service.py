@@ -32,7 +32,7 @@ from app.ml.features import (
 logger = logging.getLogger(__name__)
 
 # SHAP computation timeout in seconds (falls back to tree importance on breach)
-SHAP_TIMEOUT_SECONDS = 2.0
+SHAP_TIMEOUT_SECONDS = 0.1
 
 # Prediction cache TTL in seconds
 CACHE_TTL_SECONDS = 60.0
@@ -288,23 +288,21 @@ class DelayRiskService:
         return self.model is not None and not self._startup_failed
 
     def _get_cached(self, project_id: Optional[str]) -> Optional[Dict[str, Any]]:
-        if not project_id:
-            return None
+        key = str(project_id or "default")
         with self._cache_lock:
-            entry = self._cache.get(project_id)
+            entry = self._cache.get(key)
             if entry:
                 result, ts = entry
                 if time.monotonic() - ts < CACHE_TTL_SECONDS:
                     return result
                 else:
-                    del self._cache[project_id]
+                    del self._cache[key]
         return None
 
     def _set_cached(self, project_id: Optional[str], result: Dict[str, Any]) -> None:
-        if not project_id:
-            return
+        key = str(project_id or "default")
         with self._cache_lock:
-            self._cache[project_id] = (result, time.monotonic())
+            self._cache[key] = (result, time.monotonic())
 
     def _get_demo_fallback_result(
         self,

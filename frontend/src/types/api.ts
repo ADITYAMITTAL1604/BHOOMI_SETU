@@ -352,3 +352,112 @@ export interface ApiError {
     timestamp: string;
   };
 }
+
+// ── Approval Types (F1) ────────────────────────────────
+
+export type ApprovalStatus =
+  | "PENDING_REVIEW"
+  | "UNDER_REVIEW"
+  | "APPROVED"
+  | "REJECTED"
+  | "REVISION_REQUESTED";
+
+export type ApprovalAction = "APPROVE" | "REJECT" | "REQUEST_REVISION";
+
+export interface DocumentApproval {
+  approval_id: string;
+  document_id: string;
+  approver_id: string;
+  approver_username?: string;
+  approver_role: UserRole;
+  action: ApprovalAction;
+  step_order: number;
+  remarks: string | null;
+  created_at: string;
+}
+
+export interface ApprovalQueueItem {
+  document_id: string;
+  title: string;
+  document_type: DocumentType;
+  uploaded_by: string;
+  uploader_username?: string;
+  entity_type: string;
+  entity_id: string;
+  approval_status: ApprovalStatus;
+  current_approval_step: number;
+  created_at: string;
+  updated_at: string;
+  project_name?: string;
+  approval_history: DocumentApproval[];
+}
+
+// ── Notification Types (F5) ────────────────────────────
+
+export type NotificationCategory =
+  | "APPROVAL"
+  | "SLA_BREACH"
+  | "DOCUMENT"
+  | "COMPENSATION"
+  | "SYSTEM";
+
+export type NotificationSeverity = "INFO" | "WARNING" | "CRITICAL";
+
+export interface AppNotification {
+  notification_id: string;
+  user_id: string;
+  title: string;
+  message: string;
+  severity: NotificationSeverity;
+  category: NotificationCategory;
+  is_read: boolean;
+  read_at: string | null;
+  entity_type: string | null;
+  entity_id: string | null;
+  action_url: string | null;
+  metadata?: Record<string, any> | null;
+  created_at: string;
+}
+
+// ── SLA Types (F3) ─────────────────────────────────────
+
+export type SLAHealthStatus = "GREEN" | "YELLOW" | "RED";
+
+export interface SLADashboardData {
+  total_parcels: number;
+  on_track: number;
+  at_risk: number;
+  breached: number;
+  overall_compliance_pct: number;
+  avg_days_pending: number;
+}
+
+export interface SLAStageDelay {
+  stage: AcquisitionStage;
+  sla_days: number;
+  total_parcels: number;
+  breached_count: number;
+  breach_rate: number;
+  avg_days_pending: number;
+  max_days_pending: number;
+}
+
+export interface SLADistrictDelay {
+  district: string;
+  state: string;
+  total_parcels: number;
+  breached_count: number;
+  breach_rate: number;
+  avg_days_pending: number;
+}
+
+export interface SLAProjectDelay {
+  project_id: string;
+  project_name: string;
+  total_parcels: number;
+  breached_count: number;
+  breach_rate: number;
+  worst_stage: AcquisitionStage;
+  avg_days_overdue: number;
+}
+

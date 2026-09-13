@@ -22,29 +22,40 @@ import type { Parcel } from "@/types/api";
 // - Green (#16A34A): Possession Completed (POSSESSION, CLOSURE, or COMPLETED)
 // - Orange (#EA580C): High Risk (Score ≥ 70)
 // - Red (#DC2626): Blocked / Injunction
-function getParcelStyle(parcel: Parcel): PathOptions {
-  const base: PathOptions = { weight: 2, opacity: 0.85, fillOpacity: 0.5 };
+// - Amber Dashed (#D47A22): Corridor Right-of-Way Centerline
+function getParcelStyle(parcel: any): PathOptions {
+  if (parcel?.is_corridor) {
+    return {
+      color: "#D47A22",
+      weight: 4,
+      dashArray: "6, 6",
+      opacity: 0.95,
+      fill: false,
+    };
+  }
+
+  const base: PathOptions = { weight: 1.5, opacity: 0.9, fillOpacity: 0.6 };
   const stage = String(parcel.current_stage || "").toUpperCase();
   const status = String(parcel.status || "").toUpperCase();
   const risk = Number(parcel.risk_score || 0);
 
   // 1. Blocked / Injunction (highest priority for statutory stay/disputes)
   if (status === "BLOCKED" || status === "DISPUTED") {
-    return { ...base, color: "#DC2626", fillColor: "#EF4444", fillOpacity: 0.65 };
+    return { ...base, color: "#DC2626", fillColor: "#EF4444", fillOpacity: 0.7 };
   }
 
   // 2. Possession Completed (Acquisition finished or possession taken)
   if (status === "COMPLETED" || stage === "CLOSURE" || stage === "POSSESSION") {
-    return { ...base, color: "#16A34A", fillColor: "#22C55E", fillOpacity: 0.55 };
+    return { ...base, color: "#16A34A", fillColor: "#22C55E", fillOpacity: 0.6 };
   }
 
   // 3. High Risk (Delay Warning Score ≥ 70)
   if (risk >= 70) {
-    return { ...base, color: "#EA580C", fillColor: "#F97316", fillOpacity: 0.6 };
+    return { ...base, color: "#EA580C", fillColor: "#F97316", fillOpacity: 0.65 };
   }
 
   // 4. In Progress (Standard active stage, on track) -> BLUE
-  return { ...base, color: "#2563EB", fillColor: "#3B82F6", fillOpacity: 0.55 };
+  return { ...base, color: "#2563EB", fillColor: "#3B82F6", fillOpacity: 0.6 };
 }
 
 // Auto-fit map to GeoJSON bounds
@@ -56,7 +67,7 @@ function FitBounds({ geojson }: { geojson: GeoJSON.FeatureCollection }) {
         const layer = L.geoJSON(geojson);
         const bounds = layer.getBounds();
         if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
         }
       } catch (e) {
         console.error("Failed to fit bounds", e);
@@ -91,6 +102,7 @@ export function GISPage() {
     const term = searchTerm.toLowerCase().trim();
     const filteredFeatures = (geojson as any).features?.filter((f: any) => {
       const p = f.properties || {};
+      if (p.is_corridor) return true; // Keep corridor visible during parcel search
       return (
         String(p.survey_number || "").toLowerCase().includes(term) ||
         String(p.owner_name || "").toLowerCase().includes(term) ||
@@ -101,16 +113,26 @@ export function GISPage() {
     return { ...(geojson as any), features: filteredFeatures };
   }, [geojson, searchTerm]);
 
-  const featuresCount = (displayGeoJSON as any)?.features?.length || 0;
+  const rawFeatures = (displayGeoJSON as any)?.features || [];
+  const parcelsCount = rawFeatures.filter((f: any) => !f?.properties?.is_corridor).length;
+  const featuresCount = rawFeatures.length;
 
   // Click & hover interactions on GeoJSON polygons
   const onEachFeature = (feature: any, layer: any) => {
+    const isCorridor = Boolean(feature?.properties?.is_corridor);
+    if (isCorridor) {
+      layer.bindTooltip(
+        `<b>${feature.properties.project_name || "Infrastructure Corridor"}</b><br/><span style="font-size: 10px; color: #D47A22; font-weight: 600;">Surveyed ROW Centerline</span>`,
+        { sticky: true }
+      );
+      return;
+    }
     const parcel = feature.properties as Parcel;
     layer.on({
       click: () => setSelectedParcel(parcel),
       mouseover: (e: any) => {
         const target = e.target;
-        target.setStyle({ fillOpacity: 0.75, weight: 3 });
+        target.setStyle({ fillOpacity: 0.85, weight: 2.5 });
       },
       mouseout: (e: any) => {
         const target = e.target;
@@ -154,7 +176,7 @@ export function GISPage() {
 
             {/* Feature count badge */}
             <span className="px-2 py-0.5 rounded-none text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
-              {featuresCount} Mapped
+              {parcelsCount} Parcels Mapped
             </span>
           </div>
 
@@ -193,9 +215,14 @@ export function GISPage() {
                 { color: "bg-[#16A34A]", label: "Possession Completed" },
                 { color: "bg-[#EA580C]", label: "High Risk (Score ≥ 70)" },
                 { color: "bg-[#DC2626]", label: "Blocked / Injunction" },
+                { color: "bg-[#D47A22]", label: "Surveyed ROW Alignment", isLine: true },
               ].map((item) => (
                 <div key={item.label} className="flex items-center gap-2">
-                  <div className={cn("w-3 h-3 rounded-none shadow-xs", item.color)} />
+                  {item.isLine ? (
+                    <div className="w-3 h-0.5 bg-[#D47A22] border-t border-dashed border-[#D47A22]" />
+                  ) : (
+                    <div className={cn("w-3 h-3 rounded-none shadow-xs", item.color)} />
+                  )}
                   <span className="text-[11px] font-semibold text-gray-700">{item.label}</span>
                 </div>
               ))}

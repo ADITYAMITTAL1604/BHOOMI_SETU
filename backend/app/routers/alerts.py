@@ -9,7 +9,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select, func, update, or_, and_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.deps import get_current_user, require_central_or_above, filter_by_geographic_scope, get_user_geographic_scope
 from app.database import get_db
@@ -95,7 +95,7 @@ def list_alerts(
     ).scalar() or 0
 
     offset = (page - 1) * page_size
-    alerts = db.execute(stmt.offset(offset).limit(page_size)).scalars().all()
+    alerts = db.execute(stmt.options(joinedload(Alert.project)).offset(offset).limit(page_size)).scalars().all()
 
     unread_count = db.execute(
         select(func.count(Alert.alert_id)).where(

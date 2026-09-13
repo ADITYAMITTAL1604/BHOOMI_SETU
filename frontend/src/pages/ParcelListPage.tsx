@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Layers,
   Search,
@@ -20,6 +20,7 @@ import type { Parcel } from "@/types/api";
 
 const STAGES_LIST = [
   { value: "", label: "All Stages" },
+  { value: "PROPOSAL", label: "Proposal (Sec 4)" },
   { value: "IDENTIFICATION", label: "Land Identification" },
   { value: "SURVEY", label: "Survey & Demarcation" },
   { value: "VERIFICATION", label: "Ownership Verification" },
@@ -42,12 +43,23 @@ const STATUS_LIST = [
 
 export function ParcelListPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [selectedProject, setSelectedProject] = useState("");
   const [selectedStage, setSelectedStage] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 15;
+
+  // Sync URL query params into filter state on mount
+  useEffect(() => {
+    const qProject = searchParams.get("project_id");
+    const qStage = searchParams.get("stage");
+    const qStatus = searchParams.get("status");
+    if (qProject) setSelectedProject(qProject);
+    if (qStage) setSelectedStage(qStage);
+    if (qStatus) setSelectedStatus(qStatus);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { data: projectsData } = useQuery({
     queryKey: ["projects-dropdown"],

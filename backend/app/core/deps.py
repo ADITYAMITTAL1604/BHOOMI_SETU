@@ -158,14 +158,16 @@ def filter_by_geographic_scope(user: User, model, state_field: Optional[str] = N
 
     if scope.get("state") and hasattr(model, s_field):
         col = getattr(model, s_field)
-        if hasattr(col, "any"):
+        col_type = getattr(col, "type", None)
+        if hasattr(col_type, "item_type"):
             conditions.append(col.any(scope["state"]))
         else:
             conditions.append(col == scope["state"])
 
     if scope.get("district") and hasattr(model, d_field):
         col = getattr(model, d_field)
-        if hasattr(col, "any"):
+        col_type = getattr(col, "type", None)
+        if hasattr(col_type, "item_type"):
             conditions.append(col.any(scope["district"]))
         else:
             conditions.append(col == scope["district"])

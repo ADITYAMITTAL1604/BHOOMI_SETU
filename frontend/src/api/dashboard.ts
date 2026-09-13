@@ -92,7 +92,7 @@ export async function fetchDashboardAlerts(): Promise<DashboardAlert[]> {
   }));
 }
 
-const STAGE_LABELS: Record<string, string> = {
+export const STAGE_LABELS: Record<string, string> = {
   SURVEY: "Survey & Mapping",
   VERIFICATION: "Verification & Claims",
   NOTIFICATION: "Sec 11 Notification",

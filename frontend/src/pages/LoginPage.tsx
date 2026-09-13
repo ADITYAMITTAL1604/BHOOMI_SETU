@@ -24,6 +24,98 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+interface DemoPersona {
+  user: string;
+  roleBadge: string;
+  label: string;
+  sublabel: string;
+  desc: string;
+  category: "national" | "state" | "district" | "field";
+}
+
+const ALL_DEMO_PERSONAS: DemoPersona[] = [
+  {
+    user: "admin",
+    roleBadge: "ADMIN",
+    label: "Administrator",
+    sublabel: "National Executive Command",
+    desc: "Full portfolio oversight · 12 projects, 2,400 parcels, all 5 states",
+    category: "national",
+  },
+  {
+    user: "central_user",
+    roleBadge: "CENTRAL",
+    label: "Central Authority",
+    sublabel: "Ministry of Road Transport & Highways",
+    desc: "Statutory approvals, inter-state corridors & DBT budget releases",
+    category: "national",
+  },
+  {
+    user: "state_user",
+    roleBadge: "STATE OFFICER",
+    label: "State Officer (UP)",
+    sublabel: "Uttar Pradesh State Headquarters",
+    desc: "UP jurisdiction · WDFC, Delhi-Mumbai corridor & state highways",
+    category: "state",
+  },
+  {
+    user: "delhi_state",
+    roleBadge: "STATE OFFICER",
+    label: "State Officer (Delhi)",
+    sublabel: "Delhi State Headquarters",
+    desc: "Delhi Metro Phase-IV, Delhi-Meerut RRTS corridor jurisdiction",
+    category: "state",
+  },
+  {
+    user: "punjab_state",
+    roleBadge: "STATE OFFICER",
+    label: "State Officer (Punjab)",
+    sublabel: "Punjab State Headquarters",
+    desc: "Amritsar-Jamnagar Expressway & Punjab Freight Corridor",
+    category: "state",
+  },
+  {
+    user: "district_user",
+    roleBadge: "DISTRICT",
+    label: "Collector / DLAO (Ghaziabad)",
+    sublabel: "District Land Acquisition Office",
+    desc: "Sec 19 statutory declarations, award calculations & hearings",
+    category: "district",
+  },
+  {
+    user: "delhi_district",
+    roleBadge: "DISTRICT",
+    label: "Collector / DLAO (South Delhi)",
+    sublabel: "South Delhi Revenue District",
+    desc: "Metro Phase-IV and Urban Extension Road-II acquisitions",
+    category: "district",
+  },
+  {
+    user: "punjab_district",
+    roleBadge: "DISTRICT",
+    label: "Collector / DLAO (Amritsar)",
+    sublabel: "Amritsar Revenue District",
+    desc: "Expressway land possession, disbursement clearances & awards",
+    category: "district",
+  },
+  {
+    user: "agency_user",
+    roleBadge: "AGENCY",
+    label: "Project Agency (NHAI)",
+    sublabel: "National Highways Authority of India",
+    desc: "Project proposals, alignment plans & requisition submissions",
+    category: "field",
+  },
+  {
+    user: "field_officer",
+    roleBadge: "FIELD OFFICER",
+    label: "Field Survey Officer",
+    sublabel: "Ghaziabad Field Operations Command",
+    desc: "On-site parcel mapping, GIS polygon surveys & inspection logs",
+    category: "field",
+  },
+];
+
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,6 +123,8 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [selectedUser, setSelectedUser] = useState<string>("admin");
 
   // If local storage has corrupt state (authenticated but no user), clear it
   useEffect(() => {
@@ -72,12 +166,16 @@ export function LoginPage() {
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const axiosErr = err as {
-        response?: { data?: { detail?: { message?: string } } };
+        response?: { data?: { detail?: string | { message?: string } } };
+        message?: string;
       };
-      setError(
-        axiosErr?.response?.data?.detail?.message ||
-          "Invalid credentials. Please try again."
-      );
+      const detail = axiosErr?.response?.data?.detail;
+      const errorMsg =
+        typeof detail === "string"
+          ? detail
+          : detail?.message ||
+            (axiosErr?.message && !axiosErr.message.includes("401") ? axiosErr.message : "Invalid credentials. Please try again.");
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -146,8 +244,8 @@ export function LoginPage() {
       </div>
 
       {/* ── Right Panel — Login Form ─────────────── */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 md:p-12 bg-brand-linen min-h-screen">
-        <div className="w-full max-w-md">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-8 md:p-12 bg-brand-linen min-h-screen overflow-y-auto">
+        <div className="w-full max-w-md my-auto">
           {/* Header without duplicate logo above credentials */}
           <div className="mb-6 sm:mb-8 text-center sm:text-left">
             {/* Mobile-only compact logo fallback when left panel is hidden */}
@@ -311,42 +409,64 @@ export function LoginPage() {
                   Password: password123
                 </span>
               </div>
-              <div className="grid grid-cols-1 gap-2">
+              {/* Category Filter Pills (Original Amber/White Theme) */}
+              <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1">
                 {[
-                  {
-                    user: "admin",
-                    roleBadge: "ADMIN",
-                    label: "Administrator",
-                    sublabel: "National & State Executive Command",
-                    desc: "Full portfolio oversight · 15 projects, 808 parcels, all UP district divisions",
-                  },
-                  {
-                    user: "state_user",
-                    roleBadge: "STATE OFFICER",
-                    label: "State Officer (UP)",
-                    sublabel: "Uttar Pradesh State Headquarters",
-                    desc: "State-wide jurisdiction · 15 UP districts (Ghaziabad, Bahraich, Farrukhabad...)",
-                  },
-                  {
-                    user: "field_officer",
-                    roleBadge: "FIELD OFFICER",
-                    label: "Field Officer",
-                    sublabel: "Ghaziabad Field Operations Command",
-                    desc: "Ground operations · 32 assigned parcels, physical surveys & inspection logs",
-                  },
-                ].map(({ user, roleBadge, label, sublabel, desc }) => (
+                  { key: "all", label: "All Roles (10)" },
+                  { key: "national", label: "National (2)" },
+                  { key: "state", label: "State (3)" },
+                  { key: "district", label: "District (3)" },
+                  { key: "field", label: "Field & Agency (2)" },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveCategory(tab.key)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap",
+                      activeCategory === tab.key
+                        ? "bg-[#D47A22] text-white shadow-xs"
+                        : "bg-white text-gray-600 hover:text-gray-900 border border-gray-200/80 hover:bg-amber-50/50"
+                    )}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Demo Persona Cards */}
+              <div className="grid grid-cols-1 gap-2 max-h-[260px] overflow-y-auto pr-1">
+                {(activeCategory === "all"
+                  ? ALL_DEMO_PERSONAS
+                  : ALL_DEMO_PERSONAS.filter((p) => p.category === activeCategory)
+                ).map(({ user, roleBadge, label, sublabel, desc }) => (
                   <button
                     key={user}
                     type="button"
-                    onClick={() => handleDemoFill(user, "password123")}
-                    className="text-left p-3 rounded-xl bg-white hover:bg-amber-50/60 border border-gray-200/90 hover:border-[#D47A22] shadow-sm hover:shadow transition-all group relative cursor-pointer"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      handleDemoFill(user, "password123");
+                    }}
+                    className={cn(
+                      "text-left p-3 rounded-xl border shadow-sm hover:shadow transition-all group relative cursor-pointer",
+                      selectedUser === user
+                        ? "border-[#D47A22] bg-amber-50/80 ring-1 ring-[#D47A22]"
+                        : "border-gray-200/90 bg-white hover:bg-amber-50/60 hover:border-[#D47A22]"
+                    )}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="font-bold text-xs text-gray-900 group-hover:text-[#D47A22]">
+                        <span
+                          className={cn(
+                            "font-bold text-xs transition-colors",
+                            selectedUser === user
+                              ? "text-[#D47A22]"
+                              : "text-gray-900 group-hover:text-[#D47A22]"
+                          )}
+                        >
                           {label}
                         </span>
-                        <span className="text-[10px] text-gray-500 hidden sm:inline">
+                        <span className="text-[10px] text-gray-500 hidden sm:inline truncate">
                           — {sublabel}
                         </span>
                       </div>
@@ -354,7 +474,7 @@ export function LoginPage() {
                         {roleBadge}
                       </span>
                     </div>
-                    <span className="block text-[11px] text-gray-500 mt-1">
+                    <span className="block text-[11px] text-gray-500 mt-1 line-clamp-1">
                       {desc}
                     </span>
                   </button>

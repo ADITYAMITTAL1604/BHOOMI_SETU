@@ -14,6 +14,9 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  ShieldCheck,
+  Activity,
+  BellRing,
 } from "lucide-react";
 
 interface NavItem {
@@ -31,6 +34,9 @@ const NAV_ITEMS: NavItem[] = [
   { path: "/parcels", label: "Parcels", icon: Layers },
   { path: "/intelligence", label: "Intelligence", icon: Brain },
   { path: "/documents", label: "Documents", icon: FileText },
+  { path: "/approvals", label: "Approvals", icon: ShieldCheck },
+  { path: "/sla", label: "SLA Monitor", icon: Activity },
+  { path: "/notifications", label: "Notifications", icon: BellRing },
   { path: "/alerts", label: "Alerts", icon: Bell },
   { path: "/reports", label: "Reports", icon: BarChart3 },
 ];

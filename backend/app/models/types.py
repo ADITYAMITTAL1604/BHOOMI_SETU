@@ -1,4 +1,4 @@
-"""Cross-dialect SQLAlchemy types supporting PostgreSQL, PostGIS, and SQLite."""
+"""SQLAlchemy custom types tailored for PostgreSQL and PostGIS."""
 
 from __future__ import annotations
 
@@ -8,29 +8,26 @@ from sqlalchemy import String, Text, TypeDecorator, JSON, Uuid
 from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY, UUID as PG_UUID
 from sqlalchemy.types import TypeEngine
 from geoalchemy2 import Geometry as PostGISGeometry
+from geoalchemy2.elements import WKTElement
 
 
 class PlatformUUID(TypeDecorator):
-    """Platform-independent UUID type."""
+    """PostgreSQL native UUID type."""
     impl = Uuid
     cache_ok = True
 
     def load_dialect_impl(self, dialect: Any) -> TypeEngine:
-        if dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql":
-            return dialect.type_descriptor(PG_UUID(as_uuid=True))
-        return dialect.type_descriptor(Uuid()) if dialect is not None else Uuid()
+        return dialect.type_descriptor(PG_UUID(as_uuid=True))
 
 
 class PlatformJSON(TypeDecorator):
-    """Platform-independent JSON type."""
+    """PostgreSQL JSON type."""
     impl = JSON
     cache_ok = True
 
 
 class ArrayOrJSON(TypeDecorator):
-    """Platform-independent Array type.
-    Uses PostgreSQL's native ARRAY on Postgres, JSON on SQLite.
-    """
+    """PostgreSQL native ARRAY type."""
     impl = JSON
     cache_ok = True
 
@@ -52,14 +49,11 @@ class ArrayOrJSON(TypeDecorator):
         self.item_type = item_type
 
     def load_dialect_impl(self, dialect: Any) -> TypeEngine:
-        if dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql":
-            return dialect.type_descriptor(PG_ARRAY(self.item_type))
-        return dialect.type_descriptor(JSON()) if dialect is not None else JSON()
+        return dialect.type_descriptor(PG_ARRAY(self.item_type))
 
     def process_bind_param(self, value: Any, dialect: Any) -> Any:
-        is_pg = dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql"
         if value is None:
-            return [] if not is_pg else []
+            return []
         return value
 
     def process_result_value(self, value: Any, dialect: Any) -> Any:
@@ -74,9 +68,7 @@ class ArrayOrJSON(TypeDecorator):
 
 
 class PlatformGeometry(TypeDecorator):
-    """Platform-independent Geometry type.
-    Uses PostGIS Geometry when available on PostgreSQL, Text representation on SQLite.
-    """
+    """PostGIS Geometry type for spatial features."""
     impl = Text
     cache_ok = True
 
@@ -87,28 +79,20 @@ class PlatformGeometry(TypeDecorator):
         self.spatial_index = spatial_index
 
     def load_dialect_impl(self, dialect: Any) -> TypeEngine:
-        if dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql":
-            return dialect.type_descriptor(
-                PostGISGeometry(
-                    geometry_type=self.geometry_type,
-                    srid=self.srid,
-                    spatial_index=self.spatial_index,
-                )
+        return dialect.type_descriptor(
+            PostGISGeometry(
+                geometry_type=self.geometry_type,
+                srid=self.srid,
+                spatial_index=self.spatial_index,
             )
-        return dialect.type_descriptor(Text()) if dialect is not None else Text()
+        )
 
     def process_bind_param(self, value: Any, dialect: Any) -> Any:
         if value is None:
             return None
-        is_pg = dialect is not None and hasattr(dialect, "name") and dialect.name == "postgresql"
-        if is_pg:
-            from geoalchemy2.elements import WKTElement
-            if isinstance(value, str):
-                return WKTElement(value, srid=self.srid)
-            return value
-        if hasattr(value, "data"):
-            return str(value.data)
-        return str(value)
+        if isinstance(value, str):
+            return WKTElement(value, srid=self.srid)
+        return value
 
     def process_result_value(self, value: Any, dialect: Any) -> Any:
         return value

@@ -10,6 +10,9 @@ from app.routers import documents
 from app.routers import alerts
 from app.routers import admin
 from app.routers import reports
+from app.routers import approvals
+from app.routers import notifications
+from app.routers import sla
 
 __all__ = [
     "auth",
@@ -22,4 +25,7 @@ __all__ = [
     "alerts",
     "admin",
     "reports",
+    "approvals",
+    "notifications",
+    "sla",
 ]

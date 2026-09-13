@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
 import type { AcquisitionStage, Parcel, StageRecord } from "@/types/api";
+import { AuditTimeline } from "@/components/audit/AuditTimeline";
 
 // Full 11-stage acquisition pipeline
 const STAGES: { key: AcquisitionStage; label: string; sla_days: number }[] = [
@@ -383,6 +384,22 @@ export function ParcelDetailPage() {
                 })()}
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Audit Timeline */}
+        <Card className="col-span-full">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Clock className="w-4 h-4 text-purple-500" />
+              Audit Trail
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AuditTimeline
+              entityType="parcel"
+              entityId={parcel.parcel_id}
+            />
           </CardContent>
         </Card>
       </div>

@@ -48,12 +48,21 @@ VALID_BOUNDARY_LEVELS = {"state", "district", "village"}
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
-def _safe_geojson(db: Session, geometry_col) -> Optional[dict]:
-    """Convert geometry column to GeoJSON dict across PostgreSQL (PostGIS) and SQLite."""
+def _safe_geojson(db: Optional[Session], geometry_col) -> Optional[dict]:
+    """Convert PostGIS geometry column to GeoJSON dict fast in-memory."""
     if geometry_col is None:
         return None
 
-    # 1. If stored as WKT string (e.g. SQLite storage)
+    # 1. Fast GeoAlchemy2 to_shape in-memory
+    try:
+        from geoalchemy2.shape import to_shape
+        import shapely.geometry
+        shape = to_shape(geometry_col)
+        return shapely.geometry.mapping(shape)
+    except Exception:
+        pass
+
+    # 2. Fallback for WKT string / shapely object
     if isinstance(geometry_col, str):
         try:
             import shapely.wkt
@@ -63,22 +72,14 @@ def _safe_geojson(db: Session, geometry_col) -> Optional[dict]:
         except Exception:
             pass
 
-    # 2. Try PostGIS ST_AsGeoJSON
-    try:
-        raw = db.execute(select(ST_AsGeoJSON(geometry_col))).scalar()
-        if raw:
-            return json.loads(raw)
-    except Exception:
-        pass
-
-    # 3. Try GeoAlchemy2 to_shape
-    try:
-        from geoalchemy2.shape import to_shape
-        import shapely.geometry
-        shape = to_shape(geometry_col)
-        return shapely.geometry.mapping(shape)
-    except Exception:
-        pass
+    # 3. Database query fallback only if needed
+    if db is not None:
+        try:
+            raw = db.execute(select(ST_AsGeoJSON(geometry_col))).scalar()
+            if raw:
+                return json.loads(raw)
+        except Exception:
+            pass
 
     return None
 
@@ -140,18 +141,19 @@ def get_boundaries(
 
     features = []
     for boundary in boundaries:
-        geojson = _safe_geojson(db, boundary.geometry)
-        features.append(_build_feature(
-            geojson,
-            {
-                "boundary_id": str(boundary.boundary_id),
-                "level": boundary.level,
-                "name": boundary.name,
-                "parent_name": boundary.parent_name,
-                "state_name": boundary.state_name,
-                "district_name": boundary.district_name,
-            },
-        ))
+        geojson = _safe_geojson(None, boundary.geometry)
+        if geojson:
+            features.append(_build_feature(
+                geojson,
+                {
+                    "boundary_id": str(boundary.boundary_id),
+                    "level": boundary.level,
+                    "name": boundary.name,
+                    "parent_name": boundary.parent_name,
+                    "state_name": boundary.state_name,
+                    "district_name": boundary.district_name,
+                },
+            ))
 
     return _feature_collection(features)
 
@@ -167,7 +169,7 @@ def get_project_geojson(
     current_user=Depends(get_current_user),
 ) -> dict:
     """
-    Return all parcels for a project as a GeoJSON FeatureCollection.
+    Return all parcels and corridor alignment for a project as a GeoJSON FeatureCollection.
     If project_id is 'all', returns parcels across all projects (scoped to user).
     """
     from app.core.deps import get_user_geographic_scope
@@ -179,11 +181,11 @@ def get_project_geojson(
             stmt = stmt.where(Parcel.state == scope["state"])
         if scope.get("district"):
             stmt = stmt.where(Parcel.district == scope["district"])
-        parcels = db.execute(stmt.limit(1000)).scalars().all()
+        parcels = db.execute(stmt.limit(1500)).scalars().all()
 
         features = []
         for parcel in parcels:
-            geojson = _safe_geojson(db, parcel.geometry)
+            geojson = _safe_geojson(None, parcel.geometry)
             if geojson:
                 features.append(_build_feature(
                     geojson,
@@ -228,13 +230,52 @@ def get_project_geojson(
     if not project:
         return _feature_collection([])
 
-    parcels = db.execute(
-        select(Parcel).where(Parcel.project_id == project.project_id)
-    ).scalars().all()
+    # Verify project scope
+    if scope.get("state") and project.states and scope["state"] not in project.states:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access forbidden: Project '{project.name}' is outside your state jurisdiction '{scope['state']}'",
+        )
+    if scope.get("district") and project.districts and scope["district"] not in project.districts:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access forbidden: Project '{project.name}' is outside your district jurisdiction '{scope['district']}'",
+        )
 
     features = []
+
+    # 1. Include Project Corridor Alignment LineString if present
+    if project.corridor_geometry is not None:
+        corridor_geo = _safe_geojson(None, project.corridor_geometry)
+        if corridor_geo:
+            features.append({
+                "type": "Feature",
+                "geometry": corridor_geo,
+                "properties": {
+                    "is_corridor": True,
+                    "project_id": str(project.project_id),
+                    "project_name": project.name,
+                    "survey_number": f"{project.name} (Surveyed Alignment Centerline)",
+                    "type": project.type,
+                    "status": project.status,
+                    "land_required_ha": project.land_required_ha,
+                    "land_acquired_ha": project.land_acquired_ha,
+                    "village": "Corridor Right-of-Way",
+                    "district": ", ".join(project.districts) if project.districts else "",
+                    "state": ", ".join(project.states) if project.states else "",
+                },
+            })
+
+    # 2. Include parcels for the project (strictly scoped to user jurisdiction)
+    parcel_stmt = select(Parcel).where(Parcel.project_id == project.project_id)
+    if scope.get("state"):
+        parcel_stmt = parcel_stmt.where(Parcel.state == scope["state"])
+    if scope.get("district"):
+        parcel_stmt = parcel_stmt.where(Parcel.district == scope["district"])
+    parcels = db.execute(parcel_stmt).scalars().all()
+
     for parcel in parcels:
-        geojson = _safe_geojson(db, parcel.geometry)
+        geojson = _safe_geojson(None, parcel.geometry)
         if geojson:
             features.append(_build_feature(
                 geojson,
@@ -277,7 +318,7 @@ def parcels_within_bbox(
     Return parcels whose geometry falls within the given bounding box.
 
     - Results are capped at **500** features.
-    - Geometries without a PostGIS polygon are included as `null` geometry features.
+    - Fast in-memory GeoJSON conversion.
     """
     bbox.validate_bbox()
 
@@ -308,16 +349,7 @@ def parcels_within_bbox(
 
     features = []
     for parcel in parcels:
-        geojson = None
-        if parcel.geometry is not None:
-            try:
-                raw = db.execute(
-                    select(ST_AsGeoJSON(parcel.geometry))
-                ).scalar()
-                geojson = json.loads(raw) if raw else None
-            except Exception:
-                geojson = None
-
+        geojson = _safe_geojson(None, parcel.geometry)
         features.append(_build_feature(
             geojson,
             {

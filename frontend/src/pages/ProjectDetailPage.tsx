@@ -26,6 +26,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { StatCardSkeleton } from "@/components/ui/Skeleton";
 import { cn, formatCurrency } from "@/lib/utils";
 import type { AcquisitionStage } from "@/types/api";
+import { AuditTimeline } from "@/components/audit/AuditTimeline";
 
 // Statutory terms & abbreviations glossary
 const STATUTORY_GLOSSARY = [
@@ -598,6 +599,24 @@ export function ProjectDetailPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Formal Audit Log Timeline */}
+        {project?.project_id && (
+          <Card className="lg:col-span-3 rounded-none border border-gray-300 bg-white shadow-none">
+            <CardHeader className="py-3 px-5 border-b border-gray-200 bg-gray-50/60">
+              <CardTitle className="text-sm font-bold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-purple-600" />
+                System Audit Log
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-5">
+              <AuditTimeline
+                entityType="project"
+                entityId={project.project_id}
+              />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

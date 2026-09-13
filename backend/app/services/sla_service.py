@@ -74,7 +74,7 @@ def compute_stage_sla(stage: AcquisitionStage) -> Dict[str, Any]:
     # - status is IN_PROGRESS and past target date
     # - or target date is explicitly set and today >= target_date
     is_breached = False
-    if stage.status == StageStatus.IN_PROGRESS.value:
+    if stage.status in (StageStatus.IN_PROGRESS.value, StageStatus.BLOCKED.value, "BLOCKED"):
         if days_until_deadline is not None and days_until_deadline < 0:
             is_breached = True
 

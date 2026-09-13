@@ -38,19 +38,18 @@ React 18 + Vite (Frontend) -> FastAPI + PostGIS (Backend) -> PostgreSQL 15 + Pos
 
 ---
 
-## Part 1.5: One-Click Data Migration (Local SQLite -> Supabase)
+## Part 1.5: Database Bootstrapping & Seeding (Supabase)
 
-To guarantee that your deployed app shows the **EXACT 100% IDENTICAL data, parcels, and alerts** that you currently see on local, run this command from your local terminal:
+To populate your Supabase PostGIS database with the full multi-state projects, parcels, and statutory workflows, run from your terminal:
 
 ```bash
-python backend/scripts/migrate_sqlite_to_postgres.py --target "postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-[REGION].pooler.supabase.com:5432/postgres"
+python backend/db/seed.py --reset --source demo
 ```
 
-This tool will:
-1. Enable PostGIS extensions on Supabase.
-2. Create all tables automatically.
-3. Transfer all 15 projects, 808 parcels, 8,888 statutory stages, compensation, R&R, and alerts.
-4. Display a verification table showing `MATCH (100%)` for every table.
+This will:
+1. Initialize PostGIS and UUID extensions on Supabase.
+2. Create all statutory tables automatically.
+3. Seed all 12 projects, 2,400 parcels, stages, compensation, R&R, and demo users.
 
 ---
 

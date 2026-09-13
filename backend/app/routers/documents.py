@@ -147,10 +147,55 @@ async def upload_document(
     db.commit()
     db.refresh(doc)
 
+    # 6. Initialize approval workflow — notify first approver
+    try:
+        from app.services.notification_service import create_notification
+        from app.models.document_approval import APPROVAL_CHAIN
+
+        if APPROVAL_CHAIN:
+            first_step = APPROVAL_CHAIN[0]
+            from app.models import User as UserModel
+            approvers = db.execute(
+                select(UserModel).where(
+                    UserModel.role == first_step["role"],
+                    UserModel.is_active == True,  # noqa: E712
+                )
+            ).scalars().all()
+
+            for approver in approvers:
+                # Geographic scope filtering
+                scope_match = True
+                if parcel_id:
+                    parcel_row = db.execute(
+                        select(Parcel).where(Parcel.parcel_id == parcel_id)
+                    ).scalar_one_or_none()
+                    if parcel_row and approver.district_scope and parcel_row.district != approver.district_scope:
+                        scope_match = False
+                    if parcel_row and approver.state_scope and parcel_row.state != approver.state_scope:
+                        scope_match = False
+
+                if scope_match:
+                    create_notification(
+                        db,
+                        user_id=approver.id,
+                        title=f"New Document for Review: {doc.title}",
+                        message=f"A new {doc.document_type} document '{doc.title}' has been uploaded and requires your review.",
+                        severity="INFO",
+                        category="document",
+                        entity_type="document",
+                        entity_id=doc.document_id,
+                        action_url="/approvals",
+                    )
+            db.commit()
+    except Exception:
+        pass  # Non-blocking — notification failure should not break upload
+
     return {
         "document_id": str(doc.document_id),
         "title": doc.title,
         "document_type": doc.document_type,
+        "approval_status": doc.approval_status,
+        "current_approval_step": doc.current_approval_step,
         "mime_type": doc.mime_type,
         "file_size_bytes": doc.file_size_bytes,
         "sha256": sha256,

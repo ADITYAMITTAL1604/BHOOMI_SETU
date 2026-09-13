@@ -1,0 +1,84 @@
+{
+  "version": "1.0.0",
+  "description": "Statutory SLA timelines for land acquisition stages under RFCTLARR Act 2013",
+  "stages": {
+    "PROPOSAL": {
+      "sla_days": 30,
+      "description": "Initial land requirement proposal submission and review",
+      "warning_threshold_days": 7
+    },
+    "IDENTIFICATION": {
+      "sla_days": 45,
+      "description": "Survey number identification and preliminary site inspection",
+      "warning_threshold_days": 10
+    },
+    "SURVEY": {
+      "sla_days": 60,
+      "description": "Joint measurement survey and land records verification",
+      "warning_threshold_days": 14
+    },
+    "VERIFICATION": {
+      "sla_days": 30,
+      "description": "Title verification, encumbrance check, and ownership validation",
+      "warning_threshold_days": 7
+    },
+    "NOTIFICATION": {
+      "sla_days": 30,
+      "description": "Section 11 notification to affected landowners",
+      "warning_threshold_days": 7
+    },
+    "OBJECTION": {
+      "sla_days": 60,
+      "description": "Hearing of objections under Section 15 and resolution",
+      "warning_threshold_days": 14
+    },
+    "AWARD": {
+      "sla_days": 60,
+      "description": "Award declaration under Section 23 with compensation determination",
+      "warning_threshold_days": 14
+    },
+    "COMPENSATION": {
+      "sla_days": 45,
+      "description": "Compensation disbursement to affected families",
+      "warning_threshold_days": 10
+    },
+    "REHABILITATION_RESETTLEMENT": {
+      "sla_days": 120,
+      "description": "R&R scheme implementation under Schedule II",
+      "warning_threshold_days": 21
+    },
+    "POSSESSION": {
+      "sla_days": 30,
+      "description": "Physical possession and mutation of land records",
+      "warning_threshold_days": 7
+    },
+    "CLOSURE": {
+      "sla_days": 15,
+      "description": "Final documentation, gazette notification, and case closure",
+      "warning_threshold_days": 5
+    }
+  },
+  "approval_sla": {
+    "FIELD_OFFICER_REVIEW": {
+      "sla_days": 3,
+      "description": "Initial document review by field officer / tehsildar"
+    },
+    "DISTRICT_REVIEW": {
+      "sla_days": 5,
+      "description": "District officer approval review"
+    },
+    "STATE_REVIEW": {
+      "sla_days": 7,
+      "description": "State nodal officer approval review"
+    },
+    "FINAL_APPROVAL": {
+      "sla_days": 5,
+      "description": "Project authority final approval"
+    }
+  },
+  "breach_severity": {
+    "ok": "Within SLA timeline",
+    "warning": "Approaching SLA deadline (within warning_threshold_days)",
+    "critical": "SLA breached — overdue"
+  }
+}

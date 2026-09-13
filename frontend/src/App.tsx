@@ -40,6 +40,15 @@ const ReportsPage = lazy(() =>
 const SettingsPage = lazy(() =>
   import("@/pages/SettingsPage").then((m) => ({ default: m.SettingsPage || (m as any).default }))
 );
+const ApprovalsPage = lazy(() =>
+  import("@/pages/ApprovalsPage").then((m) => ({ default: m.ApprovalsPage || (m as any).default }))
+);
+const SLADashboardPage = lazy(() =>
+  import("@/pages/SLADashboardPage").then((m) => ({ default: m.SLADashboardPage || (m as any).default }))
+);
+const NotificationsPage = lazy(() =>
+  import("@/pages/NotificationsPage").then((m) => ({ default: m.NotificationsPage || (m as any).default }))
+);
 
 function PageLoader() {
   return (
@@ -78,6 +87,9 @@ export default function App() {
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/intelligence" element={<IntelligencePage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/approvals" element={<ApprovalsPage />} />
+            <Route path="/sla" element={<SLADashboardPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
 

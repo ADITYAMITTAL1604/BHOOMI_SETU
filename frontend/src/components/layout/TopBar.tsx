@@ -1,8 +1,9 @@
-import { Bell, Search, Grid3X3, LogOut, User as UserIcon, Menu } from "lucide-react";
+import { Search, Grid3X3, LogOut, User as UserIcon, Menu } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface TopBarProps {
   onMobileMenuToggle?: () => void;
@@ -86,14 +87,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps) {
       {/* ── Right: Actions ───────────────────── */}
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Notifications */}
-        <button
-          className="relative p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-          title="Notifications"
-          onClick={() => navigate("/alerts")}
-        >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-        </button>
+        <NotificationBell />
 
         {/* Grid Menu (hidden on small mobile) */}
         <button

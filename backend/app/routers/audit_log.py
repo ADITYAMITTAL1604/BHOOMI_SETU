@@ -1,4 +1,4 @@
-"""FastAPI router for /audit-log — searchable, filterable, append-only audit log (admin-only)."""
+"""FastAPI router for /audit-log — searchable, filterable, append-only audit log."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func, and_
 from sqlalchemy.orm import Session
 
-from app.core.deps import require_admin
+from app.core.deps import get_current_user
 from app.database import get_db
 from app.models import AuditLog, User
 
@@ -19,7 +19,7 @@ router = APIRouter()
 
 @router.get(
     "",
-    summary="Search and filter the immutable audit log (admin only)",
+    summary="Search and filter the immutable audit log",
     response_model=dict,
 )
 def list_audit_log(
@@ -32,7 +32,7 @@ def list_audit_log(
     before_id: Optional[UUID] = Query(None, description="Cursor: return entries before this log_id's timestamp"),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     """Return filtered, paginated audit log entries.
 
@@ -79,6 +79,7 @@ def list_audit_log(
             {
                 "log_id": str(e.log_id),
                 "user_id": str(e.user_id) if e.user_id else None,
+                "username": _get_username(db, e.user_id),
                 "action": e.action,
                 "entity_type": e.entity_type,
                 "entity_id": str(e.entity_id),
@@ -101,4 +102,56 @@ def list_audit_log(
             "date_from": date_from.isoformat() if date_from else None,
             "date_to": date_to.isoformat() if date_to else None,
         },
+    }
+
+
+def _get_username(db: Session, user_id) -> str | None:
+    """Resolve user_id to username for enriched audit entries."""
+    if not user_id:
+        return None
+    user = db.execute(select(User.username).where(User.id == user_id)).scalar_one_or_none()
+    return user
+
+
+@router.get(
+    "/timeline/{entity_type}/{entity_id}",
+    summary="Get timeline view for a specific entity (parcel, project, document)",
+)
+def get_entity_timeline(
+    entity_type: str,
+    entity_id: UUID,
+    limit: int = Query(100, ge=1, le=500),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Return a chronological timeline of all audit events for a specific entity."""
+    stmt = (
+        select(AuditLog)
+        .where(
+            and_(
+                AuditLog.entity_type == entity_type,
+                AuditLog.entity_id == entity_id,
+            )
+        )
+        .order_by(AuditLog.created_at.asc())
+        .limit(limit)
+    )
+    entries = db.execute(stmt).scalars().all()
+
+    return {
+        "entity_type": entity_type,
+        "entity_id": str(entity_id),
+        "total_events": len(entries),
+        "timeline": [
+            {
+                "log_id": str(e.log_id),
+                "action": e.action,
+                "username": _get_username(db, e.user_id),
+                "user_id": str(e.user_id) if e.user_id else None,
+                "old_values": e.old_values,
+                "new_values": e.new_values,
+                "created_at": e.created_at.isoformat() if e.created_at else None,
+            }
+            for e in entries
+        ],
     }

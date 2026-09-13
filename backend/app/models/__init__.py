@@ -11,6 +11,8 @@ from app.models.audit_log import AuditLog
 from app.models.alert import Alert
 from app.models.project_history import ProjectHistory
 from app.models.boundary import GISBoundary
+from app.models.document_approval import DocumentApproval
+from app.models.notification import Notification
 from app.models.enums import (
     UserRole,
     ProjectStatus,
@@ -22,6 +24,9 @@ from app.models.enums import (
     RehabilitationStatus,
     DocumentType,
     AlertSeverity,
+    ApprovalStatus,
+    ApprovalAction,
+    NotificationCategory,
 )
 
 __all__ = [
@@ -37,6 +42,8 @@ __all__ = [
     "Alert",
     "ProjectHistory",
     "GISBoundary",
+    "DocumentApproval",
+    "Notification",
     "UserRole",
     "ProjectStatus",
     "StageName",
@@ -47,4 +54,7 @@ __all__ = [
     "RehabilitationStatus",
     "DocumentType",
     "AlertSeverity",
+    "ApprovalStatus",
+    "ApprovalAction",
+    "NotificationCategory",
 ]

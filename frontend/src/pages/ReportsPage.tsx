@@ -2,8 +2,6 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart3,
-  Download,
-  Printer,
   Building2,
   Coins,
   Users,
@@ -11,238 +9,232 @@ import {
   CheckCircle2,
   Layers,
   MapPin,
+  RefreshCw,
 } from "lucide-react";
 import { getProjects } from "@/api/projects";
-import { fetchExecutiveSummary, getExecutiveSummaryHtmlUrl } from "@/api/reports";
+import { fetchExecutiveSummary, fetchKPIs } from "@/api/reports";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
-import { formatNumber, formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
+import { KPICards } from "@/components/reports/KPICards";
+import { AdvancedFilters, INITIAL_FILTERS, type FilterState } from "@/components/reports/AdvancedFilters";
+import { ExportButtons } from "@/components/reports/ExportButtons";
+import { useAuthStore } from "@/store/authStore";
 
 export function ReportsPage() {
-  const [selectedProject, setSelectedProject] = useState<string>("");
+  const { user } = useAuthStore();
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    ...INITIAL_FILTERS,
+    state: user?.state_scope || "",
+    district: user?.district_scope || "",
+  }));
 
+  // Projects list for dropdown
   const { data: projectsData } = useQuery({
     queryKey: ["projects-dropdown"],
     queryFn: () => getProjects(),
   });
 
+  // KPI metrics query — responds to state, district, and project filters
   const {
-    data: report,
-    isLoading,
-    refetch,
-    isFetching,
+    data: kpis,
+    isLoading: isKpisLoading,
+    refetch: refetchKPIs,
+    isFetching: isKpisFetching,
   } = useQuery({
-    queryKey: ["executive-summary", selectedProject],
-    queryFn: () => fetchExecutiveSummary(selectedProject || undefined),
+    queryKey: ["report-kpis", filters.state, filters.district, filters.projectId],
+    queryFn: () =>
+      fetchKPIs({
+        state: filters.state || undefined,
+        district: filters.district || undefined,
+        project_id: filters.projectId || undefined,
+      }),
   });
 
-  const handlePrint = () => {
-    window.print();
+  // Executive summary report query
+  const {
+    data: report,
+    isLoading: isReportLoading,
+    refetch: refetchReport,
+    isFetching: isReportFetching,
+  } = useQuery({
+    queryKey: ["executive-summary", filters.projectId, filters.state, filters.district],
+    queryFn: () =>
+      fetchExecutiveSummary({
+        project_id: filters.projectId || undefined,
+        state: filters.state || undefined,
+        district: filters.district || undefined,
+      }),
+  });
+
+  const handleRefresh = () => {
+    refetchKPIs();
+    refetchReport();
   };
 
-  const htmlDownloadUrl = getExecutiveSummaryHtmlUrl(selectedProject || undefined);
+  const isRefreshing = isKpisFetching || isReportFetching;
+  const projectList = (projectsData as any)?.data || (projectsData as any)?.items || [];
 
   return (
     <div className="animate-fade-in space-y-6">
-      {/* ── Header ───────────────────────────────── */}
+      {/* ── Header Ribbon ────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2.5">
-              <BarChart3 className="w-6 h-6 text-brand-teal-blue" />
-              Executive Analytics & Reports
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2.5">
+              <BarChart3 className="w-6 h-6 text-[#D47A22]" />
+              Executive Analytics & Statutory Reports
             </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              RFCTLARR Compliant
+            <span className="px-2.5 py-0.5 rounded-none text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-300">
+              RFCTLARR 2013 Statutory
             </span>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Generate and export high-level portfolio summaries, compensation audits, and project milestone reports.
+          <p className="text-xs text-gray-600 mt-1">
+            Official land acquisition reports, multi-state infrastructure audit logs, and Direct Benefit Transfer (DBT) summaries.
           </p>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={handlePrint}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-none border border-gray-300 bg-white text-xs font-bold uppercase tracking-wider text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            title="Refresh analytics data"
           >
-            <Printer className="w-4 h-4 text-gray-500" />
-            Print Report
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#D47A22]" : "text-gray-500"}`} />
+            {isRefreshing ? "Syncing..." : "Sync Data"}
           </button>
-          <a
-            href={htmlDownloadUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#D47A22] text-white text-sm font-medium rounded-xl hover:bg-[#B56315] shadow-sm transition-colors"
-          >
-            <Download className="w-4 h-4" />
-            Download HTML
-          </a>
+
+          <ExportButtons filters={filters} />
         </div>
       </div>
 
-      {/* Project Selector Ribbon */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-          <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Select Project:</span>
-          <select
-            value={selectedProject}
-            onChange={(e) => setSelectedProject(e.target.value)}
-            className="w-full sm:w-auto px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#D47A22]/30"
-          >
-            <option value="">All Projects (National Portfolio Overview)</option>
-            {(projectsData as any)?.items?.map((p: any) => (
-              <option key={p.project_id} value={p.project_id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
+      {/* ── Advanced Query & Geographic Filters ───────────────────── */}
+      <AdvancedFilters
+        filters={filters}
+        onFilterChange={setFilters}
+        projects={projectList}
+      />
 
-        <div className="text-xs text-gray-500">
-          Generated on <span className="font-mono font-medium text-gray-700">{report?.generated_at ? new Date(report.generated_at).toLocaleDateString() : "Live"}</span>
-          <button
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="ml-2 font-semibold text-[#D47A22] hover:underline disabled:opacity-50"
-          >
-            {isFetching ? "Refreshing…" : "Refresh"}
-          </button>
-        </div>
-      </div>
+      {/* ── Key Performance Indicators (KPI Cards) ────────────────── */}
+      <KPICards kpis={kpis} isLoading={isKpisLoading} />
 
-      {/* ── Report Document Preview ───────────────── */}
-      {isLoading || !report ? (
+      {/* ── Detailed Executive Document Preview ───────────────────── */}
+      {isReportLoading || !report ? (
         <div className="space-y-4">
-          <div className="h-32 animate-shimmer rounded-xl" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-24 animate-shimmer rounded-xl" />
+          <div className="h-32 bg-gray-100 rounded-none border border-gray-200 animate-pulse" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-gray-100 rounded-none border border-gray-200 animate-pulse" />
             ))}
           </div>
-          <div className="h-64 animate-shimmer rounded-xl" />
         </div>
       ) : (
         <div className="space-y-6">
           {/* Executive Overview Banner */}
-          <div className="bg-gradient-to-r from-[#D47A22] to-[#A2550D] text-white rounded-2xl p-4 sm:p-6 md:p-8 shadow-md">
+          <div className="bg-gradient-to-r from-[#D47A22] to-[#A2550D] text-white rounded-none p-5 sm:p-7 shadow-none border border-amber-800">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm mb-3">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-none text-[10px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm mb-2">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  Official Executive Briefing
+                  Statutory Portfolio Briefing
                 </div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">
-                  {report.project?.name || "National Portfolio Summary"}
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
+                  {report.project?.name || "National Infrastructure Portfolio"}
                 </h2>
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-white/80 mt-2">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-white/90 mt-2">
                   <span className="flex items-center gap-1.5">
                     <Building2 className="w-3.5 h-3.5" />
-                    Status: <span className="font-semibold text-white uppercase">{report.project?.status || "ACTIVE"}</span>
+                    Status: <span className="font-bold uppercase">{report.project?.status || "ACTIVE"}</span>
                   </span>
-                  {report.project?.districts && (
+                  {report.project?.states && report.project.states.length > 0 && (
                     <span className="flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5" />
-                      {report.project.districts.join(", ")}
+                      States: {report.project.states.join(", ")}
+                    </span>
+                  )}
+                  {report.project?.districts && report.project.districts.length > 0 && (
+                    <span className="flex items-center gap-1.5">
+                      Districts: {report.project.districts.join(", ")}
                     </span>
                   )}
                 </div>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-3.5 sm:p-4 text-left sm:text-right border border-white/15">
-                <span className="text-xs text-white/70 block uppercase tracking-wider">Overall Acquisition</span>
-                <span className="text-2xl sm:text-3xl font-black text-white">{report.metrics.progress_pct}%</span>
-                <span className="text-[11px] text-white/80 block mt-0.5">
-                  {report.metrics.land_acquired_ha} ha of {report.metrics.land_required_ha} ha
+              <div className="bg-white/10 backdrop-blur-md rounded-none p-4 text-left sm:text-right border border-white/20">
+                <span className="text-[10px] text-white/80 block uppercase font-bold tracking-wider">
+                  Acquisition Progress
+                </span>
+                <span className="text-2xl sm:text-3xl font-black font-mono text-white">
+                  {report.metrics.progress_pct}%
+                </span>
+                <span className="text-[11px] text-white/90 block mt-0.5 font-mono">
+                  {report.metrics.land_acquired_ha} / {report.metrics.land_required_ha} HA
                 </span>
               </div>
             </div>
           </div>
 
-          {/* KPI Metrics Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            <Card className="p-5">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Parcels</span>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{formatNumber(report.metrics.total_parcels)}</p>
-              <span className="text-xs text-gray-500 mt-1 block">
-                {report.metrics.total_parcel_area_ha} ha surveyed area
-              </span>
-            </Card>
-
-            <Card className="p-5">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Required Land</span>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{report.metrics.land_required_ha} <span className="text-sm font-normal text-gray-500">ha</span></p>
-              <span className="text-xs text-emerald-600 font-semibold mt-1 block">
-                {report.metrics.land_acquired_ha} ha completed
-              </span>
-            </Card>
-
-            <Card className="p-5">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Pending Acquisition</span>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {Math.max(0, report.metrics.land_required_ha - report.metrics.land_acquired_ha).toFixed(1)} <span className="text-sm font-normal text-gray-500">ha</span>
-              </p>
-              <span className="text-xs text-amber-600 font-medium mt-1 block">In pipeline verification</span>
-            </Card>
-
-            <Card className="p-5">
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Avg Portfolio Risk</span>
-              <p className="text-2xl font-bold text-gray-900 mt-1">
-                {report.metrics.avg_risk_score} <span className="text-sm font-normal text-gray-500">/ 100</span>
-              </p>
-              <span className={`text-xs font-semibold mt-1 block ${report.metrics.avg_risk_score > 60 ? "text-red-600" : "text-emerald-600"}`}>
-                {report.metrics.avg_risk_score > 60 ? "Elevated compliance review" : "Standard operational risk"}
-              </span>
-            </Card>
-          </div>
-
-          {/* Compensation & Financial Disbursement */}
-          <Card>
-            <CardHeader className="border-b border-gray-100 pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Coins className="w-5 h-5 text-brand-copper" />
-                Statutory Compensation & Direct Benefit Transfer (DBT) Audit
+          {/* Compensation & Financial Disbursement Audit */}
+          <Card className="rounded-none border border-gray-300 bg-white shadow-none">
+            <CardHeader className="py-3 px-5 border-b border-gray-200 bg-gray-50/60">
+              <CardTitle className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                <Coins className="w-4 h-4 text-[#D47A22]" />
+                Direct Benefit Transfer (DBT) & Statutory Award Disbursement Audit
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="p-5">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Approved Award</span>
-                  <p className="text-xl font-bold text-gray-900 mt-1">
+                <div className="bg-gray-50 p-4 border border-gray-200">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block">
+                    Approved Award (Sec 23/30)
+                  </span>
+                  <p className="text-xl font-black font-mono text-gray-900 mt-1">
                     {formatCurrency(report.compensation.approved_amount)}
                   </p>
-                  <span className="text-[11px] text-gray-400 mt-0.5 block">Statutory compensation assessed</span>
-                </div>
-
-                <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100">
-                  <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Disbursed (Paid)</span>
-                  <p className="text-xl font-bold text-emerald-800 mt-1">
-                    {formatCurrency(report.compensation.paid_amount)}
-                  </p>
-                  <span className="text-[11px] text-emerald-600 font-medium mt-0.5 block">
-                    {report.compensation.disbursement_pct}% released to beneficiaries
+                  <span className="text-[10px] text-gray-500 mt-0.5 block">
+                    Statutory award including solatium & multiplier
                   </span>
                 </div>
 
-                <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-100">
-                  <span className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Pending Release</span>
-                  <p className="text-xl font-bold text-amber-800 mt-1">
+                <div className="bg-emerald-50/50 p-4 border border-emerald-200">
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                    Disbursed (Paid Out)
+                  </span>
+                  <p className="text-xl font-black font-mono text-emerald-900 mt-1">
+                    {formatCurrency(report.compensation.paid_amount)}
+                  </p>
+                  <span className="text-[10px] text-emerald-700 font-semibold mt-0.5 block">
+                    {report.compensation.disbursement_pct}% transferred to verified bank accounts
+                  </span>
+                </div>
+
+                <div className="bg-amber-50/50 p-4 border border-amber-200">
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                    Pending Disbursement
+                  </span>
+                  <p className="text-xl font-black font-mono text-amber-900 mt-1">
                     {formatCurrency(report.compensation.pending_amount)}
                   </p>
-                  <span className="text-[11px] text-amber-600 font-medium mt-0.5 block">Awaiting bank verification / claims</span>
+                  <span className="text-[10px] text-amber-700 mt-0.5 block">
+                    Awaiting title claim clearance / treasury release
+                  </span>
                 </div>
               </div>
 
               {/* Progress bar */}
               <div>
-                <div className="flex justify-between text-xs font-semibold mb-1">
-                  <span className="text-gray-600">Disbursement Completion Rate</span>
-                  <span className="text-gray-900">{report.compensation.disbursement_pct}%</span>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span className="text-gray-600 uppercase text-[10px] tracking-wider">
+                    Disbursement Completion Rate
+                  </span>
+                  <span className="font-mono text-gray-900">{report.compensation.disbursement_pct}%</span>
                 </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-100 rounded-none overflow-hidden border border-gray-200">
                   <div
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.max(2, report.compensation.disbursement_pct)}%` }}
+                    className="h-full bg-emerald-600 transition-all duration-500"
+                    style={{ width: `${Math.max(1, report.compensation.disbursement_pct)}%` }}
                   />
                 </div>
               </div>
@@ -252,22 +244,22 @@ export function ReportsPage() {
           {/* Acquisition Stages & R&R */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Stages Table */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="border-b border-gray-100 pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Layers className="w-5 h-5 text-brand-teal-blue" />
-                  Statutory Acquisition Stage Distribution
+            <Card className="lg:col-span-2 rounded-none border border-gray-300 bg-white shadow-none">
+              <CardHeader className="py-3 px-5 border-b border-gray-200 bg-gray-50/60">
+                <CardTitle className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-[#D47A22]" />
+                  Statutory 11-Stage Workflow Breakdown
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-2 px-0">
+              <CardContent className="p-0">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
+                  <thead className="bg-gray-50 text-gray-600 font-bold uppercase text-[10px] border-b border-gray-200 tracking-wider">
                     <tr>
-                      <th className="px-5 py-2.5">RFCTLARR Stage</th>
+                      <th className="px-5 py-2.5">RFCTLARR Statutory Stage</th>
                       <th className="px-5 py-2.5 text-right">Active Parcels</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-gray-200">
                     {Object.entries(report.stages || {}).length === 0 ? (
                       <tr>
                         <td colSpan={2} className="px-5 py-4 text-center text-gray-400">
@@ -276,11 +268,11 @@ export function ReportsPage() {
                       </tr>
                     ) : (
                       Object.entries(report.stages).map(([stageName, count]) => (
-                        <tr key={stageName} className="hover:bg-gray-50/60">
+                        <tr key={stageName} className="hover:bg-amber-50/30 transition-colors">
                           <td className="px-5 py-2.5 font-medium text-gray-800">
                             {stageName.replace(/_/g, " ")}
                           </td>
-                          <td className="px-5 py-2.5 text-right font-bold text-gray-900">
+                          <td className="px-5 py-2.5 text-right font-mono font-bold text-gray-900">
                             {count.toLocaleString()}
                           </td>
                         </tr>
@@ -292,34 +284,38 @@ export function ReportsPage() {
             </Card>
 
             {/* Rehabilitation & Resettlement */}
-            <Card>
-              <CardHeader className="border-b border-gray-100 pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Users className="w-5 h-5 text-brand-sea-green" />
+            <Card className="rounded-none border border-gray-300 bg-white shadow-none">
+              <CardHeader className="py-3 px-5 border-b border-gray-200 bg-gray-50/60">
+                <CardTitle className="text-sm font-bold text-gray-900 uppercase tracking-wide flex items-center gap-2">
+                  <Users className="w-4 h-4 text-emerald-700" />
                   R&R Social Safeguards
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                <div className="bg-brand-linen/70 rounded-xl p-4 border border-gray-200/60 text-center">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
-                    Project Affected Families
+              <CardContent className="p-5 space-y-4">
+                <div className="bg-amber-50/40 p-4 border border-amber-200 text-center">
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+                    Project Affected Families (PAFs)
                   </span>
-                  <span className="text-3xl font-extrabold text-brand-teal-blue mt-1 block">
-                    {report.rehabilitation.total_affected_families.toLocaleString()}
+                  <span className="text-3xl font-black font-mono text-gray-900 mt-1 block">
+                    {report.rehabilitation?.total_affected_families?.toLocaleString() || 0}
                   </span>
-                  <span className="text-xs text-gray-500 mt-1 block">
-                    Entitled to resettlement & rehabilitation benefits
+                  <span className="text-[11px] text-gray-600 mt-1 block">
+                    Entitled to Schedule II & III Rehabilitation Assistance
                   </span>
                 </div>
 
-                <div className="space-y-2 text-xs text-gray-600">
+                <div className="space-y-2.5 text-xs text-gray-700">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>RFCTLARR Schedule II & III Entitlement matrix verified</span>
+                    <span>Schedule II Resettlement Matrix Verified</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>Relocation site allotment mapping active</span>
+                    <span>Direct Beneficiary Account Aadhaar-linked</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>Relocation and Alternative Allotment Active</span>
                   </div>
                 </div>
               </CardContent>

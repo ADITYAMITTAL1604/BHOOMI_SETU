@@ -53,12 +53,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return None
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        ip = self._get_client_ip(request)
+        # Exempt localhost / dev environment from rate limiting
+        if ip in ("127.0.0.1", "::1", "localhost", "testclient"):
+            return await call_next(request)
+
         rule = self._get_matching_rule(request.url.path)
         if not rule:
             return await call_next(request)
 
         prefix, limit, window_seconds = rule
-        ip = self._get_client_ip(request)
         key = (ip, prefix)
         now = time.monotonic()
         window_start = now - window_seconds

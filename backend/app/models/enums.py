@@ -100,3 +100,28 @@ class AlertSeverity(str, Enum):
     INFO = "INFO"
     WARNING = "WARNING"
     CRITICAL = "CRITICAL"
+
+
+class ApprovalStatus(str, Enum):
+    """Document approval workflow status."""
+    PENDING_REVIEW = "PENDING_REVIEW"
+    UNDER_REVIEW = "UNDER_REVIEW"
+    REVISION_REQUESTED = "REVISION_REQUESTED"
+    REJECTED = "REJECTED"
+    APPROVED = "APPROVED"
+
+
+class ApprovalAction(str, Enum):
+    """Actions available at each approval step."""
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    REVISION_REQUESTED = "REVISION_REQUESTED"
+
+
+class NotificationCategory(str, Enum):
+    """Notification event categories."""
+    APPROVAL = "approval"
+    SLA = "sla"
+    DOCUMENT = "document"
+    STAGE = "stage"
+    SYSTEM = "system"

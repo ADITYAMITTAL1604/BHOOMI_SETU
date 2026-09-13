@@ -33,9 +33,11 @@ from app.core.security import hash_password
 from app.database import Base, SessionLocal, engine
 from app.models import (
     AcquisitionStage,
+    Alert,
     AuditLog,
     Compensation,
     GISBoundary,
+    Parcel,
     Project,
     ProjectHistory,
     RRRecord,
@@ -59,68 +61,171 @@ settings = get_settings()
 # ── Geographic Helpers ────────────────────────────────────────────────────────
 
 DISTRICT_CONFIGS = [
+    # ── Uttar Pradesh (Delhi-NCR Corridor) ──
+    {
+        "state": "Uttar Pradesh",
+        "district": "Ghaziabad",
+        "center_lat": 28.6692,
+        "center_lon": 77.4538,
+        "villages": ["Sahibabad", "Guldhar", "Duhai", "Muradnagar", "Modinagar", "Morti", "Bhudbaral", "Morta"],
+    },
+    {
+        "state": "Uttar Pradesh",
+        "district": "Meerut",
+        "center_lat": 28.9845,
+        "center_lon": 77.7064,
+        "villages": ["Partapur", "Rithani", "Shatabdi Nagar", "Brahampuri", "Begumpul", "Modipuram", "Mohiuddinpur", "Daurala"],
+    },
+    # ── Delhi (NCT Urban & Transit Corridors) ──
+    {
+        "state": "Delhi",
+        "district": "East Delhi",
+        "center_lat": 28.6280,
+        "center_lon": 77.2951,
+        "villages": ["Sarai Kale Khan", "Shakarpur", "Mandawali", "Patparganj", "Ghazipur", "Kalyanpuri", "Khichripur"],
+    },
+    {
+        "state": "Delhi",
+        "district": "South Delhi",
+        "center_lat": 28.5244,
+        "center_lon": 77.2000,
+        "villages": ["Saket", "Neb Sarai", "Khanpur", "Sangam Vihar", "Tughlakabad", "Chhatarpur", "Maidan Garhi", "Lado Sarai"],
+    },
+    {
+        "state": "Delhi",
+        "district": "South West Delhi",
+        "center_lat": 28.5824,
+        "center_lon": 77.0550,
+        "villages": ["Aerocity", "Mahipalpur", "Vasant Kunj", "Kapashera", "Bijwasan", "Samalkha", "Dwarka Sector 21"],
+    },
+    # ── Maharashtra (Samruddhi, Ring Road, MAHSR, JNPT Corridors) ──
+    {
+        "state": "Maharashtra",
+        "district": "Thane",
+        "center_lat": 19.2183,
+        "center_lon": 73.0500,
+        "villages": ["Bhiwandi", "Amane", "Shahapur", "Diva", "Shilphata", "Padgha", "Vashind", "Asangaon"],
+    },
+    {
+        "state": "Maharashtra",
+        "district": "Palghar",
+        "center_lat": 19.7500,
+        "center_lon": 72.8500,
+        "villages": ["Boisar", "Dahanu", "Talasari", "Manor", "Wada", "Kelve", "Saphale", "Vikramgad"],
+    },
+    {
+        "state": "Maharashtra",
+        "district": "Raigad",
+        "center_lat": 18.8500,
+        "center_lon": 73.0500,
+        "villages": ["Nhava Sheva", "Jasai", "Dronagiri", "Chirle", "Panvel", "Ulwe", "Karanjade", "Dapoli"],
+    },
     {
         "state": "Maharashtra",
         "district": "Pune",
         "center_lat": 18.5204,
         "center_lon": 73.8567,
-        "villages": ["Wagholi", "Maan", "Hinjawadi", "Hadapsar", "Chakan", "Bavdhan", "Kharadi", "Loni Kalbhor", "Pirangut", "Khed"],
+        "villages": ["Wagholi", "Hinjawadi", "Maan", "Chakan", "Pirangut", "Urse", "Lonikand", "Parandwadi"],
     },
     {
         "state": "Maharashtra",
-        "district": "Thane",
-        "center_lat": 19.2183,
-        "center_lon": 72.9781,
-        "villages": ["Kalyan", "Dombivli", "Bhiwandi", "Mumbra", "Badlapur", "Ambarnath", "Shahapur", "Murbad"],
+        "district": "Nagpur",
+        "center_lat": 21.1458,
+        "center_lon": 79.0882,
+        "villages": ["Shivmadka", "Butibori", "Wadi", "Hingna", "Gumgaon", "Asoli", "Bhilgaon"],
     },
     {
         "state": "Maharashtra",
-        "district": "Raigad",
-        "center_lat": 18.5158,
-        "center_lon": 73.1822,
-        "villages": ["Panvel", "Pen", "Uran", "Karjat", "Khalapur", "Alibag", "Roha", "Mangaon"],
+        "district": "Nashik",
+        "center_lat": 19.9975,
+        "center_lon": 73.7898,
+        "villages": ["Sinnar", "Igatpuri", "Ghoti", "Panchale", "Dodi", "Musgaon", "Vinchur"],
+    },
+    # ── Punjab (Amritsar-Jamnagar & Freight Corridors) ──
+    {
+        "state": "Punjab",
+        "district": "Amritsar",
+        "center_lat": 31.6340,
+        "center_lon": 74.8723,
+        "villages": ["Tibba", "Chheharta", "Verka", "Manawala", "Jandiala Guru", "Attari", "Khasa"],
     },
     {
-        "state": "Maharashtra",
-        "district": "Palghar",
-        "center_lat": 19.6967,
-        "center_lon": 72.7699,
-        "villages": ["Dahanu", "Palghar", "Wada", "Talasari", "Jawhar", "Vikramgad", "Mokhada", "Vasai"],
+        "state": "Punjab",
+        "district": "Tarn Taran",
+        "center_lat": 31.4520,
+        "center_lon": 74.9254,
+        "villages": ["Patti", "Naushehra", "Harike", "Goindwal Sahib", "Chabal", "Bhikhiwind"],
     },
+    {
+        "state": "Punjab",
+        "district": "Moga",
+        "center_lat": 30.8165,
+        "center_lon": 75.1717,
+        "villages": ["Baghapurana", "Dharamkot", "Kotkapura Road", "Badhni Kalan", "Singhanwala"],
+    },
+    {
+        "state": "Punjab",
+        "district": "Bathinda",
+        "center_lat": 30.2110,
+        "center_lon": 74.9455,
+        "villages": ["Rampura Phul", "Sangat", "Goniana", "Bhucho Mandi", "Maur", "Kot Shamir"],
+    },
+    {
+        "state": "Punjab",
+        "district": "Ludhiana",
+        "center_lat": 30.9010,
+        "center_lon": 75.8573,
+        "villages": ["Sahnewal", "Doraha", "Khanna", "Mullanpur", "Dehlon", "Kohara"],
+    },
+    {
+        "state": "Punjab",
+        "district": "Patiala",
+        "center_lat": 30.3398,
+        "center_lon": 76.3869,
+        "villages": ["Rajpura", "Shambhu", "Ghanaur", "Banur", "Sanaur", "Khaspur"],
+    },
+    # ── Rajasthan (WDFC, Ring Road, Refinery Corridors) ──
     {
         "state": "Rajasthan",
         "district": "Jaipur",
         "center_lat": 26.9124,
         "center_lon": 75.7873,
-        "villages": ["Sanganer", "Amber", "Bassi", "Chaksu", "Kotputli", "Shahpura", "Phulera", "Jamwa Ramgarh"],
+        "villages": ["Bagru", "Shivdaspura", "Vatika", "Bassi", "Chaksu", "Phulera", "Asalpur", "Kotputli"],
     },
     {
         "state": "Rajasthan",
         "district": "Jodhpur",
         "center_lat": 26.2389,
         "center_lon": 73.0243,
-        "villages": ["Osian", "Bilara", "Luni", "Bhopalgarh", "Shergarh", "Balesar", "Phalodi", "Piparcity"],
+        "villages": ["Luni", "Borunda", "Pipar", "Salawas", "Mogra", "Jhalamand"],
     },
     {
-        "state": "Uttar Pradesh",
-        "district": "Moradabad",
-        "center_lat": 28.8386,
-        "center_lon": 78.7733,
-        "villages": ["Peepli Khadder", "Kanth", "Bilari", "Thakurdwara"],
+        "state": "Rajasthan",
+        "district": "Balotra",
+        "center_lat": 25.8344,
+        "center_lon": 72.2415,
+        "villages": ["Pachpadra", "Sambhra", "Asotra", "Mandawala", "Kalyanpur", "Jasol", "Bithuja"],
     },
     {
-        "state": "Uttar Pradesh",
-        "district": "Bahraich",
-        "center_lat": 27.5705,
-        "center_lon": 81.5977,
-        "villages": ["Madh Nagar", "Khasaha Mohammadpur", "Nanpara", "Mahasi"],
+        "state": "Rajasthan",
+        "district": "Barmer",
+        "center_lat": 25.7521,
+        "center_lon": 71.3967,
+        "villages": ["Baytu", "Nagana", "Kawas", "Sindhari", "Jasai", "Guda"],
     },
     {
-        "state": "Uttar Pradesh",
-        "district": "Sitapur",
-        "center_lat": 27.5684,
-        "center_lon": 80.6829,
-        "villages": ["Saholi", "Kurriya Udaipur", "Karkhila", "Biswan"],
+        "state": "Rajasthan",
+        "district": "Ajmer",
+        "center_lat": 26.4499,
+        "center_lon": 74.6399,
+        "villages": ["Kishangarh", "Madanganj", "Gegal", "Gugra", "Tabiji", "Mangliyawas"],
+    },
+    {
+        "state": "Rajasthan",
+        "district": "Pali",
+        "center_lat": 25.7711,
+        "center_lon": 73.3234,
+        "villages": ["Marwar Junction", "Rohat", "Sojat Road", "Gundoj", "Rani", "Falna"],
     },
 ]
 
@@ -138,8 +243,100 @@ LAST_NAMES = [
 ]
 
 
+import math
+
+def generate_linestring_wkt(waypoints: list[tuple[float, float]]) -> str:
+    """Generate PostGIS LINESTRING from waypoints (lat, lon)."""
+    coords = [f"{lon:.6f} {lat:.6f}" for lat, lon in waypoints]
+    return f"LINESTRING({', '.join(coords)})"
+
+
+def interpolate_corridor(waypoints: list[tuple[float, float]], u: float):
+    """
+    Interpolate position and tangent along waypoints at fraction u (0.0 <= u <= 1.0).
+    Returns (lat, lon, tx, ty, nx, ny).
+    """
+    if len(waypoints) < 2:
+        lat, lon = waypoints[0]
+        return lat, lon, 1.0, 0.0, 0.0, 1.0
+
+    seg_lens = []
+    for j in range(len(waypoints) - 1):
+        lat1, lon1 = waypoints[j]
+        lat2, lon2 = waypoints[j + 1]
+        sl = math.hypot(lon2 - lon1, lat2 - lat1)
+        seg_lens.append(max(sl, 1e-6))
+
+    total_len = sum(seg_lens)
+    target_d = max(0.0, min(1.0, u)) * total_len
+
+    cum_d = 0.0
+    for j, sl in enumerate(seg_lens):
+        if cum_d + sl >= target_d or j == len(seg_lens) - 1:
+            local_u = (target_d - cum_d) / sl
+            local_u = max(0.0, min(1.0, local_u))
+            lat1, lon1 = waypoints[j]
+            lat2, lon2 = waypoints[j + 1]
+            lat_c = lat1 + local_u * (lat2 - lat1)
+            lon_c = lon1 + local_u * (lon2 - lon1)
+
+            dx = lon2 - lon1
+            dy = lat2 - lat1
+            mag = math.hypot(dx, dy)
+            if mag == 0:
+                mag = 1e-6
+            tx = dx / mag
+            ty = dy / mag
+            nx = -ty
+            ny = tx
+            return lat_c, lon_c, tx, ty, nx, ny
+        cum_d += sl
+
+    lat_last, lon_last = waypoints[-1]
+    return lat_last, lon_last, 1.0, 0.0, 0.0, 1.0
+
+
+def generate_linear_cadastral_polygon_wkt(waypoints: list[tuple[float, float]], fraction: float, idx: int) -> str:
+    """
+    Generate an authentic cadastral survey parcel polygon along the corridor right-of-way.
+    Alternates left and right sides of the corridor centerline with distinct surveyed boundaries.
+    """
+    lat_c, lon_c, tx, ty, nx, ny = interpolate_corridor(waypoints, fraction)
+
+    # Alternate side (left = 1, right = -1)
+    side = 1 if (idx % 2 == 0) else -1
+
+    # Width offset from centerline (approx 30m to 120m in degrees, where 0.001 deg approx 110m)
+    w_inner = side * (0.00020 + random.uniform(0.0, 0.00010))
+    w_outer = side * (abs(w_inner) + 0.00070 + random.uniform(0.0, 0.00035))
+
+    # Length along corridor tangent (approx 70m to 140m)
+    half_len = 0.00050 + random.uniform(0.0, 0.00020)
+
+    # 4 polygon corners
+    p1_lon = lon_c - half_len * tx + w_inner * nx
+    p1_lat = lat_c - half_len * ty + w_inner * ny
+
+    p2_lon = lon_c + half_len * tx + w_inner * nx
+    p2_lat = lat_c + half_len * ty + w_inner * ny
+
+    p3_lon = lon_c + half_len * tx + w_outer * nx
+    p3_lat = lat_c + half_len * ty + w_outer * ny
+
+    p4_lon = lon_c - half_len * tx + w_outer * nx
+    p4_lat = lat_c - half_len * ty + w_outer * ny
+
+    if side < 0:
+        pts = [(p1_lon, p1_lat), (p4_lon, p4_lat), (p3_lon, p3_lat), (p2_lon, p2_lat), (p1_lon, p1_lat)]
+    else:
+        pts = [(p1_lon, p1_lat), (p2_lon, p2_lat), (p3_lon, p3_lat), (p4_lon, p4_lat), (p1_lon, p1_lat)]
+
+    ring_str = ", ".join([f"{lon:.6f} {lat:.6f}" for lon, lat in pts])
+    return f"POLYGON(({ring_str}))"
+
+
 def generate_polygon_wkt(center_lat: float, center_lon: float, offset_idx: int) -> str:
-    """Generate a small realistic polygon near the center point."""
+    """Generate a small realistic polygon near the center point (fallback)."""
     lat_offset = ((offset_idx % 40) - 20) * 0.003 + random.uniform(-0.001, 0.001)
     lon_offset = ((offset_idx // 40) - 20) * 0.003 + random.uniform(-0.001, 0.001)
 
@@ -155,9 +352,9 @@ def generate_polygon_wkt(center_lat: float, center_lon: float, offset_idx: int) 
 
 
 def generate_corridor_wkt(lat1: float, lon1: float, lat2: float, lon2: float) -> str:
-    """Generate a LineString corridor geometry."""
-    mid_lat = (lat1 + lat2) / 2 + random.uniform(-0.05, 0.05)
-    mid_lon = (lon1 + lon2) / 2 + random.uniform(-0.05, 0.05)
+    """Generate a LineString corridor geometry from two points."""
+    mid_lat = (lat1 + lat2) / 2 + random.uniform(-0.02, 0.02)
+    mid_lon = (lon1 + lon2) / 2 + random.uniform(-0.02, 0.02)
     return f"LINESTRING({lon1:.6f} {lat1:.6f}, {mid_lon:.6f} {mid_lat:.6f}, {lon2:.6f} {lat2:.6f})"
 
 
@@ -181,6 +378,8 @@ def reset_database(db) -> None:
     """Safely wipe existing records in child-to-parent order."""
     print("   [RESET] Truncating existing tables...")
     tables = [
+        "document_approvals",
+        "notifications",
         "audit_logs",
         "alerts",
         "documents",
@@ -254,6 +453,34 @@ def seed_users(db) -> dict[str, User]:
             "state_scope": "Uttar Pradesh",
             "district_scope": "Ghaziabad",
         },
+        {
+            "username": "delhi_state",
+            "email": "state.delhi@bhoomisetu.gov.in",
+            "role": UserRole.STATE.value,
+            "state_scope": "Delhi",
+            "district_scope": None,
+        },
+        {
+            "username": "delhi_district",
+            "email": "collector.southdelhi@bhoomisetu.gov.in",
+            "role": UserRole.DISTRICT.value,
+            "state_scope": "Delhi",
+            "district_scope": "South Delhi",
+        },
+        {
+            "username": "punjab_state",
+            "email": "state.punjab@bhoomisetu.gov.in",
+            "role": UserRole.STATE.value,
+            "state_scope": "Punjab",
+            "district_scope": None,
+        },
+        {
+            "username": "punjab_district",
+            "email": "collector.amritsar@bhoomisetu.gov.in",
+            "role": UserRole.DISTRICT.value,
+            "state_scope": "Punjab",
+            "district_scope": "Amritsar",
+        },
     ]
 
     user_map: dict[str, User] = {}
@@ -286,21 +513,29 @@ def seed_users(db) -> dict[str, User]:
 def seed_boundaries(db) -> None:
     """Seed administrative GIS boundaries (State, District, Village polygons)."""
     print("\n--- Seeding Administrative Boundaries ---")
-    boundary_entries = [
+    state_entries = [
         {"level": "state", "name": "Maharashtra", "parent": "India", "state": "Maharashtra", "dist": None, "lat": 19.7515, "lon": 75.7139, "size": 1.5},
         {"level": "state", "name": "Rajasthan", "parent": "India", "state": "Rajasthan", "dist": None, "lat": 27.0238, "lon": 74.2179, "size": 1.5},
         {"level": "state", "name": "Uttar Pradesh", "parent": "India", "state": "Uttar Pradesh", "dist": None, "lat": 26.8467, "lon": 80.9462, "size": 1.6},
         {"level": "state", "name": "Gujarat", "parent": "India", "state": "Gujarat", "dist": None, "lat": 22.2587, "lon": 71.1924, "size": 1.2},
-        {"level": "district", "name": "Pune", "parent": "Maharashtra", "state": "Maharashtra", "dist": "Pune", "lat": 18.5204, "lon": 73.8567, "size": 0.4},
-        {"level": "district", "name": "Thane", "parent": "Maharashtra", "state": "Maharashtra", "dist": "Thane", "lat": 19.2183, "lon": 72.9781, "size": 0.3},
-        {"level": "district", "name": "Raigad", "parent": "Maharashtra", "state": "Maharashtra", "dist": "Raigad", "lat": 18.5158, "lon": 73.1822, "size": 0.35},
-        {"level": "district", "name": "Palghar", "parent": "Maharashtra", "state": "Maharashtra", "dist": "Palghar", "lat": 19.6967, "lon": 72.7699, "size": 0.35},
-        {"level": "district", "name": "Jaipur", "parent": "Rajasthan", "state": "Rajasthan", "dist": "Jaipur", "lat": 26.9124, "lon": 75.7873, "size": 0.4},
-        {"level": "district", "name": "Jodhpur", "parent": "Rajasthan", "state": "Rajasthan", "dist": "Jodhpur", "lat": 26.2389, "lon": 73.0243, "size": 0.45},
-        {"level": "district", "name": "Moradabad", "parent": "Uttar Pradesh", "state": "Uttar Pradesh", "dist": "Moradabad", "lat": 28.8386, "lon": 78.7733, "size": 0.35},
-        {"level": "district", "name": "Bahraich", "parent": "Uttar Pradesh", "state": "Uttar Pradesh", "dist": "Bahraich", "lat": 27.5705, "lon": 81.5977, "size": 0.35},
-        {"level": "district", "name": "Sitapur", "parent": "Uttar Pradesh", "state": "Uttar Pradesh", "dist": "Sitapur", "lat": 27.5684, "lon": 80.6829, "size": 0.35},
+        {"level": "state", "name": "Delhi", "parent": "India", "state": "Delhi", "dist": None, "lat": 28.6139, "lon": 77.2090, "size": 0.3},
+        {"level": "state", "name": "Punjab", "parent": "India", "state": "Punjab", "dist": None, "lat": 31.1471, "lon": 75.3412, "size": 1.2},
     ]
+
+    boundary_entries = list(state_entries)
+
+    # Automatically add district boundaries for each district in DISTRICT_CONFIGS
+    for dcfg in DISTRICT_CONFIGS:
+        boundary_entries.append({
+            "level": "district",
+            "name": dcfg["district"],
+            "parent": dcfg["state"],
+            "state": dcfg["state"],
+            "dist": dcfg["district"],
+            "lat": dcfg["center_lat"],
+            "lon": dcfg["center_lon"],
+            "size": 0.25 if dcfg["state"] != "Delhi" else 0.10,
+        })
 
     for dcfg in DISTRICT_CONFIGS:
         for vname in dcfg["villages"][:3]:
@@ -315,12 +550,14 @@ def seed_boundaries(db) -> None:
                 "size": 0.04,
             })
 
-    existing_count = db.execute(select(GISBoundary)).scalars().all()
-    if len(existing_count) < len(boundary_entries):
-        for b in boundary_entries:
+    existing_ids = set(db.execute(select(GISBoundary.boundary_id)).scalars().all())
+    added = 0
+    for b in boundary_entries:
+        b_id = deterministic_uuid("bnd", f"{b['level']}:{b['name']}")
+        if b_id not in existing_ids:
             geom_wkt = generate_multipolygon_wkt(b["lat"], b["lon"], b["size"])
             boundary = GISBoundary(
-                boundary_id=deterministic_uuid("bnd", f"{b['level']}:{b['name']}"),
+                boundary_id=b_id,
                 level=b["level"],
                 name=b["name"],
                 parent_name=b["parent"],
@@ -329,10 +566,13 @@ def seed_boundaries(db) -> None:
                 geometry=WKTElement(geom_wkt, srid=4326),
             )
             db.add(boundary)
+            existing_ids.add(b_id)
+            added += 1
+    if added > 0:
         db.commit()
-        print(f"   [OK] Seeded {len(boundary_entries)} administrative boundaries.")
+        print(f"   [OK] Seeded {added} new administrative boundaries.")
     else:
-        print(f"   [INFO] {len(existing_count)} boundaries already present.")
+        print(f"   [INFO] All {len(boundary_entries)} boundaries already present.")
 
 
 # ── Synthetic CSV Ingestion Seeder ───────────────────────────────────────────
@@ -661,86 +901,269 @@ def seed_from_synthetic(db, user_map: dict[str, User], data_dir: Path) -> None:
 
 # ── Procedural Demo Seeder ───────────────────────────────────────────────────
 
+# ── Procedural Demo Seeder (12 Audited Ground-Truth Corridors) ─────────────────
+
+PROJECTS_AUDIT_DATA = [
+    {
+        "name": "Delhi-Meerut RRTS Corridor",
+        "type": "Railway",
+        "agency": "National Capital Region Transport Corporation",
+        "states": ["Delhi", "Uttar Pradesh"],
+        "districts": ["East Delhi", "Ghaziabad", "Meerut"],
+        "land_required_ha": 120.0,
+        "land_acquired_ha": 98.4,
+        "target_date": date(2026, 12, 31),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (28.5916, 77.2575),  # Sarai Kale Khan (East Delhi)
+            (28.6350, 77.3150),  # Anand Vihar
+            (28.6710, 77.3600),  # Sahibabad (Ghaziabad)
+            (28.6750, 77.4350),  # Ghaziabad Central
+            (28.7050, 77.4700),  # Guldhar
+            (28.7400, 77.4950),  # Duhai Depot
+            (28.7850, 77.5100),  # Muradnagar
+            (28.8400, 77.5800),  # Modinagar
+            (28.9100, 77.6500),  # Partapur (Meerut)
+            (28.9600, 77.6900),  # Shatabdi Nagar
+            (29.0000, 77.7100),  # Begumpul
+            (29.0700, 77.7150),  # Modipuram (Meerut North)
+        ],
+    },
+    {
+        "name": "Delhi-Mumbai Expressway (Vadodara-Mumbai Section)",
+        "type": "Highway",
+        "agency": "National Highways Authority of India",
+        "states": ["Maharashtra", "Gujarat"],
+        "districts": ["Palghar", "Thane", "Raigad"],
+        "land_required_ha": 850.0,
+        "land_acquired_ha": 540.2,
+        "target_date": date(2027, 3, 31),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (20.2500, 72.9300),  # Talasari (Palghar)
+            (20.0500, 72.9100),  # Dahanu
+            (19.8000, 72.9500),  # Manor
+            (19.6500, 73.1300),  # Wada
+            (19.4500, 73.1800),  # Shahapur
+            (19.3200, 73.1200),  # Amane / Bhiwandi
+            (19.1000, 73.0800),  # Shilphata (Thane)
+            (18.9800, 73.0700),  # Panvel / JNPT (Raigad)
+        ],
+    },
+    {
+        "name": "Pune Ring Road (Eastern & Western Alignment)",
+        "type": "Highway",
+        "agency": "Maharashtra State Road Development Corporation",
+        "states": ["Maharashtra"],
+        "districts": ["Pune"],
+        "land_required_ha": 620.0,
+        "land_acquired_ha": 285.0,
+        "target_date": date(2026, 12, 31),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (18.6900, 73.6800),  # Urse / Parandwadi (Maval)
+            (18.5900, 73.7200),  # Hinjawadi / Maan
+            (18.5100, 73.7600),  # Pirangut (Mulshi)
+            (18.3800, 73.8400),  # Khadakwasla / Shivane
+            (18.3500, 73.9500),  # Saswad Road (Purandar)
+            (18.4700, 74.0200),  # Loni Kalbhor
+            (18.5800, 74.0100),  # Wagholi / Lonikand
+            (18.7100, 73.9100),  # Alandi / Chakan (Khed)
+        ],
+    },
+    {
+        "name": "Mumbai-Ahmedabad High Speed Rail (MAHSR Bullet Train)",
+        "type": "Railway",
+        "agency": "National High Speed Rail Corporation Limited",
+        "states": ["Maharashtra", "Gujarat"],
+        "districts": ["Thane", "Palghar"],
+        "land_required_ha": 430.0,
+        "land_acquired_ha": 402.0,
+        "target_date": date(2026, 8, 15),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (19.0650, 72.8680),  # BKC Mumbai Terminal
+            (19.1600, 73.0100),  # Shilphata / Thane
+            (19.4300, 72.8600),  # Virar
+            (19.8000, 72.7600),  # Boisar (Palghar)
+            (20.0500, 72.8200),  # Dahanu
+            (20.2800, 72.8800),  # Talasari (Palghar border)
+            (20.4000, 72.9200),  # Vapi
+            (21.1800, 72.8300),  # Surat
+        ],
+    },
+    {
+        "name": "Western Dedicated Freight Corridor (WDFC - Phase 2)",
+        "type": "Railway",
+        "agency": "Dedicated Freight Corridor Corporation of India",
+        "states": ["Rajasthan", "Maharashtra"],
+        "districts": ["Jaipur", "Ajmer", "Pali", "Thane"],
+        "land_required_ha": 750.0,
+        "land_acquired_ha": 435.0,
+        "target_date": date(2027, 6, 30),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (26.8700, 75.2400),  # Phulera Junction (Jaipur)
+            (26.6800, 74.9200),  # Kishangarh
+            (26.4500, 74.6400),  # Ajmer Madanganj
+            (26.1500, 74.2000),  # Beawar
+            (25.7700, 73.5500),  # Marwar Junction (Pali)
+            (25.6000, 73.3000),  # Sojat Road
+            (25.2000, 72.9500),  # Sirohi / Abu Road
+        ],
+    },
+    {
+        "name": "Jaipur Ring Road & Multimodal Logistics Hub",
+        "type": "Industrial",
+        "agency": "National Highways Authority of India / JDA",
+        "states": ["Rajasthan"],
+        "districts": ["Jaipur"],
+        "land_required_ha": 380.0,
+        "land_acquired_ha": 110.0,
+        "target_date": date(2028, 1, 31),
+        "status": ProjectStatus.PLANNING.value,
+        "waypoints": [
+            (26.8600, 75.6500),  # Bagru (Ajmer Road)
+            (26.7800, 75.7200),  # Vatika / Diggi Road
+            (26.7400, 75.8400),  # Shivdaspura / Tonk Road
+            (26.7900, 75.9400),  # Bassi
+            (26.8700, 75.9800),  # Agra Road Junction
+        ],
+    },
+    {
+        "name": "JNPT Port Container Expansion & Coastal Highway",
+        "type": "Port",
+        "agency": "Jawaharlal Nehru Port Authority / CIDCO",
+        "states": ["Maharashtra"],
+        "districts": ["Raigad", "Thane"],
+        "land_required_ha": 290.0,
+        "land_acquired_ha": 250.0,
+        "target_date": date(2026, 11, 30),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (18.9500, 72.9500),  # Nhava Sheva Port
+            (18.9100, 72.9900),  # Jasai / Dronagiri
+            (18.8800, 73.0400),  # Chirle Interchange
+            (18.9400, 73.1000),  # Panvel Creek
+            (19.0200, 73.1100),  # Kalamboli / Thane link
+        ],
+    },
+    {
+        "name": "Delhi Metro Phase-IV Extension",
+        "type": "Metro",
+        "agency": "Delhi Metro Rail Corporation",
+        "states": ["Delhi"],
+        "districts": ["South Delhi", "South West Delhi"],
+        "land_required_ha": 85.0,
+        "land_acquired_ha": 52.0,
+        "target_date": date(2027, 9, 30),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (28.5550, 77.1200),  # Aerocity Station
+            (28.5400, 77.1400),  # Mahipalpur
+            (28.5280, 77.1600),  # Vasant Kunj
+            (28.5080, 77.1850),  # Chhatarpur
+            (28.5120, 77.2150),  # Saket G-Block
+            (28.5140, 77.2400),  # Khanpur / Neb Sarai
+            (28.5100, 77.2650),  # Sangam Vihar
+            (28.5100, 77.2950),  # Tughlakabad
+        ],
+    },
+    {
+        "name": "Amritsar-Jamnagar Expressway (Punjab Segment)",
+        "type": "Highway",
+        "agency": "National Highways Authority of India",
+        "states": ["Punjab"],
+        "districts": ["Amritsar", "Tarn Taran", "Moga", "Bathinda"],
+        "land_required_ha": 250.0,
+        "land_acquired_ha": 172.0,
+        "target_date": date(2027, 3, 31),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (31.5200, 74.9800),  # Tibba (Amritsar border)
+            (31.4200, 74.9500),  # Goindwal Sahib (Tarn Taran)
+            (31.2500, 75.0200),  # Harike Pattan
+            (30.9800, 75.1200),  # Dharamkot
+            (30.8200, 75.1700),  # Moga / Baghapurana
+            (30.4500, 75.0500),  # Bhagta Bhai Ka
+            (30.2200, 74.9600),  # Rampura Phul / Bathinda
+            (29.9800, 74.7500),  # Sangat / Punjab-Haryana border
+        ],
+    },
+    {
+        "name": "Punjab Dedicated Freight Corridor",
+        "type": "Railway",
+        "agency": "Dedicated Freight Corridor Corporation of India",
+        "states": ["Punjab"],
+        "districts": ["Ludhiana", "Patiala"],
+        "land_required_ha": 180.0,
+        "land_acquired_ha": 115.0,
+        "target_date": date(2027, 8, 31),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (30.8500, 75.9800),  # Sahnewal (Ludhiana)
+            (30.8000, 76.0800),  # Doraha
+            (30.7000, 76.2200),  # Khanna
+            (30.6300, 76.3800),  # Sirhind Junction
+            (30.4900, 76.5900),  # Rajpura Yard (Patiala)
+            (30.4400, 76.7200),  # Shambhu Border
+        ],
+    },
+    {
+        "name": "Nagpur-Mumbai Expressway (Samruddhi Mahamarg)",
+        "type": "Highway",
+        "agency": "Maharashtra State Road Development Corporation",
+        "states": ["Maharashtra"],
+        "districts": ["Nagpur", "Nashik", "Thane"],
+        "land_required_ha": 380.0,
+        "land_acquired_ha": 322.0,
+        "target_date": date(2026, 10, 31),
+        "status": ProjectStatus.ACTIVE.value,
+        "waypoints": [
+            (21.0500, 78.9500),  # Shivmadka (Nagpur)
+            (20.7500, 78.6000),  # Wardha Sector
+            (20.3000, 77.2000),  # Washim / Karanja
+            (19.8500, 75.3500),  # Chhatrapati Sambhaji Nagar
+            (19.9200, 74.2500),  # Kopargaon
+            (19.8500, 73.9900),  # Sinnar (Nashik)
+            (19.6800, 73.5500),  # Igatpuri Ghats
+            (19.4500, 73.3300),  # Shahapur (Thane)
+            (19.3100, 73.1200),  # Amane / Bhiwandi Terminal
+        ],
+    },
+    {
+        "name": "Barmer Refinery Township & Industrial Zone",
+        "type": "Industrial",
+        "agency": "HPCL Rajasthan Refinery Limited / RIICO",
+        "states": ["Rajasthan"],
+        "districts": ["Balotra", "Barmer", "Jodhpur"],
+        "land_required_ha": 280.0,
+        "land_acquired_ha": 82.0,
+        "target_date": date(2028, 4, 30),
+        "status": ProjectStatus.PLANNING.value,
+        "waypoints": [
+            (25.9200, 72.2400),  # Pachpadra Refinery Complex
+            (25.8800, 72.2300),  # Sambhra Petrochemical Zone
+            (25.8400, 72.2400),  # Balotra Industrial Township
+            (25.8200, 72.3100),  # Asotra Corridor
+            (25.9500, 72.5500),  # Kalyanpur Logistics Link
+            (26.1500, 72.8500),  # Jodhpur Highway Link
+        ],
+    },
+]
+
+
 def seed_demo(db, user_map: dict[str, User]) -> None:
-    """Generate 6 rich multi-state infrastructure projects and 2,220 parcels."""
-    print("\n--- Generating Procedural Demo Corridors (Phases 1-3) ---")
+    """Generate 12 rich ground-truth multi-state infrastructure corridors and 2,400 linear right-of-way parcels."""
+    print("\n--- Generating Audited Procedural Demo Corridors (12 National Infrastructure Projects) ---")
     admin_user = user_map["admin"]
     field_user = user_map["field_officer"]
 
-    projects_data = [
-        {
-            "name": "Delhi-Mumbai Expressway (Vadodara-Mumbai Section)",
-            "type": "Highway",
-            "states": ["Maharashtra", "Gujarat"],
-            "districts": ["Thane", "Palghar", "Raigad"],
-            "land_required_ha": 850.0,
-            "land_acquired_ha": 520.4,
-            "target_date": date(2027, 3, 31),
-            "status": ProjectStatus.ACTIVE.value,
-            "lat1": 19.2, "lon1": 73.0, "lat2": 20.5, "lon2": 72.9,
-        },
-        {
-            "name": "Pune Ring Road (Eastern & Western Alignment)",
-            "type": "Highway",
-            "states": ["Maharashtra"],
-            "districts": ["Pune"],
-            "land_required_ha": 620.0,
-            "land_acquired_ha": 280.5,
-            "target_date": date(2026, 12, 31),
-            "status": ProjectStatus.ACTIVE.value,
-            "lat1": 18.4, "lon1": 73.7, "lat2": 18.7, "lon2": 74.0,
-        },
-        {
-            "name": "Mumbai-Ahmedabad High Speed Rail (MAHSR Bullet Train)",
-            "type": "Railway",
-            "states": ["Maharashtra", "Gujarat"],
-            "districts": ["Thane", "Palghar"],
-            "land_required_ha": 430.0,
-            "land_acquired_ha": 395.0,
-            "target_date": date(2026, 8, 15),
-            "status": ProjectStatus.ACTIVE.value,
-            "lat1": 19.15, "lon1": 72.85, "lat2": 20.0, "lon2": 72.8,
-        },
-        {
-            "name": "Western Dedicated Freight Corridor (WDFC - Phase 2)",
-            "type": "Railway",
-            "states": ["Rajasthan", "Maharashtra"],
-            "districts": ["Jaipur", "Jodhpur", "Thane"],
-            "land_required_ha": 750.0,
-            "land_acquired_ha": 410.0,
-            "target_date": date(2027, 6, 30),
-            "status": ProjectStatus.ACTIVE.value,
-            "lat1": 26.9, "lon1": 75.8, "lat2": 26.2, "lon2": 73.0,
-        },
-        {
-            "name": "Jaipur Ring Road & Multimodal Logistics Hub",
-            "type": "Industrial",
-            "states": ["Rajasthan"],
-            "districts": ["Jaipur"],
-            "land_required_ha": 380.0,
-            "land_acquired_ha": 95.0,
-            "target_date": date(2028, 1, 31),
-            "status": ProjectStatus.PLANNING.value,
-            "lat1": 26.85, "lon1": 75.7, "lat2": 27.05, "lon2": 75.9,
-        },
-        {
-            "name": "JNPT Port Container Expansion & Coastal Highway",
-            "type": "Port",
-            "states": ["Maharashtra"],
-            "districts": ["Raigad", "Thane"],
-            "land_required_ha": 290.0,
-            "land_acquired_ha": 245.0,
-            "target_date": date(2026, 11, 30),
-            "status": ProjectStatus.ACTIVE.value,
-            "lat1": 18.95, "lon1": 72.95, "lat2": 18.8, "lon2": 73.05,
-        },
-    ]
-
     created_projects: list[Project] = []
-    for pdata in projects_data:
+    for pdata in PROJECTS_AUDIT_DATA:
         existing = db.execute(select(Project).where(Project.name == pdata["name"])).scalar_one_or_none()
+        corridor_wkt = generate_linestring_wkt(pdata["waypoints"])
         if not existing:
-            corridor_wkt = generate_corridor_wkt(pdata["lat1"], pdata["lon1"], pdata["lat2"], pdata["lon2"])
             proj = Project(
                 project_id=deterministic_uuid("prj", pdata["name"]),
                 name=pdata["name"],
@@ -756,50 +1179,81 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
             )
             db.add(proj)
             created_projects.append(proj)
-            print(f"   + Created project: {proj.name}")
+            print(f"   + Created project: {proj.name} [Agency: {pdata['agency']}]")
         else:
+            # Update existing project with audited corridors and metadata
+            existing.type = pdata["type"]
+            existing.states = pdata["states"]
+            existing.districts = pdata["districts"]
+            existing.land_required_ha = pdata["land_required_ha"]
+            existing.land_acquired_ha = pdata["land_acquired_ha"]
+            existing.target_date = pdata["target_date"]
+            existing.status = pdata["status"]
+            existing.corridor_geometry = WKTElement(corridor_wkt, srid=4326)
             created_projects.append(existing)
-            print(f"   = Existing project: {existing.name}")
+            print(f"   = Updated project: {existing.name}")
 
     db.commit()
     for p in created_projects:
         db.refresh(p)
 
-    print("\n--- Generating 2,220 Synthetic Parcels across Projects ---")
-    parcels_per_project = 370
+    parcels_per_project = 200
+    print(f"\n--- Generating {len(created_projects) * parcels_per_project} Linear Right-of-Way Parcels across {len(created_projects)} Corridors ---")
     stage_choices = [s.value for s in STAGE_ORDER]
     stage_weights = [0.08, 0.10, 0.12, 0.12, 0.14, 0.10, 0.10, 0.08, 0.06, 0.06, 0.04]
     now_utc = datetime.now(timezone.utc)
     today = now_utc.date()
 
-    for proj in created_projects:
-        matching_districts = [d for d in DISTRICT_CONFIGS if d["district"] in proj.districts or d["state"] in proj.states]
-        if not matching_districts:
-            matching_districts = DISTRICT_CONFIGS[:2]
+    for p_idx, proj in enumerate(created_projects):
+        pdata = PROJECTS_AUDIT_DATA[p_idx]
+        waypoints = pdata["waypoints"]
 
-        p_batch, s_batch, c_batch, rr_batch = [], [], [], []
+        # Filter candidate districts matching this project
+        proj_district_cfgs = [d for d in DISTRICT_CONFIGS if d["district"] in proj.districts and d["state"] in proj.states]
+        if not proj_district_cfgs:
+            proj_district_cfgs = [d for d in DISTRICT_CONFIGS if d["district"] in proj.districts or d["state"] in proj.states]
+        if not proj_district_cfgs:
+            proj_district_cfgs = DISTRICT_CONFIGS[:2]
+
+        p_batch, s_batch, c_batch = [], [], []
+
         for i in range(parcels_per_project):
-            dcfg = random.choice(matching_districts)
-            village = random.choice(dcfg["villages"])
-            owner = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
-            survey_num = f"{random.randint(1, 450)}/{random.randint(1, 12)}"
+            fraction = (i + 0.5) / parcels_per_project
+            lat_c, lon_c, _, _, _, _ = interpolate_corridor(waypoints, fraction)
 
-            area_ha = round(random.uniform(0.15, 6.5), 3)
+            # Find nearest district along corridor path
+            def dist_sq(d):
+                return (d["center_lat"] - lat_c)**2 + (d["center_lon"] - lon_c)**2
+
+            dcfg = min(proj_district_cfgs, key=dist_sq)
+            village = dcfg["villages"][i % len(dcfg["villages"])]
+            owner = f"{random.choice(FIRST_NAMES)} {random.choice(LAST_NAMES)}"
+
+            # Authentic cadastral naming (Survey in Maharashtra, Khasra elsewhere)
+            if dcfg["state"] == "Maharashtra":
+                survey_num = f"Survey {12 + (i % 220)}/{1 + (i % 8)}"
+            else:
+                survey_num = f"Khasra {12 + (i % 220)}/{1 + (i % 8)}"
+
+            area_ha = round(random.uniform(0.20, 2.50), 3)
             stage = random.choices(stage_choices, weights=stage_weights)[0]
             stage_idx = [s.value for s in STAGE_ORDER].index(stage)
 
-            if stage == StageName.CLOSURE.value:
+            if stage in (StageName.CLOSURE.value, StageName.POSSESSION.value):
                 status = ParcelStatus.COMPLETED.value
-                risk_score = round(random.uniform(0.0, 15.0), 1)
-            elif stage in (StageName.OBJECTION.value, StageName.REHABILITATION_RESETTLEMENT.value) and random.random() < 0.25:
+                risk_score = round(random.uniform(2.0, 14.0), 1)
+            elif stage in (StageName.OBJECTION.value, StageName.REHABILITATION_RESETTLEMENT.value) and (i % 9 == 0):
                 status = ParcelStatus.BLOCKED.value
-                risk_score = round(random.uniform(70.0, 95.0), 1)
+                risk_score = round(random.uniform(75.0, 94.0), 1)
+            elif (i % 7 == 0):
+                status = ParcelStatus.IN_PROGRESS.value
+                risk_score = round(random.uniform(70.0, 88.0), 1)
             else:
                 status = ParcelStatus.IN_PROGRESS.value
-                risk_score = round(random.uniform(10.0, 65.0), 1)
+                risk_score = round(random.uniform(12.0, 58.0), 1)
 
             parcel_id = deterministic_uuid("pcl", f"{proj.name}:{i}")
-            geom_wkt = generate_polygon_wkt(dcfg["center_lat"], dcfg["center_lon"], i)
+            geom_wkt = generate_linear_cadastral_polygon_wkt(waypoints, fraction, i)
 
             parcel = Parcel(
                 parcel_id=parcel_id,
@@ -815,11 +1269,12 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
                 village=village,
                 district=dcfg["district"],
                 state=dcfg["state"],
-                assigned_officer=field_user.id if random.random() < 0.7 else None,
-                created_at=now_utc - timedelta(days=random.randint(30, 300)),
+                assigned_officer=field_user.id if random.random() < 0.75 else None,
+                created_at=now_utc - timedelta(days=random.randint(30, 280)),
             )
             p_batch.append(parcel)
 
+            # Workflow stages 1 to 11
             for s_order, s_enum in enumerate(STAGE_ORDER, start=1):
                 s_name = s_enum.value
                 if s_order <= stage_idx:
@@ -830,7 +1285,7 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
                 elif s_order == stage_idx + 1:
                     s_status = StageStatus.IN_PROGRESS.value if status != ParcelStatus.BLOCKED.value else StageStatus.BLOCKED.value
                     s_start = today - timedelta(days=random.randint(5, 20))
-                    s_target = today - timedelta(days=random.randint(2, 14)) if random.random() < 0.12 else today + timedelta(days=random.randint(15, 60))
+                    s_target = today - timedelta(days=random.randint(2, 14)) if risk_score >= 70 else today + timedelta(days=random.randint(15, 60))
                     s_comp = None
                 else:
                     s_status = StageStatus.NOT_STARTED.value
@@ -847,12 +1302,13 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
                         completion_date=s_comp,
                         status=s_status,
                         assigned_officer=field_user.id,
-                        remarks="Demo stage entry",
+                        remarks="Statutory stage milestone",
                     )
                 )
 
+            # Compensation assessment & disbursement
             if stage_idx >= [s.value for s in STAGE_ORDER].index(StageName.AWARD.value):
-                land_val = round(area_ha * random.uniform(2500000, 7500000), 2)
+                land_val = round(area_ha * random.uniform(3000000, 8000000), 2)
                 solatium = round(land_val * 1.0, 2)
                 total_calc = round(land_val * 1.5 + solatium, 2)
                 paid_amt = total_calc if stage in (StageName.POSSESSION.value, StageName.CLOSURE.value) else 0.0
@@ -866,7 +1322,7 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
                         paid_amount=paid_amt,
                         payment_status=CompensationPaymentStatus.DISBURSED.value if paid_amt >= total_calc else CompensationPaymentStatus.APPROVED.value,
                         payment_date=today - timedelta(days=15) if paid_amt >= total_calc else None,
-                        remarks="Calculated per RFCTLARR statutory rules.",
+                        remarks="RFCTLARR statutory award calculation.",
                     )
                 )
 
@@ -874,42 +1330,180 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
         db.add_all(s_batch)
         db.add_all(c_batch)
         db.commit()
-        print(f"   [OK] Seeded {len(p_batch)} parcels for: {proj.name[:40]}...")
+        print(f"   [OK] Seeded {len(p_batch)} linear cadastral parcels for: {proj.name[:42]}...")
 
         # Timeline snapshots
         snap_batch = []
         for h_idx in range(6):
             h_date = (now_utc - timedelta(days=(6 - h_idx) * 15)).date()
-            comp_pct = max(0.05, min(0.95, (h_idx + 1) / 7))
+            comp_pct = max(0.08, min(0.95, (h_idx + 1) / 7))
             snap_batch.append(
                 ProjectHistory(
                     snapshot_id=deterministic_uuid("snap", f"{proj.name}:{h_idx}"),
                     project_id=proj.project_id,
                     snapshot_date=h_date,
                     land_required_ha=proj.land_required_ha,
-                    land_acquired_ha=round(proj.land_required_ha * comp_pct * 0.6, 2),
+                    land_acquired_ha=round(proj.land_required_ha * comp_pct * 0.7, 2),
                     parcels_total=parcels_per_project,
                     parcels_completed=int(parcels_per_project * comp_pct * 0.7),
                     parcels_in_progress=int(parcels_per_project * 0.4),
-                    parcels_disputed=random.randint(2, 10),
-                    compensation_paid_total=round(proj.land_required_ha * 2500000 * comp_pct, 2),
-                    compensation_pending_total=round(proj.land_required_ha * 1000000, 2),
-                    stages_snapshot={"SURVEY": 20, "AWARD": 15, "COMPENSATION": 10},
+                    parcels_disputed=random.randint(2, 8),
+                    compensation_paid_total=round(proj.land_required_ha * 3000000 * comp_pct, 2),
+                    compensation_pending_total=round(proj.land_required_ha * 1200000, 2),
+                    stages_snapshot={"SURVEY": 25, "VERIFICATION": 20, "AWARD": 18, "COMPENSATION": 15},
                     metadata_json={
                         "pending_parcels": 25.0,
-                        "completed_parcels": 20.0,
-                        "average_stage_days": 38.0,
-                        "sla_breaches": 4.0,
-                        "compensation_pending": 8.0,
-                        "rr_pending": 5.0,
-                        "possession_pending": 3.0,
-                        "processing_rate": 0.18,
+                        "completed_parcels": 22.0,
+                        "average_stage_days": 35.0,
+                        "sla_breaches": 3.0,
+                        "compensation_pending": 7.0,
+                        "rr_pending": 4.0,
+                        "possession_pending": 2.0,
+                        "processing_rate": 0.22,
                         "officers_count": 4,
                     },
                 )
             )
         db.add_all(snap_batch)
         db.commit()
+
+
+def seed_alerts(db) -> None:
+    """Seed statutory SLA warnings, high-risk parcel alerts, and incident flags."""
+    print("\n--- Seeding Statutory & SLA Alerts ---")
+    projects = db.execute(select(Project)).scalars().all()
+    if not projects:
+        return
+
+    p_by_name = {p.name: p for p in projects}
+    alerts_data = [
+        {
+            'proj': 'Delhi Metro Phase-IV Extension',
+            'title': 'Sec 19 Declaration 12-Month Statutory Lapse Warning',
+            'message': 'Section 19 declaration must be published within 12 months of Section 11 preliminary notification under RFCTLARR 2013 Section 19(7) for South Delhi parcels. 18 days remaining before statutory lapse.',
+            'severity': 'CRITICAL',
+            'issue_type': 'Statutory SLA Breach',
+            'time_ago': '18m ago',
+        },
+        {
+            'proj': 'Delhi-Meerut RRTS Corridor',
+            'title': 'High Court Writ Petition: Injunction Hearing Listed',
+            'message': 'Writ Petition (Civil) No. 4921/2026 listed before Delhi High Court challenging acquisition compensation multiplier for peri-urban parcels in East Delhi and Sahibabad (Ghaziabad).',
+            'severity': 'CRITICAL',
+            'issue_type': 'Legal / Court Stay',
+            'time_ago': '45m ago',
+        },
+        {
+            'proj': 'Amritsar-Jamnagar Expressway (Punjab Segment)',
+            'title': 'Sec 15 Objection Overdue: SLA Exceeded by 22 Days',
+            'message': '42 statutory objections filed under Section 15(1) across Tarn Taran and Amritsar alignment have exceeded the mandatory 60-day disposal timeline. DLAO hearing report pending.',
+            'severity': 'CRITICAL',
+            'issue_type': 'SLA Overdue',
+            'time_ago': '1h ago',
+        },
+        {
+            'proj': 'Western Dedicated Freight Corridor (WDFC - Phase 2)',
+            'title': 'DBT Compensation Transfer Failure: 14 Beneficiary Accounts',
+            'message': 'PFMS batch payout error: Aadhaar bank account mismatch detected for 14 awardees in Marwar (Pali) division. Manual reconciliation required.',
+            'severity': 'CRITICAL',
+            'issue_type': 'DBT Payment Error',
+            'time_ago': '2h ago',
+        },
+        {
+            'proj': 'Nagpur-Mumbai Expressway (Samruddhi Mahamarg)',
+            'title': 'Joint Measurement Survey Discrepancy Flagged',
+            'message': 'Cadastral overlay reveals 3.4 hectare overlap between survey numbers 142 and 144 in Thane (Shahapur) district. Joint inspection with revenue inspector scheduled.',
+            'severity': 'WARNING',
+            'issue_type': 'Survey Discrepancy',
+            'time_ago': '3h ago',
+        },
+        {
+            'proj': 'Jaipur Ring Road & Multimodal Logistics Hub',
+            'title': 'Environmental & Forest Clearance NOC Pending',
+            'message': 'Stage-1 Forest clearance submission awaiting State Forest Advisory Committee review for 18.2 hectares of reserve forest diversion in Bassi tehsil, Jaipur.',
+            'severity': 'WARNING',
+            'issue_type': 'Clearance Delay',
+            'time_ago': '5h ago',
+        },
+        {
+            'proj': 'Punjab Dedicated Freight Corridor',
+            'title': 'Collector Award Assessment (Sec 23) Approved',
+            'message': 'DLAO Patiala has finalized compensation assessment matrix under RFCTLARR First Schedule for Rajpura yard. Total disbursement sanctioned: Rs 48.6 Crores.',
+            'severity': 'INFO',
+            'issue_type': 'Statutory Approval',
+            'time_ago': '7h ago',
+        },
+        {
+            'proj': 'Mumbai-Ahmedabad High Speed Rail (MAHSR Bullet Train)',
+            'title': 'Physical Possession Handover Completed for Palghar Sector',
+            'message': 'Section 38 possession certificate executed for 84 linear parcels across Boisar and Talasari. ROW clearance certificate dispatched to NHSRCL.',
+            'severity': 'INFO',
+            'issue_type': 'Possession Taken',
+            'time_ago': '12h ago',
+        },
+        {
+            'proj': 'Barmer Refinery Township & Industrial Zone',
+            'title': 'Grievance Redressal Committee Hearing Escalated',
+            'message': 'R&R entitlement claims regarding rehabilitation package allocation disputed by 19 displaced families in Pachpadra tehsil, Balotra.',
+            'severity': 'WARNING',
+            'issue_type': 'R&R Grievance',
+            'time_ago': '1d ago',
+        },
+        {
+            'proj': 'JNPT Port Container Expansion & Coastal Highway',
+            'title': 'CRZ Coastal Regulation Zone Clearance Endorsement',
+            'message': 'Maharashtra Coastal Zone Management Authority (MCZMA) has issued formal recommendation for Raigad (Uran / Jasai) coastal bypass alignment.',
+            'severity': 'INFO',
+            'issue_type': 'Statutory Clearance',
+            'time_ago': '1d ago',
+        },
+        {
+            'proj': 'Pune Ring Road (Eastern & Western Alignment)',
+            'title': 'Arbitration Award Appeal Filed under Section 64',
+            'message': 'Commercial landholder has filed reference to Land Acquisition, Rehabilitation and Resettlement Authority (LARRA) seeking enhanced market valuation in Mulshi tehsil.',
+            'severity': 'CRITICAL',
+            'issue_type': 'LARRA Reference',
+            'time_ago': '2d ago',
+        },
+        {
+            'proj': 'Delhi-Mumbai Expressway (Vadodara-Mumbai Section)',
+            'title': 'Sec 11 Preliminary Notification Gazette Published',
+            'message': 'Official Gazette Notification published in 2 regional daily newspapers and public portal for Wada and Bhiwandi packages. 60-day objection window now active.',
+            'severity': 'INFO',
+            'issue_type': 'Gazette Publication',
+            'time_ago': '3d ago',
+        },
+    ]
+
+    now = datetime.now(timezone.utc)
+    for idx, ad in enumerate(alerts_data):
+        p = p_by_name.get(ad['proj'])
+        if not p:
+            continue
+        parcel = db.execute(select(Parcel).where(Parcel.project_id == p.project_id).limit(1)).scalar_one_or_none()
+        a = Alert(
+            alert_id=deterministic_uuid("alert", f"{ad['proj']}:{idx}"),
+            user_id=None,
+            project_id=p.project_id,
+            parcel_id=parcel.parcel_id if parcel else None,
+            title=ad['title'],
+            message=ad['message'],
+            severity=ad['severity'],
+            is_read=False,
+            metadata_json={
+                'project_name': p.name,
+                'issue_type': ad['issue_type'],
+                'time_ago': ad['time_ago'],
+                'state': p.states[0] if p.states else 'National',
+            },
+            created_at=now - timedelta(hours=idx * 3 + 1),
+        )
+        existing = db.execute(select(Alert).where(Alert.alert_id == a.alert_id)).scalar_one_or_none()
+        if not existing:
+            db.add(a)
+
+    db.commit()
+    print("   + Seeded 12 statutory and SLA alerts.")
 
 
 # ── Main Entrypoint ──────────────────────────────────────────────────────────
@@ -944,6 +1538,8 @@ def seed_database(source: str = "demo", reset: bool = False) -> None:
             seed_from_synthetic(db, user_map, data_synthetic_dir)
         else:
             seed_demo(db, user_map)
+
+        seed_alerts(db)
 
         print("\n" + "=" * 70)
         print("  [SUCCESS] DATABASE SEED COMPLETED SUCCESSFULLY!")

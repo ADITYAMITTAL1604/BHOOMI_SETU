@@ -10,7 +10,7 @@ from app.models.types import PlatformUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.models.enums import DocumentType
+from app.models.enums import ApprovalStatus, DocumentType
 
 
 class Document(Base):
@@ -39,6 +39,13 @@ class Document(Base):
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False, default="application/octet-stream")
     metadata_json: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     is_verified: Mapped[bool] = mapped_column(default=False, nullable=False)
+    approval_status: Mapped[str] = mapped_column(
+        String(50), nullable=False,
+        default=ApprovalStatus.PENDING_REVIEW.value, index=True
+    )
+    current_approval_step: Mapped[int] = mapped_column(
+        default=0, nullable=False
+    )
     verified_by: Mapped[Optional[uuid.UUID]] = mapped_column(
         PlatformUUID, ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )

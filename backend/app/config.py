@@ -15,14 +15,16 @@ class Settings(BaseSettings):
     )
 
     # ── Database ──────────────────────────────────────────────────────────────
-    database_url: str = "sqlite:///./bhoomisetu.db"
+    database_url: str = (
+        "postgresql+psycopg2://postgres.kjufocztmwwollliqgpr:H_VavRuGsmr%2B3Bh@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
+    )
 
     @property
     def normalized_database_url(self) -> str:
         """Ensure PostgreSQL connection strings use the psycopg2 driver and handle cloud prefixes."""
         url = (self.database_url or "").strip()
         if not url:
-            return "sqlite:///./bhoomisetu.db"
+            return "postgresql+psycopg2://postgres.kjufocztmwwollliqgpr:H_VavRuGsmr%2B3Bh@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres?sslmode=require"
         # Supabase and Heroku/Render often output 'postgres://'
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+psycopg2://", 1)

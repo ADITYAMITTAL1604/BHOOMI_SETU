@@ -24,19 +24,18 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Ensure database tables, PostGIS extensions, and default seed data exist on application startup."""
     try:
-        from app.database import Base, engine, SessionLocal, is_sqlite
+        from app.database import Base, engine, SessionLocal
         import app.models  # register all models
         from sqlalchemy import select, func, text
 
-        # On PostgreSQL, ensure required extensions are loaded
-        if not is_sqlite:
-            try:
-                with engine.connect() as conn:
-                    conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
-                    conn.execute(text("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"))
-                    conn.commit()
-            except Exception as ext_err:
-                logger.warning("PostgreSQL extension check notice: %s", ext_err)
+        # Ensure required PostGIS & UUID extensions are loaded on PostgreSQL
+        try:
+            with engine.connect() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis;"))
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"))
+                conn.commit()
+        except Exception as ext_err:
+            logger.warning("PostgreSQL extension check notice: %s", ext_err)
 
         Base.metadata.create_all(bind=engine)
 
@@ -196,6 +195,9 @@ from app.routers import (
     search,
     admin,
     reports,
+    approvals,
+    notifications,
+    sla,
 )
 
 app.include_router(auth.router,          prefix="/api/v1/auth",         tags=["Auth"])
@@ -212,6 +214,9 @@ app.include_router(audit_log.router,     prefix="/api/v1/audit-log",    tags=["A
 app.include_router(search.router,        prefix="/api/v1/search",       tags=["Search"])
 app.include_router(admin.router,         prefix="/api/v1/admin",        tags=["Admin"])
 app.include_router(reports.router,       prefix="/api/v1/reports",      tags=["Reports"])
+app.include_router(approvals.router,     prefix="/api/v1/approvals",    tags=["Approvals"])
+app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
+app.include_router(sla.router,           prefix="/api/v1/sla",          tags=["SLA Monitoring"])
 app.include_router(analytics.router,     prefix="/analytics",           include_in_schema=False)
 
 

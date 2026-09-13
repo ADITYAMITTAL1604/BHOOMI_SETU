@@ -11,26 +11,23 @@ settings = get_settings()
 
 # ── Engine ────────────────────────────────────────────────────────────────────
 db_url = settings.normalized_database_url
-is_sqlite = db_url.startswith("sqlite")
 
 engine = create_engine(
     db_url,
     pool_pre_ping=True,
-    pool_size=10 if not is_sqlite else 5,
-    max_overflow=20 if not is_sqlite else 0,
-    pool_recycle=300 if not is_sqlite else -1,
+    pool_size=10,
+    max_overflow=20,
+    pool_recycle=300,
     echo=settings.log_level == "DEBUG",
-    connect_args={"check_same_thread": False} if is_sqlite else {},
 )
 
 
 @event.listens_for(engine, "connect")
 def _set_search_path(dbapi_conn, _connection_record) -> None:
-    """Ensure PostGIS objects are visible on every new connection (PostgreSQL only)."""
-    if not is_sqlite:
-        cursor = dbapi_conn.cursor()
-        cursor.execute("SET search_path TO public")
-        cursor.close()
+    """Ensure PostGIS objects in extensions schema and public tables are visible on every connection."""
+    cursor = dbapi_conn.cursor()
+    cursor.execute("SET search_path TO public, extensions")
+    cursor.close()
 
 
 # ── Session factory ───────────────────────────────────────────────────────────
