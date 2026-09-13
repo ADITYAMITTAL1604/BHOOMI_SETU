@@ -222,6 +222,7 @@ app.include_router(analytics.router,     prefix="/analytics",           include_
 
 # ── System endpoints ──────────────────────────────────────────────────────────
 @app.get("/health", tags=["System"], summary="Liveness probe")
+@app.get("/api/v1/health", tags=["System"], summary="Liveness probe (API prefix)")
 async def health() -> dict:
     """Returns service status and database reachability."""
     db_ok = check_db_connection()
