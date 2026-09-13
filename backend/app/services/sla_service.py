@@ -79,14 +79,12 @@ def compute_stage_sla(stage: AcquisitionStage) -> Dict[str, Any]:
             is_breached = True
 
     # Severity tiers
-    if not is_breached:
-        if days_until_deadline is not None and days_until_deadline <= 7:
-            breach_severity = "warning"
-        else:
-            breach_severity = "ok"
+    if is_breached:
+        breach_severity = "critical"
+    elif days_until_deadline is not None and days_until_deadline <= 7:
+        breach_severity = "warning"
     else:
-        overdue_days = abs(days_until_deadline) if days_until_deadline is not None else 0
-        breach_severity = "critical" if overdue_days > 14 else "warning"
+        breach_severity = "ok"
 
     return {
         "stage_id": str(stage.stage_id),

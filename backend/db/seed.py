@@ -1289,9 +1289,12 @@ def seed_demo(db, user_map: dict[str, User]) -> None:
                     s_comp = s_start + timedelta(days=25)
                 elif s_order == stage_idx + 1:
                     s_status = StageStatus.IN_PROGRESS.value if status != ParcelStatus.BLOCKED.value else StageStatus.BLOCKED.value
-                    s_start = today - timedelta(days=random.randint(5, 20))
-                    s_target = today - timedelta(days=random.randint(2, 14)) if risk_score >= 70 else today + timedelta(days=random.randint(15, 60))
-                    s_comp = None
+                    if risk_score >= 70:
+                        s_target = today - timedelta(days=random.randint(2, 14))
+                    elif risk_score >= 50:
+                        s_target = today + timedelta(days=random.randint(1, 7))
+                    else:
+                        s_target = today + timedelta(days=random.randint(15, 60))
                 else:
                     s_status = StageStatus.NOT_STARTED.value
                     s_start, s_target, s_comp = None, None, None
