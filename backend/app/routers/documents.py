@@ -125,6 +125,19 @@ async def upload_document(
         ext=ext,
     )
 
+    meta = {
+        "sha256": sha256,
+        "version": version,
+        "original_filename": file.filename,
+    }
+
+    try:
+        text_str = content.decode("utf-8", errors="ignore")
+        if text_str and len(text_str.strip()) > 10 and not text_str.startswith("%PDF") and not any(ord(c) == 0 for c in text_str[:100]):
+            meta["content_text"] = text_str
+    except Exception:
+        pass
+
     # 5. Persist Document record
     doc = Document(
         document_id=doc_id,
@@ -137,11 +150,7 @@ async def upload_document(
         file_path=file_path,
         file_size_bytes=file_size,
         mime_type=mime_type,
-        metadata_json={
-            "sha256": sha256,
-            "version": version,
-            "original_filename": file.filename,
-        },
+        metadata_json=meta,
     )
     db.add(doc)
     db.commit()
@@ -209,22 +218,35 @@ async def upload_document(
 # ── Download ──────────────────────────────────────────────────────────────────
 
 def _get_document_text_content(doc: Document, db: Session) -> str:
-    """Read document physical file if present, or construct official record text."""
+    """Read document physical file if present, cached metadata text, or construct official record text."""
+    # 1. Check if full text content is cached directly in DB metadata_json
+    meta = doc.metadata_json or {}
+    if isinstance(meta, dict) and meta.get("content_text") and len(str(meta["content_text"]).strip()) > 0:
+        return str(meta["content_text"])
+
+    # 2. Check candidate paths on disk (including .txt extension for PDF stems)
     settings = get_settings()
     filename_stem = Path(doc.file_path).name if doc.file_path else "document"
+    txt_stem = Path(filename_stem).with_suffix(".txt").name
+
     candidate_paths = []
     if doc.file_path:
         candidate_paths.append(Path(doc.file_path))
-        candidate_paths.append(Path(settings.document_storage_path) / doc.file_path)
-        candidate_paths.append(Path(settings.document_storage_path) / filename_stem)
-        candidate_paths.append(Path(settings.document_storage_path) / "synthetic" / filename_stem)
+        candidate_paths.append(Path(doc.file_path).with_suffix(".txt"))
 
     base_dir = Path(__file__).resolve().parents[2]
     repo_dir = base_dir.parent
+
     candidate_paths.extend([
+        repo_dir / "sih-upgrade-context" / "sample_documents" / txt_stem,
         repo_dir / "sih-upgrade-context" / "sample_documents" / filename_stem,
+        Path(settings.document_storage_path) / filename_stem,
+        Path(settings.document_storage_path) / txt_stem,
+        Path(settings.document_storage_path) / "synthetic" / filename_stem,
+        Path(settings.document_storage_path) / "synthetic" / txt_stem,
         repo_dir / "backend" / "storage" / "documents" / filename_stem,
         repo_dir / "backend" / "storage" / "documents" / "synthetic" / filename_stem,
+        repo_dir / "backend" / "storage" / "documents" / "synthetic" / txt_stem,
     ])
 
     resolved_path: Optional[Path] = None
@@ -239,7 +261,15 @@ def _get_document_text_content(doc: Document, db: Session) -> str:
     if resolved_path:
         try:
             content = resolved_path.read_text(encoding="utf-8", errors="ignore")
-            if content and len(content.strip()) > 0:
+            if content and len(content.strip()) > 0 and not content.startswith("%PDF"):
+                # Cache content in doc.metadata_json for fast future DB retrieval
+                try:
+                    current_meta = dict(doc.metadata_json or {})
+                    current_meta["content_text"] = content
+                    doc.metadata_json = current_meta
+                    db.commit()
+                except Exception:
+                    db.rollback()
                 return content
         except Exception:
             pass

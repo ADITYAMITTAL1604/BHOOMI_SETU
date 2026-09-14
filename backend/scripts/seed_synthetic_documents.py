@@ -27,6 +27,7 @@ from app.models.enums import ApprovalStatus, DocumentType
 DOC_SPECS = [
     {
         "filename": "Survey_Report_001.pdf",
+        "sample_txt": "Survey_Report_001.txt",
         "document_type": "SURVEY_REPORT",
         "title": "Joint Measurement Survey Report 001",
         "description": "Joint measurement survey report for land acquisition parcel identification and boundary mapping.",
@@ -34,6 +35,7 @@ DOC_SPECS = [
     },
     {
         "filename": "Award_Declaration_001.pdf",
+        "sample_txt": "Award_Declaration_001.txt",
         "document_type": "AWARD_ORDER",
         "title": "Section 23 Award Declaration 001",
         "description": "Section 23 statutory award declaration order specifying compensation valuation and land parcel summary.",
@@ -41,6 +43,7 @@ DOC_SPECS = [
     },
     {
         "filename": "Objection_Record_001.pdf",
+        "sample_txt": "Objection_Record_001.txt",
         "document_type": "NOTIFICATION",
         "title": "Section 15 Objection Hearing Record 001",
         "description": "Section 15 hearing record detailing land owner objections, hearing notes, and collector summary.",
@@ -48,6 +51,7 @@ DOC_SPECS = [
     },
     {
         "filename": "Compensation_Order_001.pdf",
+        "sample_txt": "Compensation_Order_001.txt",
         "document_type": "COMPENSATION_RECEIPT",
         "title": "Compensation Disbursement Order 001",
         "description": "Official compensation disbursement order and payment schedule for affected land owners.",
@@ -55,6 +59,7 @@ DOC_SPECS = [
     },
     {
         "filename": "Possession_Certificate_001.pdf",
+        "sample_txt": "Possession_Certificate_001.txt",
         "document_type": "POSSESSION_ORDER",
         "title": "Land Possession & Mutation Certificate 001",
         "description": "Certificate of physical possession transfer and revenue land mutation record.",
@@ -178,6 +183,15 @@ def seed_synthetic_documents() -> None:
             with open(file_path, "rb") as f:
                 content = f.read()
 
+            # Read matching .txt sample document for full in-browser preview content
+            sample_txt_path = workspace_root / "sih-upgrade-context" / "sample_documents" / spec.get("sample_txt", "")
+            sample_text = None
+            if sample_txt_path.exists():
+                try:
+                    sample_text = sample_txt_path.read_text(encoding="utf-8", errors="ignore")
+                except Exception:
+                    pass
+
             sha256_hash = hashlib.sha256(content).hexdigest()
             file_size = len(content)
 
@@ -190,6 +204,15 @@ def seed_synthetic_documents() -> None:
             # Find the correct uploader for this state
             uploader = _find_uploader_for_state(users, target_states[0])
 
+            meta = {
+                "sha256": sha256_hash,
+                "file_hash": sha256_hash,
+                "version": 1,
+                "original_filename": file_name,
+            }
+            if sample_text:
+                meta["content_text"] = sample_text
+
             existing_doc = db.query(Document).filter(Document.title == spec["title"]).first()
 
             if existing_doc:
@@ -199,12 +222,7 @@ def seed_synthetic_documents() -> None:
                 existing_doc.file_path = str(file_path.resolve())
                 existing_doc.file_size_bytes = file_size
                 existing_doc.mime_type = "application/pdf"
-                existing_doc.metadata_json = {
-                    "sha256": sha256_hash,
-                    "file_hash": sha256_hash,
-                    "version": 1,
-                    "original_filename": file_name,
-                }
+                existing_doc.metadata_json = meta
                 existing_doc.is_verified = True
                 updated_count += 1
                 parcel_info = f"state={target_parcel.state}, district={target_parcel.district}" if target_parcel else "no parcel"
@@ -213,6 +231,7 @@ def seed_synthetic_documents() -> None:
                 print(f"  -> Project: {target_project.name if target_project else 'None'}")
                 print(f"  -> Parcel: {parcel_info}")
                 print(f"  -> Uploader: {uploader_info}")
+                print(f"  -> Content Text Loaded: {len(sample_text or '')} chars")
             else:
                 doc_id = uuid.uuid4()
                 new_doc = Document(
@@ -226,12 +245,7 @@ def seed_synthetic_documents() -> None:
                     file_path=str(file_path.resolve()),
                     file_size_bytes=file_size,
                     mime_type="application/pdf",
-                    metadata_json={
-                        "sha256": sha256_hash,
-                        "file_hash": sha256_hash,
-                        "version": 1,
-                        "original_filename": file_name,
-                    },
+                    metadata_json=meta,
                     is_verified=True,
                     approval_status=ApprovalStatus.PENDING_REVIEW.value,
                     current_approval_step=0,
