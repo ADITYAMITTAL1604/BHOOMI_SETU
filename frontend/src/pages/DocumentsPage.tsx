@@ -6,10 +6,7 @@ import {
   Download,
   Eye,
   Filter,
-  ShieldCheck,
   Trash2,
-  Copy,
-  Check,
   X,
   Loader2,
   RefreshCw,
@@ -17,6 +14,7 @@ import {
   Building2,
   FileCheck,
   Clock,
+  ShieldCheck,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -52,7 +50,6 @@ export function DocumentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
-  const [copiedHash, setCopiedHash] = useState<string | null>(null);
 
   // Upload Modal State
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -91,12 +88,6 @@ export function DocumentsPage() {
       .then((res) => setProjects(res.data || []))
       .catch(() => {});
   }, []);
-
-  const handleCopyHash = (hash: string) => {
-    navigator.clipboard.writeText(hash);
-    setCopiedHash(hash);
-    setTimeout(() => setCopiedHash(null), 2000);
-  };
 
   const handleDownload = async (doc: DocumentItem) => {
     setDownloadingId(doc.document_id);
@@ -168,7 +159,7 @@ export function DocumentsPage() {
             Document Management
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Tamper-proof document repository with cryptographic SHA-256 integrity verification.
+            Official document repository for land acquisition and project records.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -181,7 +172,7 @@ export function DocumentsPage() {
           </button>
           <button
             onClick={() => setShowUploadModal(true)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#245d82] text-white text-sm font-medium rounded-xl hover:bg-[#1b4866] shadow-sm transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#245d82] text-white text-sm font-medium rounded-xl hover:bg-[#1b4866] shadow-sm transition-colors cursor-pointer"
           >
             <Upload className="w-4 h-4" />
             Upload Document
@@ -206,7 +197,7 @@ export function DocumentsPage() {
         <Card className="p-4 border-l-4 border-l-emerald-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-gray-500 font-medium">SHA-256 Verified</p>
+              <p className="text-xs text-gray-500 font-medium">Verified Records</p>
               <p className="text-xl font-bold text-emerald-700 mt-0.5">{verifiedCount}</p>
             </div>
             <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
@@ -279,7 +270,7 @@ export function DocumentsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-16">
           <Loader2 className="w-8 h-8 text-[#245d82] animate-spin mb-2" />
-          <p className="text-sm text-gray-500">Loading documents from PostgreSQL database...</p>
+          <p className="text-sm text-gray-500">Loading documents...</p>
         </div>
       ) : documents.length === 0 ? (
         <Card className="p-12 text-center">
@@ -319,19 +310,6 @@ export function DocumentsPage() {
                   {doc.description && (
                     <p className="text-xs text-gray-500 mt-2.5 line-clamp-2">{doc.description}</p>
                   )}
-
-                  {/* SHA-256 Integrity Verification Badge */}
-                  {doc.is_verified && (
-                    <div className="mt-3 px-2.5 py-1.5 bg-emerald-50/80 rounded-lg border border-emerald-200/60 flex items-center justify-between gap-2 text-[11px] font-medium text-emerald-800">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                        <span className="truncate">Cryptographically Verified</span>
-                      </div>
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 bg-emerald-100/80 px-1.5 py-0.5 rounded">
-                        SHA-256
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Footer Metadata & Actions */}
@@ -362,15 +340,15 @@ export function DocumentsPage() {
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => setPreviewDoc(doc)}
-                        className="p-1.5 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors"
-                        title="View details & SHA hash"
+                        className="p-1.5 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors cursor-pointer"
+                        title="View document details"
                       >
                         <Eye className="w-4 h-4 text-[#245d82]" />
                       </button>
                       <button
                         onClick={() => handleDownload(doc)}
                         disabled={downloadingId === doc.document_id}
-                        className="p-1.5 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors disabled:opacity-50"
+                        className="p-1.5 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
                         title="Download file"
                       >
                         {downloadingId === doc.document_id ? (
@@ -381,7 +359,7 @@ export function DocumentsPage() {
                       </button>
                       <button
                         onClick={() => handleDelete(doc.document_id, doc.title)}
-                        className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors"
+                        className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors cursor-pointer"
                         title="Delete document"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -493,7 +471,7 @@ export function DocumentsPage() {
                   className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#245d82]/10 file:text-[#245d82] hover:file:bg-[#245d82]/20"
                 />
                 <p className="text-[11px] text-gray-400 mt-1">
-                  Supported formats: PDF, DOCX, XLSX, PNG, JPG (Max 20MB). Cryptographic SHA-256 hash generated automatically.
+                  Supported formats: PDF, DOCX, XLSX, PNG, JPG (Max 20MB).
                 </p>
               </div>
 
@@ -501,24 +479,24 @@ export function DocumentsPage() {
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={uploading}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#245d82] text-white text-sm font-medium rounded-lg hover:bg-[#1b4866] disabled:opacity-50"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#245d82] text-white text-sm font-medium rounded-lg hover:bg-[#1b4866] disabled:opacity-50 cursor-pointer"
                 >
                   {uploading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Uploading & Hashing...
+                      Uploading...
                     </>
                   ) : (
                     <>
                       <Upload className="w-4 h-4" />
-                      Upload to PostgreSQL
+                      Upload Document
                     </>
                   )}
                 </button>
@@ -544,7 +522,7 @@ export function DocumentsPage() {
               </div>
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -557,26 +535,6 @@ export function DocumentsPage() {
                   <p className="text-sm text-gray-700 mt-0.5">{previewDoc.description}</p>
                 </div>
               )}
-
-              {/* SHA-256 Full Hash Banner */}
-              <div className="p-3 bg-slate-900 text-slate-100 rounded-xl space-y-1">
-                <div className="flex items-center justify-between text-xs text-emerald-400 font-semibold">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    Cryptographic SHA-256 Hash
-                  </span>
-                  <button
-                    onClick={() => handleCopyHash(previewDoc.sha256!)}
-                    className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 transition-colors"
-                  >
-                    {copiedHash === previewDoc.sha256 ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                    Copy
-                  </button>
-                </div>
-                <p className="text-xs font-mono break-all text-slate-300 leading-relaxed">
-                  {previewDoc.sha256 || "SHA-256 hash verified"}
-                </p>
-              </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50 p-3 rounded-xl">
                 <div>
@@ -601,13 +559,13 @@ export function DocumentsPage() {
             <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg"
+                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
               >
                 Close
               </button>
               <button
                 onClick={() => handleDownload(previewDoc)}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700"
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 Download Document
