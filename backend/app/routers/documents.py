@@ -231,19 +231,85 @@ def download_document(
             detail="Forbidden: this document belongs to a project/parcel outside your assigned scope.",
         )
 
-    if not os.path.exists(doc.file_path):
-        raise HTTPException(
-            status_code=404,
-            detail="Document file is no longer available on storage.",
-        )
+    resolved_path = Path(doc.file_path)
+    if not resolved_path.exists():
+        settings = get_settings()
+        alt_path = Path(settings.document_storage_path) / "synthetic" / resolved_path.name
+        if alt_path.exists():
+            resolved_path = alt_path
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail="Document file is no longer available on storage.",
+            )
 
-    filename = f"{doc.title.replace(' ', '_')}.{Path(doc.file_path).suffix.lstrip('.')}"
+    filename = f"{doc.title.replace(' ', '_')}.{resolved_path.suffix.lstrip('.')}"
     return FileResponse(
-        path=doc.file_path,
+        path=str(resolved_path),
         media_type=doc.mime_type,
         filename=filename,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
+
+
+# ── Details ───────────────────────────────────────────────────────────────────
+
+@router.get(
+    "/{document_id}",
+    summary="Get single document details",
+    response_model=dict,
+)
+def get_document(
+    document_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> dict:
+    """Return detailed metadata for a single document including user/project/parcel context."""
+    doc = db.execute(
+        select(Document).where(Document.document_id == document_id)
+    ).scalar_one_or_none()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    if not _document_in_scope(db, doc, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: this document belongs to a project/parcel outside your assigned scope.",
+        )
+
+    from app.models import User as UserModel
+    uploader = db.execute(select(UserModel).where(UserModel.id == doc.uploaded_by)).scalar_one_or_none() if doc.uploaded_by else None
+    project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
+    parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
+
+    meta = doc.metadata_json or {}
+    sha256_hash = meta.get("sha256") or meta.get("file_hash") or ""
+
+    return {
+        "document_id": str(doc.document_id),
+        "title": doc.title,
+        "description": doc.description,
+        "document_type": doc.document_type,
+        "mime_type": doc.mime_type,
+        "file_size_bytes": doc.file_size_bytes,
+        "file_path": doc.file_path,
+        "version": meta.get("version", 1),
+        "is_verified": doc.is_verified,
+        "approval_status": doc.approval_status,
+        "current_approval_step": doc.current_approval_step,
+        "uploaded_by": str(doc.uploaded_by) if doc.uploaded_by else None,
+        "uploaded_by_name": uploader.username if uploader else "System",
+        "sha256": sha256_hash,
+        "file_hash": sha256_hash,
+        "project_id": str(doc.project_id) if doc.project_id else None,
+        "project_name": project.name if project else None,
+        "parcel_id": str(doc.parcel_id) if doc.parcel_id else None,
+        "parcel_survey_number": parcel.survey_number if parcel else None,
+        "created_at": doc.created_at.isoformat() if doc.created_at else None,
+        "updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
+        "metadata_json": doc.metadata_json,
+    }
 
 
 # ── List ──────────────────────────────────────────────────────────────────────
@@ -257,20 +323,33 @@ def list_documents(
     project_id: Optional[UUID] = Query(None),
     parcel_id: Optional[UUID] = Query(None),
     document_type: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> dict:
-    """Return paginated document list filtered by project, parcel, type, and
-    the current user's geographic scope."""
+    """Return paginated document list filtered by project, parcel, type, search keyword,
+    and the current user's geographic scope."""
     stmt = select(Document)
-    if project_id:
+    from uuid import UUID
+    from fastapi.params import Param
+    
+    if project_id and not isinstance(project_id, Param):
         stmt = stmt.where(Document.project_id == project_id)
-    if parcel_id:
+    if parcel_id and not isinstance(parcel_id, Param):
         stmt = stmt.where(Document.parcel_id == parcel_id)
-    if document_type:
+    if document_type and isinstance(document_type, str) and document_type != "ALL":
         stmt = stmt.where(Document.document_type == document_type)
+    if search and isinstance(search, str) and search.strip():
+        term = f"%{search.strip()}%"
+        stmt = stmt.where(
+            or_(
+                Document.title.ilike(term),
+                Document.description.ilike(term),
+                Document.document_type.ilike(term),
+            )
+        )
 
     scope = get_user_geographic_scope(current_user)
     if scope:
@@ -292,30 +371,57 @@ def list_documents(
 
     stmt = stmt.order_by(Document.created_at.desc())
     total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0
-    offset = (page - 1) * page_size
-    docs = db.execute(stmt.offset(offset).limit(page_size)).scalars().all()
+    page_num = page if isinstance(page, int) else 1
+    size_num = page_size if isinstance(page_size, int) else 20
+    offset = (page_num - 1) * size_num
+    docs = db.execute(stmt.offset(offset).limit(size_num)).scalars().all()
+
+    # Pre-fetch user, project, parcel maps for efficiency
+    from app.models import User as UserModel
+    user_ids = {d.uploaded_by for d in docs if d.uploaded_by}
+    project_ids = {d.project_id for d in docs if d.project_id}
+    parcel_ids = {d.parcel_id for d in docs if d.parcel_id}
+
+    users_map = {u.id: u.username for u in db.execute(select(UserModel).where(UserModel.id.in_(user_ids))).scalars().all()} if user_ids else {}
+    projects_map = {p.project_id: p.name for p in db.execute(select(Project).where(Project.project_id.in_(project_ids))).scalars().all()} if project_ids else {}
+    parcels_map = {p.parcel_id: p.survey_number for p in db.execute(select(Parcel).where(Parcel.parcel_id.in_(parcel_ids))).scalars().all()} if parcel_ids else {}
+
+    items = []
+    for d in docs:
+        meta = d.metadata_json or {}
+        sha256_hash = meta.get("sha256") or meta.get("file_hash") or ""
+        items.append({
+            "document_id": str(d.document_id),
+            "title": d.title,
+            "description": d.description,
+            "document_type": d.document_type,
+            "mime_type": d.mime_type,
+            "file_size_bytes": d.file_size_bytes,
+            "file_path": d.file_path,
+            "version": meta.get("version", 1),
+            "is_verified": d.is_verified,
+            "approval_status": d.approval_status,
+            "current_approval_step": d.current_approval_step,
+            "uploaded_by": str(d.uploaded_by) if d.uploaded_by else None,
+            "uploaded_by_name": users_map.get(d.uploaded_by, "Field Officer"),
+            "sha256": sha256_hash,
+            "file_hash": sha256_hash,
+            "project_id": str(d.project_id) if d.project_id else None,
+            "project_name": projects_map.get(d.project_id),
+            "parcel_id": str(d.parcel_id) if d.parcel_id else None,
+            "parcel_survey_number": parcels_map.get(d.parcel_id),
+            "created_at": d.created_at.isoformat() if d.created_at else None,
+            "updated_at": d.updated_at.isoformat() if d.updated_at else None,
+        })
 
     return {
-        "items": [
-            {
-                "document_id": str(d.document_id),
-                "title": d.title,
-                "document_type": d.document_type,
-                "mime_type": d.mime_type,
-                "file_size_bytes": d.file_size_bytes,
-                "version": (d.metadata_json or {}).get("version", 1),
-                "is_verified": d.is_verified,
-                "created_at": d.created_at.isoformat() if d.created_at else None,
-                "project_id": str(d.project_id) if d.project_id else None,
-                "parcel_id": str(d.parcel_id) if d.parcel_id else None,
-            }
-            for d in docs
-        ],
+        "items": items,
+        "data": items,
         "pagination": {
-            "page": page,
-            "page_size": page_size,
+            "page": page_num,
+            "page_size": size_num,
             "total": total,
-            "total_pages": max(1, -(-total // page_size)),
+            "total_pages": max(1, -(-total // size_num)),
         },
     }
 
@@ -350,3 +456,4 @@ def delete_document(
 
     db.delete(doc)
     db.commit()
+
