@@ -293,7 +293,6 @@ export function DocumentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {documents.map((doc) => {
             const statusConfig = STATUS_COLORS[doc.approval_status] || STATUS_COLORS.PENDING_REVIEW;
-            const hashSnippet = doc.sha256 ? `${doc.sha256.substring(0, 12)}...${doc.sha256.substring(doc.sha256.length - 8)}` : null;
 
             return (
               <Card key={doc.document_id} hoverable className="p-5 flex flex-col justify-between">
@@ -321,26 +320,16 @@ export function DocumentsPage() {
                     <p className="text-xs text-gray-500 mt-2.5 line-clamp-2">{doc.description}</p>
                   )}
 
-                  {/* SHA-256 Hash Verification Badge */}
-                  {hashSnippet && (
-                    <div className="mt-3 p-2 bg-slate-900/5 rounded-lg border border-slate-200/60 flex items-center justify-between gap-2 text-[11px] font-mono text-slate-700">
+                  {/* SHA-256 Integrity Verification Badge */}
+                  {doc.is_verified && (
+                    <div className="mt-3 px-2.5 py-1.5 bg-emerald-50/80 rounded-lg border border-emerald-200/60 flex items-center justify-between gap-2 text-[11px] font-medium text-emerald-800">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                        <span className="truncate" title={doc.sha256}>
-                          SHA: {hashSnippet}
-                        </span>
+                        <span className="truncate">Cryptographically Verified</span>
                       </div>
-                      <button
-                        onClick={() => handleCopyHash(doc.sha256!)}
-                        className="p-1 hover:bg-slate-200 rounded text-slate-500 transition-colors flex-shrink-0"
-                        title="Copy full SHA-256 hash"
-                      >
-                        {copiedHash === doc.sha256 ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-600 bg-emerald-100/80 px-1.5 py-0.5 rounded">
+                        SHA-256
+                      </span>
                     </div>
                   )}
                 </div>

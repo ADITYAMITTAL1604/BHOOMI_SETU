@@ -97,13 +97,26 @@ def seed_synthetic_documents() -> None:
             sha256_hash = hashlib.sha256(content).hexdigest()
             file_size = len(content)
 
-            # Assign project/parcel in round-robin fashion if multiple exist
-            project = projects[i % len(projects)] if projects else None
-            parcel = parcels[i % len(parcels)] if parcels else None
+            # Assign to projects covering UP, Punjab, Delhi, Maharashtra
+            target_project = None
+            if projects:
+                # Find project matching regional scopes
+                if i == 0 or i == 1:
+                    # Uttar Pradesh / Delhi
+                    target_project = next((p for p in projects if "Uttar Pradesh" in (p.states or []) or "Delhi" in (p.states or [])), projects[0])
+                elif i == 2:
+                    # Punjab
+                    target_project = next((p for p in projects if "Punjab" in (p.states or [])), projects[0])
+                elif i == 3:
+                    # Maharashtra
+                    target_project = next((p for p in projects if "Maharashtra" in (p.states or [])), projects[0])
+                else:
+                    target_project = projects[i % len(projects)]
 
             existing_doc = db.query(Document).filter(Document.title == spec["title"]).first()
 
             if existing_doc:
+                existing_doc.project_id = target_project.project_id if target_project else None
                 existing_doc.file_path = str(file_path.resolve())
                 existing_doc.file_size_bytes = file_size
                 existing_doc.mime_type = "application/pdf"
@@ -115,12 +128,12 @@ def seed_synthetic_documents() -> None:
                 }
                 existing_doc.is_verified = True
                 updated_count += 1
-                print(f"Updated existing document: {existing_doc.title} (SHA-256: {sha256_hash[:12]}...)")
+                print(f"Updated existing document: {existing_doc.title} -> Project: {target_project.name if target_project else 'None'} (SHA-256: {sha256_hash[:12]}...)")
             else:
                 doc_id = uuid.uuid4()
                 new_doc = Document(
                     document_id=doc_id,
-                    project_id=project.project_id if project else None,
+                    project_id=target_project.project_id if target_project else None,
                     parcel_id=parcel.parcel_id if parcel else None,
                     uploaded_by=field_officer.id if field_officer else None,
                     document_type=spec["document_type"],
@@ -141,7 +154,7 @@ def seed_synthetic_documents() -> None:
                 )
                 db.add(new_doc)
                 seeded_count += 1
-                print(f"Created new document: {spec['title']} (SHA-256: {sha256_hash[:12]}...)")
+                print(f"Created new document: {spec['title']} -> Project: {target_project.name if target_project else 'None'} (SHA-256: {sha256_hash[:12]}...)")
 
         db.commit()
         print(f"\nSuccessfully seeded synthetic documents! Created: {seeded_count}, Updated: {updated_count}")

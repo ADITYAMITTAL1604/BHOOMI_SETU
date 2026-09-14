@@ -37,13 +37,14 @@ class RejectReviseRequest(BaseModel):
     response_model=dict,
 )
 def list_pending_approvals(
+    status: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
     """Return documents awaiting approval at the current user's approval chain step."""
-    return get_pending_approvals_for_user(db, current_user, page, page_size)
+    return get_pending_approvals_for_user(db, current_user, page, page_size, status_filter=status)
 
 
 @router.get(
@@ -52,6 +53,7 @@ def list_pending_approvals(
     response_model=dict,
 )
 def approval_queue_dashboard(
+    status: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
@@ -61,9 +63,9 @@ def approval_queue_dashboard(
     from sqlalchemy import select, func
     from app.models import Document, ApprovalStatus
 
-    pending = get_pending_approvals_for_user(db, current_user, page, page_size)
+    queue_data = get_pending_approvals_for_user(db, current_user, page, page_size, status_filter=status)
 
-    # Add summary counts
+    # Add summary counts across all statuses
     counts = {}
     for status_val in ApprovalStatus:
         count = db.execute(
@@ -73,8 +75,8 @@ def approval_queue_dashboard(
         ).scalar() or 0
         counts[status_val.value] = count
 
-    pending["status_counts"] = counts
-    return pending
+    queue_data["status_counts"] = counts
+    return queue_data
 
 
 @router.post(

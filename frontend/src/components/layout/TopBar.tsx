@@ -46,7 +46,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-3 sm:px-6 bg-white border-b border-gray-200/80">
+    <header className="sticky top-0 z-50 flex items-center justify-between h-16 px-3 sm:px-6 bg-white border-b border-gray-200/80 shadow-xs">
       {/* ── Left: Hamburger (Mobile) + Search ─────────────────────── */}
       <div className="flex items-center flex-1 max-w-[200px] sm:max-w-xs md:max-w-lg">
         <button
@@ -98,10 +98,15 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps) {
         </button>
 
         {/* User Menu */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative z-50" ref={menuRef}>
           <button
-            onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowUserMenu((prev) => !prev);
+            }}
+            className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+            aria-expanded={showUserMenu}
+            aria-label="User profile menu"
           >
             <div className="text-right hidden sm:block">
               <p className="text-xs font-semibold text-gray-700">
@@ -118,7 +123,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps) {
 
           {/* Dropdown */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-1 animate-fade-in">
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-200 py-1 z-[100] animate-fade-in">
               <div className="px-4 py-3 border-b border-gray-100">
                 <p className="text-sm font-semibold text-gray-900">
                   {user?.username}
@@ -141,7 +146,7 @@ export function TopBar({ onMobileMenuToggle }: TopBarProps) {
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 Sign Out

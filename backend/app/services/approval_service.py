@@ -43,42 +43,52 @@ def get_pending_approvals_for_user(
     user: User,
     page: int = 1,
     page_size: int = 20,
+    status_filter: Optional[str] = None,
 ) -> dict:
-    """Return documents awaiting approval at the current user's chain step."""
-    role = user.role
-
-    # Bypass roles see all pending documents
-    if role in BYPASS_ROLES:
-        stmt = select(Document).where(
-            Document.approval_status.in_([
-                ApprovalStatus.PENDING_REVIEW.value,
-                ApprovalStatus.UNDER_REVIEW.value,
-            ])
-        )
-    else:
-        step_cfg = get_approval_step_for_role(role)
-        if not step_cfg:
-            return {"items": [], "total": 0, "page": page, "page_size": page_size}
-
-        step_order = step_cfg["step"]
-        stmt = select(Document).where(
-            Document.current_approval_step == step_order - 1,
-            Document.approval_status.in_([
-                ApprovalStatus.PENDING_REVIEW.value,
-                ApprovalStatus.UNDER_REVIEW.value,
-            ])
-        )
-
-    # Geographic scope filtering
-    from app.core.deps import get_user_geographic_scope, filter_by_geographic_scope
+    """Return documents in the approval queue filtered by status, user role, and geographic scope."""
+    from sqlalchemy import or_, and_
     from app.models import Parcel, Project
 
+    stmt = select(Document)
+
+    # 1. Apply status filtering
+    if status_filter and status_filter != "ALL":
+        stmt = stmt.where(Document.approval_status == status_filter)
+    elif status_filter is None:
+        # Default pending view
+        stmt = stmt.where(
+            Document.approval_status.in_([
+                ApprovalStatus.PENDING_REVIEW.value,
+                ApprovalStatus.UNDER_REVIEW.value,
+            ])
+        )
+
+    # 2. Geographic scope filtering
+    from app.core.deps import get_user_geographic_scope
     scope = get_user_geographic_scope(user)
-    if scope:
-        parcel_conditions = filter_by_geographic_scope(user, Parcel)
-        if parcel_conditions:
+
+    if scope and user.role not in BYPASS_ROLES:
+        no_location = Document.project_id.is_(None) & Document.parcel_id.is_(None)
+        uploader_own = Document.uploaded_by == user.id
+
+        scope_clauses = [no_location, uploader_own]
+
+        if scope.get("state"):
+            # Project state array match or Parcel state match
+            stmt = stmt.outerjoin(Project, Document.project_id == Project.project_id)
             stmt = stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
-            stmt = stmt.where(*parcel_conditions)
+            
+            project_match = and_(
+                Document.project_id.isnot(None),
+                Project.states.any(scope["state"])
+            )
+            parcel_match = and_(
+                Document.parcel_id.isnot(None),
+                Parcel.state == scope["state"]
+            )
+            scope_clauses.extend([project_match, parcel_match])
+
+        stmt = stmt.where(or_(*scope_clauses))
 
     total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0
     stmt = stmt.order_by(Document.created_at.desc())
@@ -86,7 +96,7 @@ def get_pending_approvals_for_user(
     docs = db.execute(stmt.offset(offset).limit(page_size)).scalars().all()
 
     return {
-        "items": [_document_to_dict(d) for d in docs],
+        "items": [_document_to_dict(d, db=db, user=user) for d in docs],
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -338,10 +348,36 @@ def _get_step_label(step_order: int) -> str:
     return f"Step {step_order}"
 
 
-def _document_to_dict(doc: Document) -> dict:
+def _document_to_dict(doc: Document, db: Optional[Session] = None, user: Optional[User] = None) -> dict:
+    uploader_name = None
+    project_name = None
+    history = []
+    is_actionable = False
+
+    if db:
+        if doc.uploaded_by:
+            uploader = db.execute(select(User).where(User.id == doc.uploaded_by)).scalar_one_or_none()
+            if uploader:
+                uploader_name = uploader.username
+        if doc.project_id:
+            from app.models import Project
+            prj = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none()
+            if prj:
+                project_name = prj.name
+        history = get_approval_history(db, doc.document_id)
+
+    if user:
+        if user.role in BYPASS_ROLES:
+            is_actionable = doc.approval_status in (ApprovalStatus.PENDING_REVIEW.value, ApprovalStatus.UNDER_REVIEW.value)
+        else:
+            step_cfg = get_approval_step_for_role(user.role)
+            if step_cfg and doc.current_approval_step == step_cfg["step"] - 1:
+                is_actionable = doc.approval_status in (ApprovalStatus.PENDING_REVIEW.value, ApprovalStatus.UNDER_REVIEW.value)
+
     return {
         "document_id": str(doc.document_id),
         "title": doc.title,
+        "description": doc.description,
         "document_type": doc.document_type,
         "approval_status": doc.approval_status,
         "current_approval_step": doc.current_approval_step,
@@ -349,8 +385,15 @@ def _document_to_dict(doc: Document) -> dict:
         "mime_type": doc.mime_type,
         "file_size_bytes": doc.file_size_bytes,
         "is_verified": doc.is_verified,
+        "uploaded_by": str(doc.uploaded_by) if doc.uploaded_by else "System",
+        "uploader_username": uploader_name or "Field Officer",
+        "entity_type": "parcel" if doc.parcel_id else ("project" if doc.project_id else "document"),
+        "entity_id": str(doc.parcel_id or doc.project_id or doc.document_id),
         "project_id": str(doc.project_id) if doc.project_id else None,
+        "project_name": project_name,
         "parcel_id": str(doc.parcel_id) if doc.parcel_id else None,
+        "approval_history": history,
+        "is_actionable": is_actionable,
         "created_at": doc.created_at.isoformat() if doc.created_at else None,
         "updated_at": doc.updated_at.isoformat() if doc.updated_at else None,
     }

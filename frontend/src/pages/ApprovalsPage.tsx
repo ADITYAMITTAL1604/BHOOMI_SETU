@@ -292,8 +292,9 @@ export function ApprovalsPage() {
             const StatusIcon = config.icon;
             const isExpanded = expandedId === item.document_id;
             const isActionable =
-              item.approval_status === "PENDING_REVIEW" ||
-              item.approval_status === "UNDER_REVIEW";
+              (item as any).is_actionable !== undefined
+                ? (item as any).is_actionable
+                : (item.approval_status === "PENDING_REVIEW" || item.approval_status === "UNDER_REVIEW");
 
             return (
               <div
@@ -314,6 +315,7 @@ export function ApprovalsPage() {
                     </p>
                     <p className="text-xs text-gray-400">
                       by {item.uploader_username || item.uploaded_by} •{" "}
+                      {item.project_name ? `${item.project_name} • ` : ""}
                       {new Date(item.created_at).toLocaleDateString()} •
                       Step {item.current_approval_step}/
                       {APPROVAL_CHAIN.length}
@@ -355,7 +357,7 @@ export function ApprovalsPage() {
                       </div>
 
                       {/* Actions */}
-                      {isActionable && (
+                      {isActionable ? (
                         <div>
                           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                             Actions
@@ -377,7 +379,7 @@ export function ApprovalsPage() {
                                 handleAction(item.document_id, "approve")
                               }
                               disabled={actionLoading === item.document_id}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition-colors cursor-pointer"
                             >
                               <CheckCircle2 className="w-4 h-4" />
                               Approve
@@ -387,7 +389,7 @@ export function ApprovalsPage() {
                                 handleAction(item.document_id, "revise")
                               }
                               disabled={actionLoading === item.document_id}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg hover:bg-amber-600 disabled:opacity-50 transition-colors cursor-pointer"
                             >
                               <RotateCcw className="w-4 h-4" />
                               Request Revision
@@ -397,7 +399,7 @@ export function ApprovalsPage() {
                                 handleAction(item.document_id, "reject")
                               }
                               disabled={actionLoading === item.document_id}
-                              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                              className="flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors cursor-pointer"
                             >
                               <XCircle className="w-4 h-4" />
                               Reject
@@ -410,12 +412,16 @@ export function ApprovalsPage() {
                             </div>
                           )}
                         </div>
-                      )}
-
-                      {!isActionable && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <AlertTriangle className="w-4 h-4 text-gray-400" />
-                          This document is not actionable in its current state.
+                      ) : (
+                        <div className="flex items-center gap-2 text-sm text-gray-500 bg-amber-50/60 p-3 rounded-lg border border-amber-200/50">
+                          <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                          <span>
+                            {item.approval_status === "APPROVED"
+                              ? "This document has been fully approved."
+                              : item.approval_status === "REJECTED"
+                              ? "This document was rejected."
+                              : `Pending review at Step ${item.current_approval_step + 1} (${APPROVAL_CHAIN[item.current_approval_step] || "Next Officer"}).`}
+                          </span>
                         </div>
                       )}
                     </div>
