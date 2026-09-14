@@ -45,7 +45,13 @@ def get_pending_approvals_for_user(
     page_size: int = 20,
     status_filter: Optional[str] = None,
 ) -> dict:
-    """Return documents in the approval queue filtered by status, user role, and geographic scope."""
+    """Return documents in the approval queue filtered by status, user role, and geographic scope.
+
+    Security: scoped users (non-ADMIN/CENTRAL) see ONLY documents whose linked
+    parcel or project falls within their assigned state/district. The previous
+    `uploader_own` bypass and `no_location` fallback have been removed to
+    prevent cross-scope data leakage.
+    """
     from sqlalchemy import or_, and_
     from app.models import Parcel, Project
 
@@ -63,32 +69,45 @@ def get_pending_approvals_for_user(
             ])
         )
 
-    # 2. Geographic scope filtering
+    # 2. Strict geographic scope filtering (RBAC enforcement)
     from app.core.deps import get_user_geographic_scope
     scope = get_user_geographic_scope(user)
 
     if scope and user.role not in BYPASS_ROLES:
-        no_location = Document.project_id.is_(None) & Document.parcel_id.is_(None)
-        uploader_own = Document.uploaded_by == user.id
+        # Join project and parcel tables for geographic filtering
+        stmt = stmt.outerjoin(Project, Document.project_id == Project.project_id)
+        stmt = stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
 
-        scope_clauses = [no_location, uploader_own]
+        scope_clauses = []
 
-        if scope.get("state"):
-            # Project state array match or Parcel state match
-            stmt = stmt.outerjoin(Project, Document.project_id == Project.project_id)
-            stmt = stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
-            
-            project_match = and_(
-                Document.project_id.isnot(None),
-                Project.states.any(scope["state"])
+        if scope.get("district"):
+            # District-scoped user: match parcel district OR project district array
+            parcel_district_match = and_(
+                Document.parcel_id.isnot(None),
+                Parcel.district == scope["district"]
             )
-            parcel_match = and_(
+            project_district_match = and_(
+                Document.project_id.isnot(None),
+                Project.districts.any(scope["district"])
+            )
+            scope_clauses.extend([parcel_district_match, project_district_match])
+        elif scope.get("state"):
+            # State-scoped user (no district): match parcel state OR project state array
+            parcel_state_match = and_(
                 Document.parcel_id.isnot(None),
                 Parcel.state == scope["state"]
             )
-            scope_clauses.extend([project_match, parcel_match])
+            project_state_match = and_(
+                Document.project_id.isnot(None),
+                Project.states.any(scope["state"])
+            )
+            scope_clauses.extend([parcel_state_match, project_state_match])
 
-        stmt = stmt.where(or_(*scope_clauses))
+        if scope_clauses:
+            stmt = stmt.where(or_(*scope_clauses))
+        else:
+            # If scope is set but has neither state nor district, show nothing
+            stmt = stmt.where(Document.document_id.is_(None))
 
     total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0
     stmt = stmt.order_by(Document.created_at.desc())
@@ -112,7 +131,7 @@ def approve_document(
 ) -> dict:
     """Approve a document at the current user's approval step."""
     doc = _get_document_or_404(db, document_id)
-    _validate_can_act(doc, approver)
+    _validate_can_act(doc, approver, db)
 
     step_order = _resolve_step_order(doc, approver)
 
@@ -175,7 +194,7 @@ def reject_document(
         )
 
     doc = _get_document_or_404(db, document_id)
-    _validate_can_act(doc, approver)
+    _validate_can_act(doc, approver, db)
 
     step_order = _resolve_step_order(doc, approver)
 
@@ -224,7 +243,7 @@ def request_revision(
         )
 
     doc = _get_document_or_404(db, document_id)
-    _validate_can_act(doc, approver)
+    _validate_can_act(doc, approver, db)
 
     step_order = _resolve_step_order(doc, approver)
 
@@ -301,8 +320,17 @@ def _get_document_or_404(db: Session, document_id: uuid.UUID) -> Document:
     return doc
 
 
-def _validate_can_act(doc: Document, approver: User) -> None:
-    """Validate the approver can act on this document at its current step."""
+def _validate_can_act(doc: Document, approver: User, db: Optional[Session] = None) -> None:
+    """Validate the approver can act on this document at its current step.
+
+    Checks:
+    1. Document is not already in a terminal state (APPROVED/REJECTED).
+    2. Approver role is in the approval chain.
+    3. Document is at the correct step for this approver's role.
+    4. **Geographic scope**: the document's parcel/project falls within
+       the approver's assigned state/district. This prevents a Ghaziabad
+       officer from approving Punjab documents.
+    """
     if doc.approval_status in (
         ApprovalStatus.APPROVED.value,
         ApprovalStatus.REJECTED.value,
@@ -314,6 +342,10 @@ def _validate_can_act(doc: Document, approver: User) -> None:
 
     if approver.role in BYPASS_ROLES:
         return  # Admin/Central can always act
+
+    # Geographic scope enforcement
+    if db:
+        _validate_geographic_scope(db, doc, approver)
 
     step_cfg = get_approval_step_for_role(approver.role)
     if not step_cfg:
@@ -331,6 +363,52 @@ def _validate_can_act(doc: Document, approver: User) -> None:
                 f"Expected role for step {expected_step}, but your role maps to step {step_cfg['step']}."
             ),
         )
+
+
+def _validate_geographic_scope(db: Session, doc: Document, approver: User) -> None:
+    """Raise 403 if the document's geographic location is outside the approver's scope."""
+    from app.core.deps import get_user_geographic_scope
+    from app.models import Parcel, Project
+
+    scope = get_user_geographic_scope(approver)
+    if not scope:
+        return  # No scope restrictions
+
+    doc_state = None
+    doc_district = None
+
+    if doc.parcel_id:
+        parcel = db.execute(
+            select(Parcel).where(Parcel.parcel_id == doc.parcel_id)
+        ).scalar_one_or_none()
+        if parcel:
+            doc_state = parcel.state
+            doc_district = parcel.district
+
+    if doc_state is None and doc.project_id:
+        project = db.execute(
+            select(Project).where(Project.project_id == doc.project_id)
+        ).scalar_one_or_none()
+        if project:
+            doc_state = project.states[0] if project.states else None
+            doc_district = project.districts[0] if project.districts else None
+
+    # Check district scope
+    if scope.get("district") and doc_district:
+        if doc_district != scope["district"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Forbidden: this document belongs to district '{doc_district}' which is outside your assigned scope '{scope['district']}'.",
+            )
+        return  # District matched, no need to check state
+
+    # Check state scope
+    if scope.get("state") and doc_state:
+        if doc_state != scope["state"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Forbidden: this document belongs to state '{doc_state}' which is outside your assigned scope '{scope['state']}'.",
+            )
 
 
 def _resolve_step_order(doc: Document, approver: User) -> int:

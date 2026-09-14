@@ -411,21 +411,37 @@ def list_documents(
 
     scope = get_user_geographic_scope(current_user)
     if scope:
-        from app.core.deps import filter_by_geographic_scope
+        # Strict RBAC geographic filtering — no fallback for unlinked documents
+        stmt = stmt.outerjoin(Project, Document.project_id == Project.project_id)
+        stmt = stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
 
-        no_location = Document.project_id.is_(None) & Document.parcel_id.is_(None)
-        project_conditions = filter_by_geographic_scope(current_user, Project)
-        parcel_conditions = filter_by_geographic_scope(current_user, Parcel)
+        scope_clauses = []
 
-        in_scope_clauses = [no_location]
-        if project_conditions:
-            stmt = stmt.outerjoin(Project, Document.project_id == Project.project_id)
-            in_scope_clauses.append(and_(Document.project_id.isnot(None), *project_conditions))
-        if parcel_conditions:
-            stmt = stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
-            in_scope_clauses.append(and_(Document.parcel_id.isnot(None), *parcel_conditions))
+        if scope.get("district"):
+            # District-scoped: match parcel district OR project districts array
+            scope_clauses.append(and_(
+                Document.parcel_id.isnot(None),
+                Parcel.district == scope["district"]
+            ))
+            scope_clauses.append(and_(
+                Document.project_id.isnot(None),
+                Project.districts.any(scope["district"])
+            ))
+        elif scope.get("state"):
+            # State-scoped: match parcel state OR project states array
+            scope_clauses.append(and_(
+                Document.parcel_id.isnot(None),
+                Parcel.state == scope["state"]
+            ))
+            scope_clauses.append(and_(
+                Document.project_id.isnot(None),
+                Project.states.any(scope["state"])
+            ))
 
-        stmt = stmt.where(or_(*in_scope_clauses))
+        if scope_clauses:
+            stmt = stmt.where(or_(*scope_clauses))
+        else:
+            stmt = stmt.where(Document.document_id.is_(None))
 
     stmt = stmt.order_by(Document.created_at.desc())
     total = db.execute(select(func.count()).select_from(stmt.subquery())).scalar() or 0

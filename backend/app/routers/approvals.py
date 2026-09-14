@@ -59,20 +59,42 @@ def approval_queue_dashboard(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
-    """Return the full approval queue with counts and status breakdown."""
-    from sqlalchemy import select, func
-    from app.models import Document, ApprovalStatus
+    """Return the full approval queue with counts and status breakdown.
+    Counts are scoped to the current user's geographic jurisdiction.
+    """
+    from sqlalchemy import select, func, or_, and_
+    from app.models import Document, ApprovalStatus, Parcel, Project
+    from app.core.deps import get_user_geographic_scope
+    from app.models.document_approval import BYPASS_ROLES
 
     queue_data = get_pending_approvals_for_user(db, current_user, page, page_size, status_filter=status)
 
-    # Add summary counts across all statuses
+    # Add summary counts across all statuses — scoped to user's geography
+    scope = get_user_geographic_scope(current_user)
     counts = {}
     for status_val in ApprovalStatus:
-        count = db.execute(
-            select(func.count(Document.document_id)).where(
-                Document.approval_status == status_val.value
-            )
-        ).scalar() or 0
+        count_stmt = select(func.count(Document.document_id)).where(
+            Document.approval_status == status_val.value
+        )
+
+        if scope and current_user.role not in BYPASS_ROLES:
+            count_stmt = count_stmt.outerjoin(Project, Document.project_id == Project.project_id)
+            count_stmt = count_stmt.outerjoin(Parcel, Document.parcel_id == Parcel.parcel_id)
+
+            scope_clauses = []
+            if scope.get("district"):
+                scope_clauses.append(and_(Document.parcel_id.isnot(None), Parcel.district == scope["district"]))
+                scope_clauses.append(and_(Document.project_id.isnot(None), Project.districts.any(scope["district"])))
+            elif scope.get("state"):
+                scope_clauses.append(and_(Document.parcel_id.isnot(None), Parcel.state == scope["state"]))
+                scope_clauses.append(and_(Document.project_id.isnot(None), Project.states.any(scope["state"])))
+
+            if scope_clauses:
+                count_stmt = count_stmt.where(or_(*scope_clauses))
+            else:
+                count_stmt = count_stmt.where(Document.document_id.is_(None))
+
+        count = db.execute(count_stmt).scalar() or 0
         counts[status_val.value] = count
 
     queue_data["status_counts"] = counts
