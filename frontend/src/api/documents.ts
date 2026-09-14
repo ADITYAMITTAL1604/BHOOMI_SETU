@@ -57,19 +57,39 @@ export async function deleteDocument(documentId: string): Promise<void> {
   await apiClient.delete(`/documents/${documentId}`);
 }
 
-export async function downloadDocumentFile(documentId: string, filename?: string): Promise<void> {
+export interface DocumentPreview extends DocumentItem {
+  text_content: string;
+  parcel_info?: string;
+}
+
+export async function getDocumentPreview(documentId: string): Promise<DocumentPreview> {
+  const response = await apiClient.get<DocumentPreview>(`/documents/${documentId}/preview`);
+  return response.data;
+}
+
+export async function downloadDocumentFile(
+  documentId: string,
+  filename?: string,
+  format: "pdf" | "docx" | "xlsx" | "txt" = "pdf"
+): Promise<void> {
   const response = await apiClient.get(`/documents/${documentId}/download`, {
+    params: { format },
     responseType: "blob",
   });
   
-  const contentType = (response.headers?.["content-type"] as string) || "application/pdf";
+  const ext = format;
+  const cleanTitle = filename ? filename.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, "_") : `document_${documentId}`;
+  const downloadName = `${cleanTitle}.${ext}`;
+
+  const contentType = (response.headers?.["content-type"] as string) || "application/octet-stream";
   const blob = new Blob([response.data], { type: contentType });
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.setAttribute("download", filename || `document_${documentId}.pdf`);
+  link.setAttribute("download", downloadName);
   document.body.appendChild(link);
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
 }
+

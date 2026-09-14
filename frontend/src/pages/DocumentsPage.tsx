@@ -15,6 +15,11 @@ import {
   FileCheck,
   Clock,
   ShieldCheck,
+  FileSpreadsheet,
+  FileType,
+  Printer,
+  CheckCircle2,
+  ChevronDown,
 } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { cn } from "@/lib/utils";
@@ -23,7 +28,9 @@ import {
   uploadDocument,
   deleteDocument,
   downloadDocumentFile,
+  getDocumentPreview,
   type DocumentItem,
+  type DocumentPreview,
 } from "@/api/documents";
 import { getProjects } from "@/api/projects";
 import type { Project } from "@/types/api";
@@ -60,9 +67,14 @@ export function DocumentsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Preview Modal State
+  // In-Browser Document Previewer State
   const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [previewData, setPreviewData] = useState<DocumentPreview | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // Multi-Format Download State
+  const [downloadMenuId, setDownloadMenuId] = useState<string | null>(null);
+  const [downloadingFormat, setDownloadingFormat] = useState<{ docId: string; format: string } | null>(null);
 
   const fetchDocs = useCallback(async () => {
     setLoading(true);
@@ -89,14 +101,32 @@ export function DocumentsPage() {
       .catch(() => {});
   }, []);
 
-  const handleDownload = async (doc: DocumentItem) => {
-    setDownloadingId(doc.document_id);
+  const handleOpenPreview = async (doc: DocumentItem) => {
+    setPreviewDoc(doc);
+    setPreviewLoading(true);
+    setPreviewData(null);
     try {
-      await downloadDocumentFile(doc.document_id, doc.title);
+      const data = await getDocumentPreview(doc.document_id);
+      setPreviewData(data);
     } catch (err) {
-      alert("Failed to download file. Please check server logs.");
+      console.error("Failed to load document preview:", err);
     } finally {
-      setDownloadingId(null);
+      setPreviewLoading(false);
+    }
+  };
+
+  const handleDownload = async (
+    doc: DocumentItem,
+    format: "pdf" | "docx" | "xlsx" | "txt" = "pdf"
+  ) => {
+    setDownloadingFormat({ docId: doc.document_id, format });
+    setDownloadMenuId(null);
+    try {
+      await downloadDocumentFile(doc.document_id, doc.title, format);
+    } catch (err) {
+      alert("Failed to download file in requested format. Please try again.");
+    } finally {
+      setDownloadingFormat(null);
     }
   };
 
@@ -165,7 +195,7 @@ export function DocumentsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={fetchDocs}
-            className="p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors"
+            className="p-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors cursor-pointer"
             title="Refresh list"
           >
             <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
@@ -284,9 +314,11 @@ export function DocumentsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {documents.map((doc) => {
             const statusConfig = STATUS_COLORS[doc.approval_status] || STATUS_COLORS.PENDING_REVIEW;
+            const isDownloadingThis = downloadingFormat?.docId === doc.document_id;
+            const isMenuOpen = downloadMenuId === doc.document_id;
 
             return (
-              <Card key={doc.document_id} hoverable className="p-5 flex flex-col justify-between">
+              <Card key={doc.document_id} hoverable className="p-5 flex flex-col justify-between relative">
                 <div>
                   {/* Top Bar: Icon, Title, Type */}
                   <div className="flex items-start gap-3">
@@ -337,26 +369,73 @@ export function DocumentsPage() {
                       {doc.created_at ? new Date(doc.created_at).toLocaleDateString() : "Recent"}
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 relative">
+                      {/* Web Preview Button */}
                       <button
-                        onClick={() => setPreviewDoc(doc)}
-                        className="p-1.5 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors cursor-pointer"
-                        title="View document details"
+                        onClick={() => handleOpenPreview(doc)}
+                        className="p-1.5 hover:bg-[#245d82]/10 text-[#245d82] rounded-lg transition-colors cursor-pointer flex items-center gap-1 font-medium"
+                        title="Web Document Preview (In-Browser)"
                       >
-                        <Eye className="w-4 h-4 text-[#245d82]" />
+                        <Eye className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDownload(doc)}
-                        disabled={downloadingId === doc.document_id}
-                        className="p-1.5 hover:bg-gray-100 text-gray-600 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
-                        title="Download file"
-                      >
-                        {downloadingId === doc.document_id ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-[#245d82]" />
-                        ) : (
-                          <Download className="w-4 h-4 text-emerald-600" />
+
+                      {/* Download Format Menu Trigger */}
+                      <div className="relative">
+                        <button
+                          onClick={() => setDownloadMenuId(isMenuOpen ? null : doc.document_id)}
+                          disabled={isDownloadingThis}
+                          className="p-1.5 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors disabled:opacity-50 cursor-pointer flex items-center gap-0.5"
+                          title="Download Options (PDF, DOCX, XLSX, TXT)"
+                        >
+                          {isDownloadingThis ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4" />
+                              <ChevronDown className="w-3 h-3 text-emerald-600" />
+                            </>
+                          )}
+                        </button>
+
+                        {/* Format Dropdown Menu */}
+                        {isMenuOpen && (
+                          <div className="absolute right-0 bottom-8 z-30 bg-white border border-gray-200 rounded-xl shadow-xl p-1.5 w-44 space-y-0.5 animate-scale-up">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-2 py-1 border-b border-gray-100">
+                              Download Format
+                            </p>
+                            <button
+                              onClick={() => handleDownload(doc, "pdf")}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-700 hover:bg-red-50 hover:text-red-700 rounded-lg transition-colors text-left font-medium cursor-pointer"
+                            >
+                              <FileType className="w-3.5 h-3.5 text-red-600" />
+                              PDF Document (.pdf)
+                            </button>
+                            <button
+                              onClick={() => handleDownload(doc, "docx")}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors text-left font-medium cursor-pointer"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-blue-600" />
+                              Word Document (.docx)
+                            </button>
+                            <button
+                              onClick={() => handleDownload(doc, "xlsx")}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-lg transition-colors text-left font-medium cursor-pointer"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                              Excel Sheet (.xlsx)
+                            </button>
+                            <button
+                              onClick={() => handleDownload(doc, "txt")}
+                              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs text-gray-700 hover:bg-gray-100 hover:text-gray-900 rounded-lg transition-colors text-left font-medium cursor-pointer"
+                            >
+                              <FileText className="w-3.5 h-3.5 text-gray-500" />
+                              Text File (.txt)
+                            </button>
+                          </div>
                         )}
-                      </button>
+                      </div>
+
+                      {/* Delete Button */}
                       <button
                         onClick={() => handleDelete(doc.document_id, doc.title)}
                         className="p-1.5 hover:bg-red-50 text-red-500 rounded-lg transition-colors cursor-pointer"
@@ -384,7 +463,7 @@ export function DocumentsPage() {
               </h3>
               <button
                 onClick={() => setShowUploadModal(false)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg"
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -506,70 +585,161 @@ export function DocumentsPage() {
         </div>
       )}
 
-      {/* Preview / Detail Modal */}
+      {/* In-Browser Web Document Previewer Modal */}
       {previewDoc && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-slate-900 rounded-2xl max-w-4xl w-full shadow-2xl flex flex-col border border-slate-700 animate-scale-up overflow-hidden max-h-[92vh]">
+            {/* Top Toolbar */}
+            <div className="bg-slate-800/90 px-4 py-3 border-b border-slate-700 flex items-center justify-between text-white flex-wrap gap-2">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#245d82]/10 flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-[#245d82]" />
+                <div className="w-9 h-9 rounded-lg bg-[#245d82] flex items-center justify-center shadow-md">
+                  <FileText className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-gray-900">{previewDoc.title}</h3>
-                  <p className="text-xs text-gray-400">{previewDoc.document_type.replace(/_/g, " ")}</p>
+                  <h3 className="text-sm sm:text-base font-bold text-white leading-tight">{previewDoc.title}</h3>
+                  <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                    <span className="font-semibold uppercase tracking-wider text-slate-300">
+                      {previewDoc.document_type.replace(/_/g, " ")}
+                    </span>
+                    <span>•</span>
+                    <span>{formatBytes(previewDoc.file_size_bytes)}</span>
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setPreviewDoc(null)}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+
+              {/* Format Download Quick Toolbar */}
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:inline">
+                  Export As:
+                </span>
+                <button
+                  onClick={() => handleDownload(previewDoc, "pdf")}
+                  className="px-2.5 py-1.5 bg-red-600/20 hover:bg-red-600 text-red-300 hover:text-white rounded-lg text-xs font-bold border border-red-500/30 transition-all cursor-pointer flex items-center gap-1"
+                  title="Download PDF"
+                >
+                  <FileType className="w-3.5 h-3.5" />
+                  PDF
+                </button>
+                <button
+                  onClick={() => handleDownload(previewDoc, "docx")}
+                  className="px-2.5 py-1.5 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white rounded-lg text-xs font-bold border border-blue-500/30 transition-all cursor-pointer flex items-center gap-1"
+                  title="Download DOCX"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  DOCX
+                </button>
+                <button
+                  onClick={() => handleDownload(previewDoc, "xlsx")}
+                  className="px-2.5 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white rounded-lg text-xs font-bold border border-emerald-500/30 transition-all cursor-pointer flex items-center gap-1"
+                  title="Download Excel"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  XLSX
+                </button>
+                <button
+                  onClick={() => handleDownload(previewDoc, "txt")}
+                  className="px-2.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
+                  title="Download TXT"
+                >
+                  TXT
+                </button>
+
+                <div className="w-px h-5 bg-slate-700 mx-1" />
+
+                <button
+                  onClick={() => window.print()}
+                  className="p-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-lg transition-colors cursor-pointer"
+                  title="Print Preview Document"
+                >
+                  <Printer className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => setPreviewDoc(null)}
+                  className="p-1.5 bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {previewDoc.description && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Description</p>
-                  <p className="text-sm text-gray-700 mt-0.5">{previewDoc.description}</p>
+            {/* Document Viewer Paper Canvas */}
+            <div className="bg-slate-950 p-3 sm:p-6 overflow-y-auto flex-1">
+              {previewLoading ? (
+                <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+                  <Loader2 className="w-10 h-10 animate-spin text-[#245d82] mb-3" />
+                  <p className="text-sm font-medium">Rendering document preview...</p>
+                </div>
+              ) : (
+                <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-2xl border border-gray-200 p-6 sm:p-10 font-sans text-gray-800 space-y-6">
+                  {/* Official Header Crest */}
+                  <div className="text-center border-b-2 border-gray-900 pb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#245d82]/10 text-[#245d82] mb-2">
+                      <ShieldCheck className="w-7 h-7" />
+                    </div>
+                    <h2 className="text-base sm:text-lg font-black text-gray-900 tracking-wide uppercase">
+                      GOVERNMENT OF INDIA — PM GATI SHAKTI BHOOMI SETU
+                    </h2>
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-widest mt-0.5">
+                      DEPARTMENT OF LAND RESOURCES • OFFICIAL REVENUE RECORD
+                    </p>
+                  </div>
+
+                  {/* Verification Banner */}
+                  <div className="flex items-center justify-between bg-emerald-50 border border-emerald-300 rounded-xl p-3 text-xs text-emerald-800">
+                    <div className="flex items-center gap-2 font-bold">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>OFFICIAL VERIFIED LAND RECORD</span>
+                    </div>
+                    <span className="font-mono text-[10px] bg-emerald-200/60 px-2 py-0.5 rounded text-emerald-900 font-bold">
+                      ID: {previewDoc.document_id.substring(0, 13)}...
+                    </span>
+                  </div>
+
+                  {/* Metadata Table */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 border border-gray-200 rounded-xl p-4 text-xs">
+                    <div>
+                      <span className="text-gray-400 font-medium block">Document Type</span>
+                      <span className="font-bold text-gray-800 uppercase">{previewDoc.document_type.replace(/_/g, " ")}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 font-medium block">Approval Status</span>
+                      <span className="font-bold text-emerald-700 uppercase">{previewDoc.approval_status.replace(/_/g, " ")}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 font-medium block">Project</span>
+                      <span className="font-bold text-gray-800 truncate block">{previewDoc.project_name || "Unassigned"}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 font-medium block">Parcel Location</span>
+                      <span className="font-bold text-gray-800 truncate block">{previewData?.parcel_info || "Unassigned"}</span>
+                    </div>
+                  </div>
+
+                  {/* Document Body Content */}
+                  <div className="space-y-4 pt-2">
+                    <h3 className="text-sm font-extrabold text-gray-900 uppercase tracking-wider border-b border-gray-200 pb-2">
+                      Record Details & Official Transcript
+                    </h3>
+                    
+                    <div className="bg-gray-50/70 border border-gray-200 rounded-xl p-5 font-mono text-xs text-gray-800 whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner">
+                      {previewData?.text_content || previewDoc.description || "Official document record stored on BhoomiSetu platform."}
+                    </div>
+                  </div>
+
+                  {/* Workflow Sign-off Footer */}
+                  <div className="border-t-2 border-gray-200 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-2">
+                    <div>
+                      <span className="font-semibold text-gray-700">Uploaded By:</span>{" "}
+                      {previewDoc.uploaded_by_name || "Field Officer"}
+                    </div>
+                    <div className="text-right">
+                      <span className="font-semibold text-gray-700">BhoomiSetu Registry Date:</span>{" "}
+                      {previewDoc.created_at ? new Date(previewDoc.created_at).toLocaleString() : "Recent"}
+                    </div>
+                  </div>
                 </div>
               )}
-
-              <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50 p-3 rounded-xl">
-                <div>
-                  <span className="text-gray-400 block">File Size</span>
-                  <span className="font-semibold text-gray-800">{formatBytes(previewDoc.file_size_bytes)}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block">Approval Status</span>
-                  <span className="font-semibold text-gray-800 uppercase">{previewDoc.approval_status.replace(/_/g, " ")}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block">Project</span>
-                  <span className="font-semibold text-gray-800">{previewDoc.project_name || "N/A"}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block">Uploaded By</span>
-                  <span className="font-semibold text-gray-800">{previewDoc.uploaded_by_name || "Field Officer"}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 border-t border-gray-100 pt-3">
-              <button
-                onClick={() => setPreviewDoc(null)}
-                className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => handleDownload(previewDoc)}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                Download Document
-              </button>
             </div>
           </div>
         </div>

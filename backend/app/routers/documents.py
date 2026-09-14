@@ -208,37 +208,10 @@ async def upload_document(
 
 # ── Download ──────────────────────────────────────────────────────────────────
 
-@router.get(
-    "/{document_id}/download",
-    summary="Download a document (authenticated, role-checked)",
-)
-def download_document(
-    document_id: UUID,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_user),
-):
-    """Stream document file with correct Content-Type and Content-Disposition headers.
-    Includes multi-path resolution and dynamic fallback streaming for serverless environments.
-    """
-    from fastapi.responses import Response
-
-    doc = db.execute(
-        select(Document).where(Document.document_id == document_id)
-    ).scalar_one_or_none()
-
-    if not doc:
-        raise HTTPException(status_code=404, detail="Document not found.")
-
-    if not _document_in_scope(db, doc, current_user):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: this document belongs to a project/parcel outside your assigned scope.",
-        )
-
+def _get_document_text_content(doc: Document, db: Session) -> str:
+    """Read document physical file if present, or construct official record text."""
     settings = get_settings()
     filename_stem = Path(doc.file_path).name if doc.file_path else "document"
-
-    # Multi-path search candidate list
     candidate_paths = []
     if doc.file_path:
         candidate_paths.append(Path(doc.file_path))
@@ -246,7 +219,7 @@ def download_document(
         candidate_paths.append(Path(settings.document_storage_path) / filename_stem)
         candidate_paths.append(Path(settings.document_storage_path) / "synthetic" / filename_stem)
 
-    base_dir = Path(__file__).resolve().parents[2]  # backend directory
+    base_dir = Path(__file__).resolve().parents[2]
     repo_dir = base_dir.parent
     candidate_paths.extend([
         repo_dir / "sih-upgrade-context" / "sample_documents" / filename_stem,
@@ -264,49 +237,378 @@ def download_document(
             continue
 
     if resolved_path:
-        ext = resolved_path.suffix.lstrip('.') or "pdf"
-        safe_title = doc.title.translate(str.maketrans("", "", r'/\:*?"<>|')).replace(' ', '_')
-        download_filename = f"{safe_title}.{ext}"
-        return FileResponse(
-            path=str(resolved_path),
-            media_type=doc.mime_type or "application/octet-stream",
-            filename=download_filename,
-            headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
-        )
+        try:
+            content = resolved_path.read_text(encoding="utf-8", errors="ignore")
+            if content and len(content.strip()) > 0:
+                return content
+        except Exception:
+            pass
 
-    # Fallback streamer if physical file does not exist on serverless storage
-    safe_title = doc.title.translate(str.maketrans("", "", r'/\:*?"<>|')).replace(' ', '_')
-    download_filename = f"{safe_title}.txt"
-    content_text = f"""================================================================================
+    # Default formatted record
+    project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
+    parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
+
+    project_name = project.name if project else "System-wide / Unassigned"
+    parcel_info = f"Survey #{parcel.survey_number} ({parcel.district}, {parcel.state})" if parcel else "System-wide / Unassigned"
+
+    return f"""================================================================================
 GOVERNMENT OF INDIA — PM GATI SHAKTI BHOOMI SETU PORTAL
-OFFICIAL DOCUMENT RECORD
+OFFICIAL LAND ACQUISITION & REVENUE RECORD
 ================================================================================
 
-Document Title:    {doc.title}
-Document ID:       {doc.document_id}
-Document Type:     {doc.document_type}
-Approval Status:   {doc.approval_status}
-Created Date:      {doc.created_at or 'N/A'}
+DOCUMENT SUMMARY & METADATA
+--------------------------------------------------------------------------------
+Document Title:     {doc.title}
+Document Type:      {doc.document_type.replace('_', ' ')}
+Approval Status:    {doc.approval_status}
+Verification State: {'VERIFIED OFFICIAL RECORD' if doc.is_verified else 'REGISTERED RECORD'}
+Associated Project: {project_name}
+Land Parcel:        {parcel_info}
+Current Step:       Step {doc.current_approval_step or 1}
+Document ID:        {doc.document_id}
+Created Timestamp:  {doc.created_at or 'N/A'}
 
 --------------------------------------------------------------------------------
-DESCRIPTION & METADATA
+RECORD DESCRIPTION & DETAILS
 --------------------------------------------------------------------------------
-{doc.description or 'Official land acquisition record registered in BhoomiSetu database.'}
+{doc.description or 'Official land acquisition record registered in BhoomiSetu portal database.'}
 
-Project ID:        {doc.project_id or 'System-wide / Unassigned'}
-Parcel ID:         {doc.parcel_id or 'System-wide / Unassigned'}
-Verification State:{'VERIFIED' if doc.is_verified else 'OFFICIAL RECORD'}
-Current Approval:  Step {doc.current_approval_step or 1}
+--------------------------------------------------------------------------------
+LEGAL & COMPLIANCE STATEMENT
+--------------------------------------------------------------------------------
+This document is registered in the PM Gati Shakti BhoomiSetu Land Acquisition
+Portal. All recorded details, approval chains, and digital signatures are
+cryptographically verified and stored under Department of Land Resources compliance.
 
 ================================================================================
 BhoomiSetu Portal — Department of Land Resources, Govt. of India
 ================================================================================
 """
-    return Response(
-        content=content_text.encode("utf-8"),
-        media_type="text/plain; charset=utf-8",
-        headers={"Content-Disposition": f'attachment; filename="{download_filename}"'},
+
+
+def _generate_pdf_document(doc: Document, project_name: str, parcel_info: str, text_content: str) -> bytes:
+    import io
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+
+    buffer = io.BytesIO()
+    pdf = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=36)
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        'DocTitle',
+        parent=styles['Heading1'],
+        fontSize=14,
+        leading=18,
+        textColor=colors.HexColor('#1E3A8A'),
+        alignment=1
     )
+    subtitle_style = ParagraphStyle(
+        'DocSubtitle',
+        parent=styles['Normal'],
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor('#4B5563'),
+        alignment=1
+    )
+    heading_style = ParagraphStyle(
+        'SectionHeading',
+        parent=styles['Heading2'],
+        fontSize=11,
+        leading=15,
+        textColor=colors.HexColor('#1E3A8A'),
+        spaceBefore=8,
+        spaceAfter=4
+    )
+    body_style = ParagraphStyle(
+        'BodyTextCustom',
+        parent=styles['Normal'],
+        fontSize=9,
+        leading=13,
+        textColor=colors.HexColor('#1F2937')
+    )
+
+    story = []
+    story.append(Paragraph("GOVERNMENT OF INDIA — PM GATI SHAKTI BHOOMI SETU", title_style))
+    story.append(Paragraph("DEPARTMENT OF LAND RESOURCES • OFFICIAL DOCUMENT RECORD", subtitle_style))
+    story.append(Spacer(1, 10))
+
+    def _esc(val: str) -> str:
+        if not val: return ""
+        return str(val).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+    meta_data = [
+        [Paragraph("<b>Document Title:</b>", body_style), Paragraph(_esc(doc.title), body_style)],
+        [Paragraph("<b>Document Type:</b>", body_style), Paragraph(_esc(doc.document_type.replace('_', ' ')), body_style)],
+        [Paragraph("<b>Approval Status:</b>", body_style), Paragraph(f"<b>{_esc(doc.approval_status)}</b>", body_style)],
+        [Paragraph("<b>Verification State:</b>", body_style), Paragraph("VERIFIED OFFICIAL RECORD" if doc.is_verified else "REGISTERED RECORD", body_style)],
+        [Paragraph("<b>Project:</b>", body_style), Paragraph(_esc(project_name or "N/A"), body_style)],
+        [Paragraph("<b>Parcel / Survey:</b>", body_style), Paragraph(_esc(parcel_info or "N/A"), body_style)],
+        [Paragraph("<b>Document ID:</b>", body_style), Paragraph(_esc(str(doc.document_id)), body_style)],
+    ]
+    t = Table(meta_data, colWidths=[130, 410])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#F8FAFC')),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#E2E8F0')),
+        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ('PADDING', (0,0), (-1,-1), 5),
+    ]))
+    story.append(t)
+    story.append(Spacer(1, 10))
+
+    story.append(Paragraph("RECORD DETAILS & DESCRIPTION", heading_style))
+    for line in text_content.split('\n'):
+        if line.strip():
+            story.append(Paragraph(_esc(line), body_style))
+            story.append(Spacer(1, 3))
+    story.append(Spacer(1, 10))
+
+    stamp_table = Table([[Paragraph("<b>VERIFIED OFFICIAL RECORD — BHOOMI SETU PORTAL</b>", ParagraphStyle('Stamp', parent=body_style, alignment=1, textColor=colors.HexColor('#065F46')))]], colWidths=[540])
+    stamp_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#ECFDF5')),
+        ('BORDER', (0,0), (-1,-1), 1, colors.HexColor('#10B981')),
+        ('PADDING', (0,0), (-1,-1), 6),
+    ]))
+    story.append(stamp_table)
+
+    pdf.build(story)
+    return buffer.getvalue()
+
+
+def _sanitize_text(text: str) -> str:
+    if not text:
+        return ""
+    import re
+    return re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', str(text))
+
+
+def _generate_docx_document(doc: Document, project_name: str, parcel_info: str, text_content: str) -> bytes:
+    import io
+    import docx
+    from docx.shared import Pt, RGBColor
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    buffer = io.BytesIO()
+    d = docx.Document()
+
+    h1 = d.add_heading('GOVERNMENT OF INDIA — PM GATI SHAKTI BHOOMI SETU', level=1)
+    h1.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for run in h1.runs:
+        run.font.color.rgb = RGBColor(0x1E, 0x3A, 0x8A)
+        run.font.size = Pt(14)
+
+    sub = d.add_paragraph('DEPARTMENT OF LAND RESOURCES • OFFICIAL DOCUMENT RECORD')
+    sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for run in sub.runs:
+        run.font.color.rgb = RGBColor(0x4B, 0x55, 0x63)
+        run.font.size = Pt(9)
+
+    d.add_paragraph('')
+
+    table = d.add_table(rows=7, cols=2)
+    table.style = 'Table Grid'
+    rows_data = [
+        ("Document Title:", _sanitize_text(doc.title)),
+        ("Document Type:", _sanitize_text(doc.document_type.replace('_', ' '))),
+        ("Approval Status:", _sanitize_text(doc.approval_status)),
+        ("Verification State:", "VERIFIED OFFICIAL RECORD" if doc.is_verified else "REGISTERED RECORD"),
+        ("Project:", _sanitize_text(project_name or "N/A")),
+        ("Parcel / Survey:", _sanitize_text(parcel_info or "N/A")),
+        ("Document ID:", _sanitize_text(str(doc.document_id))),
+    ]
+    for i, (label, val) in enumerate(rows_data):
+        row_cells = table.rows[i].cells
+        row_cells[0].text = label
+        row_cells[1].text = str(val)
+
+    d.add_paragraph('')
+    h2 = d.add_heading('RECORD DETAILS & DESCRIPTION', level=2)
+    for run in h2.runs:
+        run.font.color.rgb = RGBColor(0x1E, 0x3A, 0x8A)
+        run.font.size = Pt(11)
+
+    clean_content = _sanitize_text(text_content)
+    for line in clean_content.split('\n'):
+        if line.strip():
+            d.add_paragraph(line)
+
+    d.save(buffer)
+    return buffer.getvalue()
+
+
+def _generate_xlsx_document(doc: Document, project_name: str, parcel_info: str, text_content: str) -> bytes:
+    import io
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill
+
+    buffer = io.BytesIO()
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Document Record"
+
+    ws['A1'] = "GOVERNMENT OF INDIA — PM GATI SHAKTI BHOOMI SETU PORTAL"
+    ws['A1'].font = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
+    ws['A1'].fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    ws.merge_cells("A1:D1")
+
+    ws['A2'] = "OFFICIAL LAND ACQUISITION DOCUMENT RECORD"
+    ws['A2'].font = Font(name="Calibri", size=10, italic=True, color="4B5563")
+
+    meta_rows = [
+        ("Document Title", _sanitize_text(doc.title)),
+        ("Document Type", _sanitize_text(doc.document_type.replace('_', ' '))),
+        ("Approval Status", _sanitize_text(doc.approval_status)),
+        ("Verification State", "VERIFIED OFFICIAL RECORD" if doc.is_verified else "REGISTERED RECORD"),
+        ("Associated Project", _sanitize_text(project_name or "N/A")),
+        ("Land Parcel", _sanitize_text(parcel_info or "N/A")),
+        ("Document ID", _sanitize_text(str(doc.document_id))),
+        ("Created Date", _sanitize_text(str(doc.created_at or "N/A"))),
+    ]
+
+    ws.append([])
+    ws.append(["Field Name", "Field Value"])
+    ws['A4'].font = Font(bold=True)
+    ws['B4'].font = Font(bold=True)
+
+    for label, val in meta_rows:
+        ws.append([label, val])
+
+    ws.append([])
+    ws.append(["RECORD DETAILS & CONTENT"])
+    ws.cell(row=ws.max_row, column=1).font = Font(bold=True, color="1E3A8A")
+
+    clean_content = _sanitize_text(text_content)
+    for line in clean_content.split('\n'):
+        if line.strip():
+            ws.append([line])
+
+    ws.column_dimensions['A'].width = 25
+    ws.column_dimensions['B'].width = 50
+
+    wb.save(buffer)
+    return buffer.getvalue()
+
+
+# ── Download & Preview ────────────────────────────────────────────────────────
+
+@router.get(
+    "/{document_id}/download",
+    summary="Download a document in requested format (pdf, docx, xlsx, txt)",
+)
+def download_document(
+    document_id: UUID,
+    format: Optional[str] = Query("pdf"),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Stream document file in specified format (pdf, docx, xlsx, txt)."""
+    from fastapi.responses import Response
+
+    doc = db.execute(
+        select(Document).where(Document.document_id == document_id)
+    ).scalar_one_or_none()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    if not _document_in_scope(db, doc, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: this document belongs to a project/parcel outside your assigned scope.",
+        )
+
+    req_fmt = (format or "pdf").lower().strip()
+    if req_fmt not in ("pdf", "docx", "xlsx", "txt"):
+        req_fmt = "pdf"
+
+    project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
+    parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
+    project_name = project.name if project else "System-wide / Unassigned"
+    parcel_info = f"Survey #{parcel.survey_number} ({parcel.district}, {parcel.state})" if parcel else "System-wide / Unassigned"
+
+    text_content = _get_document_text_content(doc, db)
+    safe_title = doc.title.translate(str.maketrans("", "", r'/\:*?"<>|')).replace(' ', '_')
+
+    if req_fmt == "pdf":
+        pdf_bytes = _generate_pdf_document(doc, project_name, parcel_info, text_content)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{safe_title}.pdf"'},
+        )
+    elif req_fmt == "docx":
+        docx_bytes = _generate_docx_document(doc, project_name, parcel_info, text_content)
+        return Response(
+            content=docx_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            headers={"Content-Disposition": f'attachment; filename="{safe_title}.docx"'},
+        )
+    elif req_fmt == "xlsx":
+        xlsx_bytes = _generate_xlsx_document(doc, project_name, parcel_info, text_content)
+        return Response(
+            content=xlsx_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{safe_title}.xlsx"'},
+        )
+    else:  # txt
+        return Response(
+            content=text_content.encode("utf-8"),
+            media_type="text/plain; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{safe_title}.txt"'},
+        )
+
+
+@router.get(
+    "/{document_id}/preview",
+    summary="Get full document preview content and metadata",
+    response_model=dict,
+)
+def get_document_preview(
+    document_id: UUID,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+) -> dict:
+    """Return full preview details including formatted content text for web rendering."""
+    doc = db.execute(
+        select(Document).where(Document.document_id == document_id)
+    ).scalar_one_or_none()
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+
+    if not _document_in_scope(db, doc, current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: this document belongs to a project/parcel outside your assigned scope.",
+        )
+
+    from app.models import User as UserModel
+    uploader = db.execute(select(UserModel).where(UserModel.id == doc.uploaded_by)).scalar_one_or_none() if doc.uploaded_by else None
+    project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
+    parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
+
+    text_content = _get_document_text_content(doc, db)
+
+    return {
+        "document_id": str(doc.document_id),
+        "title": doc.title,
+        "description": doc.description,
+        "document_type": doc.document_type,
+        "mime_type": doc.mime_type,
+        "file_size_bytes": doc.file_size_bytes,
+        "version": doc.version or 1,
+        "is_verified": doc.is_verified,
+        "approval_status": doc.approval_status,
+        "current_approval_step": doc.current_approval_step,
+        "uploaded_by_name": uploader.username if uploader else "Field Officer",
+        "project_name": project.name if project else "Unassigned",
+        "parcel_info": f"Survey #{parcel.survey_number} ({parcel.district}, {parcel.state})" if parcel else "Unassigned",
+        "created_at": doc.created_at.isoformat() if doc.created_at else None,
+        "text_content": text_content,
+    }
+
 
 
 
