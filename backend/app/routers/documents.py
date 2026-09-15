@@ -27,41 +27,91 @@ router = APIRouter()
 
 def _document_in_scope(db: Session, doc: Document, current_user) -> bool:
     """Return True if the document's linked parcel/project is within the
-    current user's geographic scope. Documents with no location (project_id
-    and parcel_id both null) are treated as system-wide and always visible.
+    current user's geographic scope.
     """
     scope = get_user_geographic_scope(current_user)
     if not scope:
-        return True  # Unscoped (national) role — sees everything.
+        return True  # Unscoped (national / admin) role — sees everything.
 
-    state = None
-    district = None
+    doc_states = set()
+    doc_districts = set()
 
     if doc.parcel_id:
         parcel = db.execute(
             select(Parcel).where(Parcel.parcel_id == doc.parcel_id)
         ).scalar_one_or_none()
         if parcel:
-            state = parcel.state or None
-            district = parcel.district or None
-    elif doc.project_id:
+            if parcel.state:
+                doc_states.add(parcel.state)
+            if parcel.district:
+                doc_districts.add(parcel.district)
+
+    if doc.project_id:
         project = db.execute(
             select(Project).where(Project.project_id == doc.project_id)
         ).scalar_one_or_none()
         if project:
             if project.states:
-                state = project.states[0]
+                doc_states.update(project.states)
             if project.districts:
-                district = project.districts[0]
+                doc_districts.update(project.districts)
 
-    if state is None and district is None:
-        return True  # No location on the document — treat as system-wide.
+    if not doc_states and not doc_districts:
+        return True  # System-wide record without location constraint
 
-    if scope.get("district"):
-        return district == scope["district"]
-    if scope.get("state"):
-        return state == scope["state"]
+    user_district = scope.get("district")
+    user_state = scope.get("state")
+
+    if user_district:
+        return user_district in doc_districts or (user_state and user_state in doc_states and not doc_districts)
+    if user_state:
+        return user_state in doc_states
+
     return True
+
+
+def _get_document_issuing_authority(doc: Document, db: Session) -> dict:
+    """Determine real-time Ministry, Department, and Issuing Authority based on project, parcel, and document type."""
+    project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
+    parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
+
+    proj_name = (project.name if project else "").lower()
+    doc_type = (doc.document_type or "").upper()
+    state = parcel.state if parcel else (project.states[0] if project and project.states else "India")
+    district = parcel.district if parcel else (project.districts[0] if project and project.districts else "")
+
+    ministry = "MINISTRY OF RURAL DEVELOPMENT"
+    department = "DEPARTMENT OF LAND RESOURCES • GOVT. OF INDIA"
+    authority = f"OFFICE OF THE DISTRICT COLLECTOR ({district.upper() if district else state.upper()})"
+
+    if "expressway" in proj_name or "nhai" in proj_name or "highway" in proj_name or "corridor" in proj_name and "rrts" not in proj_name and "freight" not in proj_name:
+        ministry = "MINISTRY OF ROAD TRANSPORT & HIGHWAYS"
+        department = "NATIONAL HIGHWAYS AUTHORITY OF INDIA (NHAI)"
+        authority = f"OFFICE OF THE COMPETENT AUTHORITY LAND ACQUISITION (CALA), {district.upper() or state.upper()}"
+    elif "freight" in proj_name or "wdfc" in proj_name or "railway" in proj_name or "dfccil" in proj_name:
+        ministry = "MINISTRY OF RAILWAYS"
+        department = "DEDICATED FREIGHT CORRIDOR CORPORATION OF INDIA (DFCCIL)"
+        authority = f"CHIEF GENERAL MANAGER & LAND ACQUISITION UNIT, {state.upper()}"
+    elif "rrts" in proj_name or "metro" in proj_name or "ncrtc" in proj_name:
+        ministry = "MINISTRY OF HOUSING & URBAN AFFAIRS"
+        department = "NATIONAL CAPITAL REGION TRANSPORT CORPORATION (NCRTC)"
+        authority = f"SPECIAL LAND ACQUISITION OFFICER (SLAO), {district.upper() or state.upper()}"
+    elif doc_type in ("SURVEY_REPORT", "OWNERSHIP_RECORD", "POSSESSION_ORDER"):
+        ministry = f"GOVERNMENT OF {state.upper()}"
+        department = "REVENUE & LAND REFORMS DEPARTMENT"
+        authority = f"OFFICE OF THE SUB-DIVISIONAL MAGISTRATE & TEHSILDAR, {district.upper() or state.upper()}"
+    elif doc_type in ("AWARD_ORDER", "COMPENSATION_RECEIPT"):
+        ministry = f"GOVERNMENT OF {state.upper()}"
+        department = "DEPARTMENT OF LAND ACQUISITION & REHABILITATION"
+        authority = f"OFFICE OF THE LAND ACQUISITION COLLECTOR, {district.upper() or state.upper()}"
+
+    return {
+        "ministry": ministry,
+        "department": department,
+        "issuing_authority": authority,
+        "state": state,
+        "district": district
+    }
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -217,64 +267,147 @@ async def upload_document(
 
 # ── Download ──────────────────────────────────────────────────────────────────
 
+def _resolve_document_file(doc: Document) -> Optional[Path]:
+    """Resolve the physical file for a document, handling cross-platform path differences.
+
+    The file_path stored in the DB may be an absolute path from a different machine
+    (e.g. 'C:\\PROJECTS\\...\\synthetic\\Survey_Report_001.pdf' or '/app/storage/documents/...').
+    We extract the filename and search known storage directories.
+    """
+    if not doc.file_path:
+        return None
+
+    settings = get_settings()
+    # Extract just the filename from whatever absolute path is stored
+    stored_path = Path(doc.file_path)
+    filename = stored_path.name
+
+    base_dir = Path(__file__).resolve().parents[2]  # backend/
+    repo_dir = base_dir.parent                       # project root
+
+    candidate_paths = [
+        # 1. Try the stored path as-is (works if same machine)
+        stored_path,
+        # 2. Relative to backend storage
+        base_dir / "storage" / "documents" / filename,
+        base_dir / "storage" / "documents" / "synthetic" / filename,
+        # 3. Relative to configured storage path
+        Path(settings.document_storage_path) / filename,
+        Path(settings.document_storage_path) / "synthetic" / filename,
+        # 4. Relative to repo root (for local dev)
+        repo_dir / "backend" / "storage" / "documents" / filename,
+        repo_dir / "backend" / "storage" / "documents" / "synthetic" / filename,
+        # 5. Extracted files directory
+        repo_dir / "files_extracted" / filename,
+    ]
+
+    for candidate in candidate_paths:
+        try:
+            if candidate.exists() and candidate.is_file():
+                return candidate
+        except Exception:
+            continue
+
+    return None
+
+
+def _extract_pdf_text(pdf_path: Path) -> Optional[str]:
+    """Extract text content from a PDF file using PyMuPDF (fitz)."""
+    try:
+        try:
+            import pymupdf as fitz  # PyMuPDF >= 1.28
+        except ImportError:
+            import fitz  # PyMuPDF < 1.28
+
+        text_parts = []
+        with fitz.open(str(pdf_path)) as pdf_doc:
+            for page in pdf_doc:
+                page_text = page.get_text("text")
+                if page_text and page_text.strip():
+                    text_parts.append(page_text.strip())
+
+        combined = "\n\n".join(text_parts)
+        # Only return if we got meaningful text (not just whitespace/headers)
+        if combined and len(combined.strip()) > 20:
+            return combined
+    except Exception:
+        pass
+    return None
+
+
 def _get_document_text_content(doc: Document, db: Session) -> str:
-    """Read document physical file if present, cached metadata text, or construct official record text."""
+    """Read document text from DB cache, extract from physical PDF, or construct fallback.
+
+    Priority order:
+    1. Cached content_text in metadata_json (fast DB hit)
+    2. Companion .txt file in sample_documents/ directory
+    3. PyMuPDF text extraction from the actual PDF file
+    4. Fallback: formatted metadata record
+    """
     # 1. Check if full text content is cached directly in DB metadata_json
     meta = doc.metadata_json or {}
     if isinstance(meta, dict) and meta.get("content_text") and len(str(meta["content_text"]).strip()) > 0:
         return str(meta["content_text"])
 
-    # 2. Check candidate paths on disk (including .txt extension for PDF stems)
     settings = get_settings()
-    filename_stem = Path(doc.file_path).name if doc.file_path else "document"
-    txt_stem = Path(filename_stem).with_suffix(".txt").name
-
-    candidate_paths = []
-    if doc.file_path:
-        candidate_paths.append(Path(doc.file_path))
-        candidate_paths.append(Path(doc.file_path).with_suffix(".txt"))
-
     base_dir = Path(__file__).resolve().parents[2]
     repo_dir = base_dir.parent
 
-    candidate_paths.extend([
-        repo_dir / "sih-upgrade-context" / "sample_documents" / txt_stem,
-        repo_dir / "sih-upgrade-context" / "sample_documents" / filename_stem,
-        Path(settings.document_storage_path) / filename_stem,
-        Path(settings.document_storage_path) / txt_stem,
-        Path(settings.document_storage_path) / "synthetic" / filename_stem,
-        Path(settings.document_storage_path) / "synthetic" / txt_stem,
-        repo_dir / "backend" / "storage" / "documents" / filename_stem,
-        repo_dir / "backend" / "storage" / "documents" / "synthetic" / filename_stem,
-        repo_dir / "backend" / "storage" / "documents" / "synthetic" / txt_stem,
-    ])
+    # 2. Try companion .txt files (sample documents with real content)
+    filename = Path(doc.file_path).name if doc.file_path else "document"
+    txt_filename = Path(filename).with_suffix(".txt").name
 
-    resolved_path: Optional[Path] = None
-    for candidate in candidate_paths:
+    # Also try matching by original_filename from metadata
+    original_filename = ""
+    if isinstance(meta, dict) and meta.get("original_filename"):
+        original_filename = meta["original_filename"]
+        if not original_filename.endswith(".txt"):
+            original_filename = Path(original_filename).with_suffix(".txt").name
+
+    txt_search_dirs = [
+        repo_dir / "sih-upgrade-context" / "sample_documents",
+        base_dir / "storage" / "documents" / "synthetic",
+        base_dir / "storage" / "documents",
+        Path(settings.document_storage_path) / "synthetic",
+        Path(settings.document_storage_path),
+    ]
+
+    txt_candidates = []
+    for search_dir in txt_search_dirs:
+        txt_candidates.append(search_dir / txt_filename)
+        if original_filename:
+            txt_candidates.append(search_dir / original_filename)
+
+    for txt_path in txt_candidates:
         try:
-            if candidate.exists() and candidate.is_file():
-                resolved_path = candidate
-                break
+            if txt_path.exists() and txt_path.is_file():
+                content = txt_path.read_text(encoding="utf-8", errors="ignore")
+                if content and len(content.strip()) > 10:
+                    # Cache for future fast retrieval
+                    _cache_content_text(doc, db, content)
+                    return content
         except Exception:
             continue
 
-    if resolved_path:
+    # 3. Extract text from the actual PDF file using PyMuPDF
+    resolved_pdf = _resolve_document_file(doc)
+    if resolved_pdf and resolved_pdf.suffix.lower() == ".pdf":
+        extracted = _extract_pdf_text(resolved_pdf)
+        if extracted:
+            _cache_content_text(doc, db, extracted)
+            return extracted
+
+    # 4. If we found a non-PDF text file, read it
+    if resolved_pdf and resolved_pdf.suffix.lower() in (".txt", ".doc", ".docx"):
         try:
-            content = resolved_path.read_text(encoding="utf-8", errors="ignore")
-            if content and len(content.strip()) > 0 and not content.startswith("%PDF"):
-                # Cache content in doc.metadata_json for fast future DB retrieval
-                try:
-                    current_meta = dict(doc.metadata_json or {})
-                    current_meta["content_text"] = content
-                    doc.metadata_json = current_meta
-                    db.commit()
-                except Exception:
-                    db.rollback()
+            content = resolved_pdf.read_text(encoding="utf-8", errors="ignore")
+            if content and len(content.strip()) > 10 and not content.startswith("%PDF"):
+                _cache_content_text(doc, db, content)
                 return content
         except Exception:
             pass
 
-    # Default formatted record
+    # 5. Fallback: formatted metadata record
     project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
     parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
 
@@ -314,6 +447,18 @@ cryptographically verified and stored under Department of Land Resources complia
 BhoomiSetu Portal — Department of Land Resources, Govt. of India
 ================================================================================
 """
+
+
+def _cache_content_text(doc: Document, db: Session, content: str) -> None:
+    """Cache extracted text content into the document's metadata_json for fast future retrieval."""
+    try:
+        current_meta = dict(doc.metadata_json or {})
+        current_meta["content_text"] = content
+        doc.metadata_json = current_meta
+        db.commit()
+    except Exception:
+        db.rollback()
+
 
 
 def _generate_pdf_document(doc: Document, project_name: str, parcel_info: str, text_content: str) -> bytes:
@@ -553,13 +698,29 @@ def download_document(
     if req_fmt not in ("pdf", "docx", "xlsx", "txt"):
         req_fmt = "pdf"
 
+    safe_title = doc.title.translate(str.maketrans("", "", r'/\:*?"<>|')).replace(' ', '_')
+
+    # For PDF format: serve the original file if it exists on disk
+    if req_fmt == "pdf":
+        resolved_file = _resolve_document_file(doc)
+        if resolved_file and resolved_file.suffix.lower() == ".pdf":
+            try:
+                pdf_bytes = resolved_file.read_bytes()
+                return Response(
+                    content=pdf_bytes,
+                    media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="{safe_title}.pdf"'},
+                )
+            except Exception:
+                pass  # Fall through to generated PDF
+
+    # For all formats (and PDF fallback): generate from text content
     project = db.execute(select(Project).where(Project.project_id == doc.project_id)).scalar_one_or_none() if doc.project_id else None
     parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
     project_name = project.name if project else "System-wide / Unassigned"
     parcel_info = f"Survey #{parcel.survey_number} ({parcel.district}, {parcel.state})" if parcel else "System-wide / Unassigned"
 
     text_content = _get_document_text_content(doc, db)
-    safe_title = doc.title.translate(str.maketrans("", "", r'/\:*?"<>|')).replace(' ', '_')
 
     if req_fmt == "pdf":
         pdf_bytes = _generate_pdf_document(doc, project_name, parcel_info, text_content)
@@ -620,6 +781,7 @@ def get_document_preview(
     parcel = db.execute(select(Parcel).where(Parcel.parcel_id == doc.parcel_id)).scalar_one_or_none() if doc.parcel_id else None
 
     text_content = _get_document_text_content(doc, db)
+    auth_info = _get_document_issuing_authority(doc, db)
 
     return {
         "document_id": str(doc.document_id),
@@ -637,6 +799,9 @@ def get_document_preview(
         "parcel_info": f"Survey #{parcel.survey_number} ({parcel.district}, {parcel.state})" if parcel else "Unassigned",
         "created_at": doc.created_at.isoformat() if doc.created_at else None,
         "text_content": text_content,
+        "ministry": auth_info["ministry"],
+        "department": auth_info["department"],
+        "issuing_authority": auth_info["issuing_authority"],
     }
 
 

@@ -1549,6 +1549,14 @@ def seed_database(source: str = "demo", reset: bool = False) -> None:
 
         seed_alerts(db)
 
+        # Seed synthetic documents from files.zip (non-blocking)
+        try:
+            from scripts.seed_synthetic_documents import seed_synthetic_documents
+            seed_synthetic_documents()
+            print("   [OK] Synthetic documents seeded from files.zip.")
+        except Exception as doc_err:
+            print(f"   [WARN] Document seeding skipped: {doc_err}")
+
         print("\n" + "=" * 70)
         print("  [SUCCESS] DATABASE SEED COMPLETED SUCCESSFULLY!")
         print("  - Demo credentials: admin / central_user / state_user / district_user")

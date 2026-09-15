@@ -54,6 +54,21 @@ async def lifespan(app: FastAPI):
                     from db.seed import seed_users
                     seed_users(db)
                     logger.info("Core demo users seeded successfully.")
+
+            # Auto-sync synthetic documents from files.zip if not already in DB
+            try:
+                from app.models.document import Document
+                doc_count = db.execute(select(func.count(Document.document_id))).scalar() or 0
+                if doc_count == 0:
+                    logger.info("No documents found in database — auto-seeding from files.zip...")
+                    try:
+                        from scripts.seed_synthetic_documents import seed_synthetic_documents
+                        seed_synthetic_documents()
+                        logger.info("Synthetic documents seeded successfully.")
+                    except Exception as doc_seed_err:
+                        logger.warning("Document auto-seed skipped: %s", doc_seed_err)
+            except Exception as doc_check_err:
+                logger.warning("Document count check skipped: %s", doc_check_err)
         finally:
             db.close()
     except Exception as e:
