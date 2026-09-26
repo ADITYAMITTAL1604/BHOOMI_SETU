@@ -71,6 +71,7 @@ export function DocumentsPage() {
   const [previewDoc, setPreviewDoc] = useState<DocumentItem | null>(null);
   const [previewData, setPreviewData] = useState<DocumentPreview | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Multi-Format Download State
   const [downloadMenuId, setDownloadMenuId] = useState<string | null>(null);
@@ -104,12 +105,14 @@ export function DocumentsPage() {
   const handleOpenPreview = async (doc: DocumentItem) => {
     setPreviewDoc(doc);
     setPreviewLoading(true);
+    setPreviewError(null);
     setPreviewData(null);
     try {
       const data = await getDocumentPreview(doc.document_id);
       setPreviewData(data);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load document preview:", err);
+      setPreviewError(err?.response?.data?.detail || "Failed to load document preview.");
     } finally {
       setPreviewLoading(false);
     }
@@ -670,19 +673,38 @@ export function DocumentsPage() {
                   <Loader2 className="w-10 h-10 animate-spin text-[#245d82] mb-3" />
                   <p className="text-sm font-medium">Rendering document preview...</p>
                 </div>
+              ) : previewError ? (
+                <div className="py-16 flex flex-col items-center justify-center text-center px-4">
+                  <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 mb-3">
+                    <X className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-base font-bold text-white mb-1">Preview Access Error</h4>
+                  <p className="text-xs text-red-300 max-w-md mb-4">{previewError}</p>
+                  <button
+                    onClick={() => handleOpenPreview(previewDoc)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                  >
+                    Retry Loading
+                  </button>
+                </div>
               ) : (
                 <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-2xl border border-gray-200 p-6 sm:p-10 font-sans text-gray-800 space-y-6">
-                  {/* Official Header Crest */}
+                  {/* Official Header Crest with Real-Time Ministry & Issuing Authority */}
                   <div className="text-center border-b-2 border-gray-900 pb-4">
                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#245d82]/10 text-[#245d82] mb-2">
-                      <ShieldCheck className="w-7 h-7" />
+                      <Building2 className="w-7 h-7" />
                     </div>
                     <h2 className="text-base sm:text-lg font-black text-gray-900 tracking-wide uppercase">
-                      GOVERNMENT OF INDIA — PM GATI SHAKTI BHOOMI SETU
+                      {previewData?.ministry || "GOVERNMENT OF INDIA"}
                     </h2>
-                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-widest mt-0.5">
-                      DEPARTMENT OF LAND RESOURCES • OFFICIAL REVENUE RECORD
+                    <p className="text-xs font-bold text-gray-700 uppercase tracking-widest mt-0.5">
+                      {previewData?.department || "DEPARTMENT OF LAND RESOURCES • OFFICIAL REVENUE RECORD"}
                     </p>
+                    {previewData?.issuing_authority && (
+                      <p className="text-[11px] font-semibold text-[#245d82] uppercase tracking-wider mt-1.5 bg-[#245d82]/10 py-1 px-3.5 rounded-full inline-block">
+                        {previewData.issuing_authority}
+                      </p>
+                    )}
                   </div>
 
                   {/* Verification Banner */}

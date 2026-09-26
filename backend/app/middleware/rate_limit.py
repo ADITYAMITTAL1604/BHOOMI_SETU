@@ -53,6 +53,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return None
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Always pass through CORS preflight (OPTIONS) requests
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         ip = self._get_client_ip(request)
         # Exempt localhost / dev environment from rate limiting
         if ip in ("127.0.0.1", "::1", "localhost", "testclient"):

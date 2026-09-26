@@ -60,6 +60,9 @@ export async function deleteDocument(documentId: string): Promise<void> {
 export interface DocumentPreview extends DocumentItem {
   text_content: string;
   parcel_info?: string;
+  ministry?: string;
+  department?: string;
+  issuing_authority?: string;
 }
 
 export async function getDocumentPreview(documentId: string): Promise<DocumentPreview> {

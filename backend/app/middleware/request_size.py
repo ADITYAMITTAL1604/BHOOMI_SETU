@@ -29,6 +29,10 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
         self.max_bytes = max_bytes
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Always pass through CORS preflight (OPTIONS) requests
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         path = request.url.path
         if any(path.startswith(prefix) for prefix in EXEMPT_PREFIXES):
             return await call_next(request)
